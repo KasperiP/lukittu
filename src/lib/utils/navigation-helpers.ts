@@ -2,6 +2,7 @@ import { discordIcon } from '@/components/shared/Icons';
 import {
   Ban,
   BookOpenText,
+  FileScan,
   KeyRound,
   LayoutGrid,
   Logs,
@@ -101,6 +102,18 @@ export function getMenuList(pathname: string): Group[] {
           translation: 'logs',
           active: pathname === '/dashboard/logs',
           icon: Logs,
+          submenus: [],
+        },
+      ],
+    },
+    {
+      groupTranslation: '',
+      menus: [
+        {
+          href: '/dashboard/analyzer',
+          translation: 'analyzer',
+          active: pathname === '/dashboard/analyzer',
+          icon: FileScan,
           submenus: [],
         },
       ],

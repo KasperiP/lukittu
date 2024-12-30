@@ -402,10 +402,25 @@
       "recently_activity": "Recent activity",
       "recently_activity_description": "Showing recent license verify requests."
     },
+    "analyzer": {
+      "analyze_files": "Analyze files",
+      "description": "Upload your files to analyze them for watermarks.",
+      "drag_and_drop": "Drag and drop files here",
+      "drop_here": "Drop here",
+      "file_size_limit": "Maximum file size: {size}",
+      "analyzing": "Analyzing...",
+      "no_watermarks_found": "No watermarks found",
+      "analyze": "Analyze",
+      "embedded_at": "Embedded at",
+      "timestamp_found": "Embedded timestamp found",
+      "no_watermark_found": "No watermark found",
+      "watermark_found": "Watermark found"
+    },
     "navigation": {
       "dashboard": "Dashboard",
       "licenses": "Licenses",
       "products": "Products",
+      "analyzer": "Analyzer",
       "customers": "Customers",
       "team": "Team",
       "members": "Members",
