@@ -51,30 +51,31 @@ model Session {
 }
 
 model Team {
-  id                String             @id @default(uuid())
-  name              String
-  ownerId           String
-  imageUrl          String?
-  owner             User               @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  users             User[]             @relation("TeamUsers")
-  products          Product[]
-  licenses          License[]
-  customers         Customer[]
-  requestLogs       RequestLog[]
-  auditLogs         AuditLog[]
-  invitations       Invitation[]
-  apiKeys           ApiKey[]
-  devices           Device[]
-  releases          Release[]
-  blacklist         Blacklist[]
-  limits            Limits?
-  stripeIntegration StripeIntegration?
-  settings          Settings?
-  keyPair           KeyPair?
-  deletedAt         DateTime?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  subscription      Subscription?
+  id                   String                @id @default(uuid())
+  name                 String
+  ownerId              String
+  imageUrl             String?
+  owner                User                  @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  users                User[]                @relation("TeamUsers")
+  products             Product[]
+  licenses             License[]
+  customers            Customer[]
+  requestLogs          RequestLog[]
+  auditLogs            AuditLog[]
+  invitations          Invitation[]
+  apiKeys              ApiKey[]
+  devices              Device[]
+  releases             Release[]
+  blacklist            Blacklist[]
+  watermarkingSettings WatermarkingSettings?
+  limits               Limits?
+  stripeIntegration    StripeIntegration?
+  settings             Settings?
+  keyPair              KeyPair?
+  deletedAt            DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  subscription         Subscription?
 }
 
 model Subscription {
@@ -152,11 +153,23 @@ model Settings {
   strictCustomers Boolean       @default(false)
   strictProducts  Boolean       @default(false)
   strictReleases  Boolean       @default(false)
-  watermarking    Boolean       @default(false)
   emailMessage    String?
   emailImageUrl   String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+}
+
+model WatermarkingSettings {
+  id                          String  @id @default(uuid())
+  teamId                      String  @unique
+  team                        Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  watermarkingEnabled         Boolean @default(false)
+  staticConstantPoolSynthesis Boolean @default(false)
+  staticConstantPoolDensity   Int     @default(0)
+  dynamicBytecodeInjection    Boolean @default(false)
+  dynamicBytecodeDensity      Int     @default(0)
+  temporalAttributeEmbedding  Boolean @default(false)
+  temporalAttributeDensity    Int     @default(0)
 }
 
 model KeyPair {

@@ -137,12 +137,14 @@ export const handleClassloader = async ({
         },
       },
       settings: true,
+      watermarkingSettings: true,
       blacklist: true,
       limits: true,
     },
   });
 
   const settings = team?.settings;
+  const watermarkingSettings = team?.watermarkingSettings;
   const limits = team?.limits;
   const keyPair = team?.keyPair;
 
@@ -663,14 +665,23 @@ export const handleClassloader = async ({
 
   const isJar = Boolean(releaseToUse.file?.mainClassName);
 
+  const hasAtLeastOneWatermarkingMethodEnabled = Boolean(
+    watermarkingSettings?.staticConstantPoolSynthesis ||
+      watermarkingSettings?.dynamicBytecodeInjection ||
+      watermarkingSettings?.temporalAttributeEmbedding,
+  );
+
   const watermarkingEnabled = Boolean(
-    settings.watermarking && limits.allowWatermarking && isJar,
+    watermarkingSettings?.watermarkingEnabled &&
+      hasAtLeastOneWatermarkingMethodEnabled &&
+      limits.allowWatermarking &&
+      isJar,
   );
 
   logger.info(
     `Downloading file for team ${teamId}, release ${releaseToUse.id}, file ${fileToUse.id}`,
     {
-      'settings.watermarking': settings.watermarking,
+      'settings.watermarking': watermarkingSettings,
       'limits.allowWatermarking': limits.allowWatermarking,
       isJar,
     },
@@ -713,6 +724,47 @@ export const handleClassloader = async ({
     const WATERMARK = `${teamId}:${licenseKeyLookup}`;
     const ENCRYPTION_KEY = generateHMAC(teamId).slice(0, 16);
 
+    const methods: (
+      | 'STATIC_CONSTANT_POOL_SYNTHESIS'
+      | 'DYNAMIC_BYTECODE_INJECTION'
+      | 'TEMPORAL_ATTRIBUTE_EMBEDDING'
+    )[] = [];
+
+    const densities: number[] = [];
+
+    if (watermarkingSettings?.staticConstantPoolSynthesis) {
+      methods.push('STATIC_CONSTANT_POOL_SYNTHESIS');
+      densities.push(
+        watermarkingSettings.staticConstantPoolDensity
+          ? Number(
+              (watermarkingSettings.staticConstantPoolDensity / 100).toFixed(2),
+            )
+          : 0,
+      );
+    }
+
+    if (watermarkingSettings?.dynamicBytecodeInjection) {
+      methods.push('DYNAMIC_BYTECODE_INJECTION');
+      densities.push(
+        watermarkingSettings.dynamicBytecodeDensity
+          ? Number(
+              (watermarkingSettings.dynamicBytecodeDensity / 100).toFixed(2),
+            )
+          : 0,
+      );
+    }
+
+    if (watermarkingSettings?.temporalAttributeEmbedding) {
+      methods.push('TEMPORAL_ATTRIBUTE_EMBEDDING');
+      densities.push(
+        watermarkingSettings.temporalAttributeDensity
+          ? Number(
+              (watermarkingSettings.temporalAttributeDensity / 100).toFixed(2),
+            )
+          : 0,
+      );
+    }
+
     const embedResponse = await fetch(
       `${process.env.WATERMARK_SERVICE_BASE_URL}/api/watermark/embed`,
       {
@@ -720,6 +772,8 @@ export const handleClassloader = async ({
         headers: {
           'X-Watermark': WATERMARK,
           'X-Encryption-Key': ENCRYPTION_KEY,
+          'X-Watermark-Methods': methods.join(','),
+          'X-Watermark-Density': densities.join(','),
         },
         body: embedFormData,
       },

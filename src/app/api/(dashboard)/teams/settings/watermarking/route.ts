@@ -4,32 +4,35 @@ import { logger } from '@/lib/logging/logger';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
-  setTeamValidationSettingsSchema,
-  SetTeamValidationSettingsSchema,
-} from '@/lib/validation/team/set-team-validation-settings-schema';
+  setTeamWatermarkingSettingsSchema,
+  SetTeamWatermarkingSettingsSchema,
+} from '@/lib/validation/team/set-team-watermarking-settings-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { AuditLogAction, AuditLogTargetType, Settings } from '@prisma/client';
+import {
+  AuditLogAction,
+  AuditLogTargetType,
+  WatermarkingSettings,
+} from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export type ITeamsSettingsValidationEditSuccessResponse = {
-  settings: Settings;
+export type ITeamsSettingsWatermarkingEditSuccessResponse = {
+  settings: WatermarkingSettings;
 };
 
-export type ITeamsSettingsValidationEditResponse =
+export type ITeamsSettingsWatermarkingEditResponse =
   | ErrorResponse
-  | ITeamsSettingsValidationEditSuccessResponse;
+  | ITeamsSettingsWatermarkingEditSuccessResponse;
 
 export async function PUT(
   request: NextRequest,
-): Promise<NextResponse<ITeamsSettingsValidationEditResponse>> {
+): Promise<NextResponse<ITeamsSettingsWatermarkingEditResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
-    const body = (await request.json()) as SetTeamValidationSettingsSchema;
-    const validated =
-      await setTeamValidationSettingsSchema(t).safeParseAsync(body);
+    const body = (await request.json()) as SetTeamWatermarkingSettingsSchema;
+    const validated = setTeamWatermarkingSettingsSchema().safeParse(body);
 
     if (!validated.success) {
       return NextResponse.json(
@@ -60,6 +63,9 @@ export async function PUT(
               id: selectedTeam,
               deletedAt: null,
             },
+            include: {
+              limits: true,
+            },
           },
         },
       },
@@ -84,26 +90,32 @@ export async function PUT(
       );
     }
 
-    const {
-      strictCustomers,
-      strictProducts,
-      deviceTimeout,
-      ipLimitPeriod,
-      strictReleases,
-    } = validated.data;
+    const team = session.user.teams[0];
 
-    const updatedSettings = await prisma.settings.update({
+    if (!team.limits?.allowWatermarking) {
+      return NextResponse.json(
+        {
+          message: t('validation.paid_subsciption_required'),
+        },
+        { status: HttpStatus.FORBIDDEN },
+      );
+    }
+
+    const updatedSettings = await prisma.watermarkingSettings.upsert({
       where: {
         teamId: selectedTeam,
       },
-      data: {
-        strictCustomers,
-        strictProducts,
-        strictReleases,
-        deviceTimeout,
-        ipLimitPeriod,
+      create: {
+        ...validated.data,
+        team: {
+          connect: {
+            id: selectedTeam,
+          },
+        },
       },
+      update: validated.data,
     });
+
     const response = {
       settings: updatedSettings,
     };
@@ -120,7 +132,10 @@ export async function PUT(
 
     return NextResponse.json(response);
   } catch (error) {
-    logger.error("Error occurred in 'teams/settings/validation' route", error);
+    logger.error(
+      "Error occurred in 'teams/settings/watermarking' route",
+      error,
+    );
     return NextResponse.json(
       {
         message: t('general.server_error'),

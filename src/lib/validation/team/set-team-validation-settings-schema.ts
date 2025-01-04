@@ -18,6 +18,5 @@ export const setTeamValidationSettingsSchema = (
         .number()
         .positive({ message: t('validation.device_timeout_positive') })
         .int(),
-      watermarking: z.boolean(),
     })
     .strict();

@@ -166,6 +166,7 @@
     "delete": "Delete",
     "selected": "Selected",
     "subscription": "Subscription",
+    "density": "Density",
     "avatar": "Avatar",
     "code": "Code",
     "origin": "Origin",
@@ -662,6 +663,10 @@
       "no_latest_release_description": "You have not set a latest release for this product. It is used as a fallback if no specific release is requested."
     },
     "settings": {
+      "watermarking_description": "Watermarking adds unique identifiers to your software to prevent unauthorized distribution. This feature is available only for Java-applications at the moment.",
+      "static_constant_pool_synthesis": "Static constant pool synthesis",
+      "dynamic_bytecode_injection": "Dynamic bytecode injection",
+      "temporal_attribute_embedding": "Temporal attribute embedding",
       "general_settings": "General settings",
       "validation_settings": "Validation settings",
       "email_header_image": "Email header image",

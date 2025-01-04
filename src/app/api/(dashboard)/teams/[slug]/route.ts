@@ -19,6 +19,7 @@ import {
   Subscription,
   Team,
   User,
+  WatermarkingSettings,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -293,6 +294,7 @@ export type ITeamGetSuccessResponse = {
       licenseCount: number;
       customerCount: number;
     };
+    watermarkingSettings: WatermarkingSettings | null;
   };
 };
 
@@ -331,6 +333,7 @@ export async function GET(
               settings: true,
               limits: true,
               subscription: true,
+              watermarkingSettings: true,
               apiKeys: {
                 include: {
                   createdBy: {
