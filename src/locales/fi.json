@@ -404,7 +404,14 @@
       "recently_activity_description": "Showing recent license verify requests."
     },
     "analyzer": {
+      "pro_feature": "Analyzer is a Pro feature",
+      "upgrade_to_use": "Upgrade to the Pro plan to use the watermarking and analyzer features.",
       "analyze_files": "Analyze files",
+      "preparing": "Preparing analysis...",
+      "scanning": "Scanning file...",
+      "checking": "Checking for watermarks...",
+      "results": "Results",
+      "generating": "Generating report...",
       "description": "Upload your files to analyze them for watermarks.",
       "drag_and_drop": "Drag and drop files here",
       "drop_here": "Drop here",

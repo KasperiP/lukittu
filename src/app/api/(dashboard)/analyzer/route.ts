@@ -13,7 +13,7 @@ import { HttpStatus } from '@/types/http-status';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
+const MAX_FILE_SIZE = 1024 * 1024 * 20; // 10MB
 
 type IWatermarkServiceResponse = {
   watermarkFound: boolean;

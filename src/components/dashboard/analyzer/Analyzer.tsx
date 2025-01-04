@@ -1,36 +1,53 @@
 'use client';
-import LoadingButton from '@/components/shared/LoadingButton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { bytesToSize } from '@/lib/utils/number-helpers';
 import { cn } from '@/lib/utils/tailwind-helpers';
+import { TeamContext } from '@/providers/TeamProvider';
 import {
-  AlertCircle,
-  CheckCircle2,
+  ClipboardList,
+  FileCheck,
   FileIcon,
+  FileSearch,
+  ShieldCheck,
   UploadCloud,
   XCircle,
+  Zap,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { ProgressStages } from './ProgressStages';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 50; // 50 MB
-
-interface AnalysisResult {
-  licenseKey: string | null;
-  timestamp: number | null;
-}
+const ALLOWED_FILE_TYPE = 'application/java-archive';
 
 export default function Analyzer() {
   const t = useTranslations();
+  const teamCtx = useContext(TeamContext);
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [currentStage, setCurrentStage] = useState(0);
+  const [result, setResult] = useState<any | null>(null);
+  const [hasError, setHasError] = useState(false);
+
+  const selectedTeam = teamCtx.teams.find(
+    (team) => team.id === teamCtx.selectedTeam,
+  );
+
+  const hasWatermarkingPermission =
+    selectedTeam?.limits?.allowWatermarking ?? false;
+
+  useEffect(() => {
+    if (!teamCtx.selectedTeam) return;
+    setFile(null);
+    setResult(null);
+    setAnalyzing(false);
+    setCurrentStage(-1);
+    setHasError(false);
+  }, [teamCtx.selectedTeam]);
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -44,81 +61,44 @@ export default function Analyzer() {
     setIsDragging(false);
   };
 
-  const analyzeFile = async (file: File) => {
-    try {
-      setAnalyzing(true);
-      setResult(null);
-      setProgress(20);
-
-      // Add minimal delay for UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      setProgress(40);
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const response = await fetch('/api/analyzer', {
-        method: 'POST',
-        body: formData,
-      });
-
-      setProgress(80);
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || t('general.server_error'));
-      }
-
-      const analysisResult = await response.json();
-      setProgress(100);
-      setResult(analysisResult);
-
-      // Show appropriate toast based on results
-      if (analysisResult.licenseKey) {
-        toast.error(t('dashboard.analyzer.watermark_found'));
-      } else if (analysisResult.timestamp) {
-        toast.warning(t('dashboard.analyzer.timestamp_found'));
-      } else {
-        toast.success(t('dashboard.analyzer.no_watermark_found'));
-      }
-    } catch (error) {
-      toast.error((error as Error).message);
-    } finally {
-      // Keep progress visible briefly before resetting
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setAnalyzing(false);
-      setProgress(0);
-    }
-  };
-
-  const handleFile = async (file: File) => {
-    if (file.size > MAX_FILE_SIZE) {
-      return toast.error(
-        t('validation.file_too_large', {
-          size: bytesToSize(MAX_FILE_SIZE),
-        }),
-      );
-    }
-    setFile(file);
-  };
-
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
 
-    const droppedFile = e.dataTransfer.files[0];
+    const droppedFile = e.dataTransfer.files[0] as File | null;
     if (droppedFile) {
       await handleFile(droppedFile);
     }
   };
 
+  const validateFile = (file: File) => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(
+        t('validation.file_too_large', {
+          size: bytesToSize(MAX_FILE_SIZE),
+        }),
+      );
+      return false;
+    }
+
+    if (file.type !== ALLOWED_FILE_TYPE && !file.name.endsWith('.jar')) {
+      toast.error(t('validation.invalid_file_type'));
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleFile = async (file: File) => {
+    if (!validateFile(file)) return;
+    setFile(file);
+  };
+
   const handleFileSelect = async () => {
     const input = document.createElement('input');
     input.type = 'file';
+    input.accept = '.jar';
     input.multiple = false;
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
@@ -133,143 +113,211 @@ export default function Analyzer() {
     setFile(null);
     setResult(null);
     setAnalyzing(false);
+    setCurrentStage(-1);
+    setHasError(false);
   };
 
-  const renderResults = () => {
+  const analyzeFile = async (file: File) => {
+    try {
+      setAnalyzing(true);
+      setResult(null);
+      setHasError(false);
+      setCurrentStage(0);
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setCurrentStage(1);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setCurrentStage(2);
+
+      const response = await fetch('/api/analyzer', {
+        method: 'POST',
+        body: formData,
+      });
+
+      setCurrentStage(3);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (!response.ok) {
+        const error = await response.json();
+        setHasError(true);
+        throw new Error(error.message || t('general.server_error'));
+      }
+
+      const analysisResult = await response.json();
+      setResult(analysisResult);
+
+      // Move to final stage immediately after getting results
+      setCurrentStage(4);
+
+      // Show toasts after setting the stage
+      if (analysisResult.licenseKey) {
+        toast.error(t('dashboard.analyzer.watermark_found'));
+      } else if (analysisResult.timestamp) {
+        toast.warning(t('dashboard.analyzer.timestamp_found'));
+      } else {
+        toast.success(t('dashboard.analyzer.no_watermark_found'));
+      }
+    } catch (error) {
+      setHasError(true);
+      toast.error((error as Error).message);
+    } finally {
+      // Small delay before completing
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      setAnalyzing(false);
+    }
+  };
+
+  const getResultType = () => {
+    if (hasError) return 'error';
     if (!result) return null;
 
-    const date = result.timestamp ? new Date(result.timestamp) : null;
-    const hasFindings = result.licenseKey || result.timestamp;
+    const hasWatermark = Boolean(result.licenseKey);
+    const hasTimestamp = Boolean(result.timestamp);
 
-    return (
-      <Alert className="mt-4" variant={hasFindings ? 'default' : 'default'}>
-        {hasFindings ? (
-          <AlertCircle className="h-5 w-5" />
-        ) : (
-          <CheckCircle2 className="h-5 w-5 text-green-500" />
-        )}
-        <AlertTitle>
-          {result.licenseKey
-            ? t('dashboard.analyzer.watermark_found')
-            : result.timestamp
-              ? t('dashboard.analyzer.timestamp_found')
-              : t('dashboard.analyzer.no_watermark_found')}
-        </AlertTitle>
-        {hasFindings && (
-          <AlertDescription className="mt-2 space-y-2">
-            {result.licenseKey && (
-              <div>
-                <span className="font-semibold">{t('general.license')}: </span>
-                <span className="font-mono">{result.licenseKey}</span>
-              </div>
-            )}
-            {date && (
-              <div>
-                <span className="font-semibold">
-                  {t('dashboard.analyzer.embedded_at')}:{' '}
-                </span>
-                <span>
-                  {date.toLocaleDateString()} {date.toLocaleTimeString()}
-                </span>
-              </div>
-            )}
-          </AlertDescription>
-        )}
-      </Alert>
-    );
+    if (hasWatermark && hasTimestamp) return 'success';
+    if (hasWatermark || hasTimestamp) return 'warning';
+    return 'error'; // No watermark and no timestamp
   };
 
   return (
-    <Card className="p-6">
-      <div className="mb-4 space-y-2">
-        <h2 className="text-lg font-semibold">
+    <Card className="overflow-hidden">
+      <div className="border-b p-6">
+        <h2 className="flex items-center text-xl font-semibold">
           {t('dashboard.analyzer.analyze_files')}
+          {!hasWatermarkingPermission && (
+            <Badge className="ml-2 text-xs" variant="primary">
+              PRO
+            </Badge>
+          )}
         </h2>
         <p className="text-sm text-muted-foreground">
           {t('dashboard.analyzer.description')}
         </p>
       </div>
 
-      {!file ? (
+      <div className={cn('relative grid grid-cols-1 gap-6 p-6 lg:grid-cols-2')}>
+        {!hasWatermarkingPermission && (
+          <div className="absolute inset-0 z-10 flex h-full w-full flex-col items-center justify-center bg-background/50 backdrop-blur-[1px]">
+            <div className="px-4 text-center">
+              <Badge className="mb-2" variant="primary">
+                PRO
+              </Badge>
+              <p className="font-medium">
+                {t('dashboard.analyzer.pro_feature')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('dashboard.analyzer.upgrade_to_use')}
+              </p>
+            </div>
+          </div>
+        )}
         <div
           className={cn(
-            'flex cursor-pointer flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed p-12 text-center transition-all duration-200',
-            isDragging &&
-              'scale-[1.01] border-solid border-primary bg-primary/5',
+            'flex min-h-[455px] cursor-pointer flex-col rounded-xl border-2 border-dashed transition-colors',
+            isDragging && 'border-primary bg-primary/5',
+            file ? 'border-muted p-6' : 'p-8',
           )}
           onClick={handleFileSelect}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
-          <div
-            className={cn(
-              'rounded-full bg-muted p-4 transition-transform duration-200',
-              isDragging && 'scale-110',
+          <div className="flex h-full flex-col items-center justify-center">
+            {!file ? (
+              <div className="flex flex-col items-center gap-6 text-center">
+                <div className="rounded-full bg-primary/10 p-8">
+                  <UploadCloud className="h-12 w-12 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-lg font-medium">
+                    {t('dashboard.analyzer.drag_and_drop')}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t('dashboard.analyzer.file_size_limit', {
+                      size: bytesToSize(MAX_FILE_SIZE),
+                    })}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full space-y-6">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="relative">
+                    <div className="absolute -inset-4 rounded-full bg-primary/5" />
+                    <FileIcon className="h-16 w-16 text-primary" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-medium">Ready to analyze</p>
+                    <p className="text-sm text-muted-foreground">
+                      Click the button below to start
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-card/50 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{file.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {bytesToSize(file.size)}
+                      </p>
+                    </div>
+                    <button
+                      className="rounded-full p-2 transition-colors hover:bg-muted"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleReset();
+                      }}
+                    >
+                      <XCircle className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <Button
+                  className="w-full"
+                  disabled={analyzing}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    analyzeFile(file);
+                  }}
+                >
+                  {t('dashboard.analyzer.analyze')}
+                </Button>
+              </div>
             )}
-          >
-            <UploadCloud className="h-6 w-6 text-muted-foreground" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {isDragging
-                ? t('dashboard.analyzer.drop_here')
-                : t('dashboard.analyzer.drag_and_drop')}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t('dashboard.analyzer.file_size_limit', {
-                size: bytesToSize(MAX_FILE_SIZE),
-              })}
-            </p>
           </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="shrink-0 rounded-md bg-muted p-2">
-                <FileIcon className="h-6 w-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{file.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {bytesToSize(file.size)}
-                </p>
-              </div>
-            </div>
-            <Button
-              className="shrink-0"
-              size="icon"
-              variant="ghost"
-              onClick={handleReset}
-            >
-              <XCircle className="h-5 w-5" />
-            </Button>
-          </div>
 
-          {analyzing && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {t('dashboard.analyzer.analyzing')}
-                </span>
-                <span className="font-medium">{progress}%</span>
-              </div>
-              <Progress value={progress} />
+        <div className="space-y-6">
+          <ProgressStages
+            currentStage={currentStage}
+            resultType={getResultType()}
+            stages={[
+              { label: t('dashboard.analyzer.preparing'), icon: ClipboardList },
+              { label: t('dashboard.analyzer.scanning'), icon: FileSearch },
+              { label: t('dashboard.analyzer.analyzing'), icon: Zap },
+              { label: t('dashboard.analyzer.checking'), icon: ShieldCheck },
+              { label: t('dashboard.analyzer.generating'), icon: FileCheck },
+            ]}
+          />
+
+          {result && (
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold">
+                {t('dashboard.analyzer.results')}
+              </h3>
+              <pre className="mt-2 rounded-lg bg-muted p-4">
+                {JSON.stringify(result, null, 2)}
+              </pre>
             </div>
           )}
-
-          <LoadingButton
-            className="w-full"
-            pending={analyzing}
-            onClick={() => analyzeFile(file)}
-          >
-            {t('dashboard.analyzer.analyze')}
-          </LoadingButton>
-
-          {renderResults()}
         </div>
-      )}
+      </div>
     </Card>
   );
 }
