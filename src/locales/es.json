@@ -359,7 +359,9 @@
     "emails": {
       "expired_link": "Este enlace ha expirado.",
       "sending_failed_title": "Falló el envío del correo de verificación"
-    },
+    }
+  },
+  "dashboard": {
     "dashboard": {
       "no_recent_activity": "No hay actividad reciente",
       "no_recent_activity_description": "No se encontró actividad reciente. La actividad reciente se mostrará aquí.",
