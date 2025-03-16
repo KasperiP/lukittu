@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: build-deploy-${{ github.ref }}
@@ -72,7 +75,7 @@ jobs:
     name: Build Docker Image
     timeout-minutes: 10
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -117,7 +120,7 @@ jobs:
     name: Deploy to VM
     timeout-minutes: 5
     runs-on: ubuntu-latest
-
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to VM
         uses: appleboy/ssh-action@master
