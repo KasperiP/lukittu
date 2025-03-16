@@ -119,6 +119,9 @@
     "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones."
   },
   "general": {
+    "select_key": "Seleccionar clave",
+    "search_keys": "Buscar claves...",
+    "no_keys_found": "No se encontraron claves",
     "ip_addresses": "Direcciones IP",
     "request_count": "Conteo de solicitudes",
     "select_date_range": "Selecciona el rango de fechas",
