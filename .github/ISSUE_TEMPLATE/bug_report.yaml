@@ -1,38 +1,38 @@
 name: 🐛 Bug Report
 description: Create a bug report
 labels:
-    - 'type: bug'
+  - 'type: bug'
 
 body:
-    - type: markdown
-      attributes:
-          value: |
-              **Thanks for taking the time to fill out this bug report!**
-              We kindly ask that you search to see if an issue [already exists](https://github.com/KasperiP/lukittu/issues) for your bug.
+  - type: markdown
+    attributes:
+      value: |
+        **Thanks for taking the time to fill out this bug report!**
+        We kindly ask that you search to see if an issue [already exists](https://github.com/KasperiP/lukittu/issues) for your bug.
 
-    - type: textarea
-      id: description
-      attributes:
-          label: Description
-          description: A clear and concise description of what the bug is.
-      validations:
-          required: true
-    - type: textarea
-      id: reproduce
-      attributes:
-          label: Reproduce
-          description: Steps to reproduce the behavior.
-          placeholder: Click on '....', go to '...', etc
-          value: |
-              1. Go to '...'
-              2. Click on '....'
-              3. Scroll down to '....'
-              4. See error
-      validations:
-          required: true
-    - type: textarea
-      id: screenshots
-      attributes:
-          label: Screenshots
-          description: If applicable, add screenshots to help explain your problem.
-          placeholder: https://imgur.com/
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: Click on '....', go to '...', etc
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+      placeholder: https://imgur.com/

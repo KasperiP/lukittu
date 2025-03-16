@@ -24,10 +24,13 @@ export const ProductModalProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [productToDelete, setProductToDelete] = useState<ProductExtended | null>(null);
+  const [productToDelete, setProductToDelete] =
+    useState<ProductExtended | null>(null);
   const [productToDeleteModalOpen, setProductToDeleteModalOpen] =
     useState(false);
-  const [productToEdit, setProductToEdit] = useState<(ProductExtended) | null>(null);
+  const [productToEdit, setProductToEdit] = useState<ProductExtended | null>(
+    null,
+  );
   const [productModalOpen, setProductModalOpen] = useState(false);
 
   return (

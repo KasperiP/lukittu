@@ -1,5 +1,9 @@
 'use client';
 import {
+  IMetadataGetResponse,
+  IMetadataGetSuccessResponse,
+} from '@/app/api/(dashboard)/metadata/route';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -10,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Command, CommandGroup, CommandItem } from '@/components/ui/command';
 import {
   FormControl,
   FormField,
@@ -18,10 +23,23 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { TeamContext } from '@/providers/TeamProvider';
 import { Lock, Unlock, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
+import useSWR from 'swr';
+
+const fetchMetadata = async (url: string) => {
+  const response = await fetch(url);
+  const data = (await response.json()) as IMetadataGetResponse;
+
+  if ('message' in data) {
+    throw new Error(data.message);
+  }
+
+  return data;
+};
 
 interface MetadataFieldsProps {
   form: UseFormReturn<any>;
@@ -29,7 +47,16 @@ interface MetadataFieldsProps {
 
 export default function MetadataFields({ form }: MetadataFieldsProps) {
   const t = useTranslations();
+  const teamCtx = useContext(TeamContext);
   const [unlockIndex, setUnlockIndex] = useState<number | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState<number | null>(null);
+
+  const { data } = useSWR<IMetadataGetSuccessResponse>(
+    teamCtx.selectedTeam ? ['/api/metadata', teamCtx.selectedTeam] : null,
+    ([url, _]) => fetchMetadata(url),
+  );
+
+  const existingMetadataKeys = data?.metadata.map((m) => m.key) || [];
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -77,13 +104,59 @@ export default function MetadataFields({ form }: MetadataFieldsProps) {
                   {t('general.key')} {index + 1}
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    {...field}
-                    className={
-                      form.watch(`metadata.${index}.locked`) ? 'bg-muted' : ''
-                    }
-                    disabled={form.watch(`metadata.${index}.locked`)}
-                  />
+                  <div className="relative">
+                    <Input
+                      {...field}
+                      className={
+                        form.watch(`metadata.${index}.locked`) ? 'bg-muted' : ''
+                      }
+                      disabled={form.watch(`metadata.${index}.locked`)}
+                      onBlur={() =>
+                        setTimeout(() => setShowSuggestions(null), 200)
+                      }
+                      onFocus={() => setShowSuggestions(index)}
+                    />
+                    {showSuggestions === index &&
+                      field.value &&
+                      !form.watch(`metadata.${index}.locked`) &&
+                      existingMetadataKeys.filter(
+                        (key) =>
+                          key
+                            .toLowerCase()
+                            .includes(field.value.toLowerCase()) &&
+                          key.toLowerCase() !== field.value.toLowerCase(),
+                      ).length > 0 && (
+                        <div className="absolute left-0 top-full z-10 mt-1 w-full bg-popover">
+                          <Command className="rounded-lg border shadow-md">
+                            <CommandGroup>
+                              {existingMetadataKeys
+                                .filter(
+                                  (key) =>
+                                    key
+                                      .toLowerCase()
+                                      .includes(field.value.toLowerCase()) &&
+                                    key.toLowerCase() !==
+                                      field.value.toLowerCase(),
+                                )
+                                .map((key) => (
+                                  <CommandItem
+                                    key={key}
+                                    onSelect={() => {
+                                      form.setValue(
+                                        `metadata.${index}.key`,
+                                        key,
+                                      );
+                                      setShowSuggestions(null);
+                                    }}
+                                  >
+                                    {key}
+                                  </CommandItem>
+                                ))}
+                            </CommandGroup>
+                          </Command>
+                        </div>
+                      )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

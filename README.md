@@ -40,6 +40,7 @@ For detailed pricing and feature comparisons, visit [our website](https://lukitt
 To get started with the project locally, follow the steps below:
 
 #### 1. Setup Environment Variables
+
 - Rename the `.env.example` file to `.env`.
 - Open the `.env` file and fill in the necessary details.
 
@@ -104,13 +105,14 @@ The best way to support Lukittu is to **give it a star on GitHub** – it’s fr
 
 ## Documentation
 
-For comprehensive documentation on how to use Lukittu, visit: [https://docs.lukittu.com/introduction](https://docs.lukittu.com/introduction). **The documentation source can be found in its own repository [here](https://github.com/KasperiP/lukittu-docs).**  
+For comprehensive documentation on how to use Lukittu, visit: [https://docs.lukittu.com/introduction](https://docs.lukittu.com/introduction). **The documentation source can be found in its own repository [here](https://github.com/KasperiP/lukittu-docs).**
 
 ## Contributing
 
 We welcome contributions from the community! Whether it’s bug fixes, feature improvements, or documentation updates, your help is appreciated.
 
 ### How to Contribute:
+
 1. **Open an issue** – Discuss proposed changes before starting work
 2. **Fork the repository** – Create your own copy to work on
 3. **Create a feature branch** – Organize your changes
