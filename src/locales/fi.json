@@ -119,6 +119,7 @@
     "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja."
   },
   "general": {
+    "select_key": "Valitse avain",
     "search_keys": "Etsi avaimia...",
     "no_keys_found": "Avaimia ei löytynyt",
     "ip_addresses": "IP-osoitteet",
