@@ -60,6 +60,9 @@ export function LanguageSwitcher({
         <DropdownMenuItem onClick={() => handleLanguageChange('fi')}>
           Finnish
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleLanguageChange('es')}>
+          Spanish
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

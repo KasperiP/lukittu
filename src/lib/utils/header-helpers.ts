@@ -43,7 +43,7 @@ export const getLanguage = async () => {
   const langCookie = headersList.get('lang')?.value;
   const acceptedLang = headersList.get('accept-language');
 
-  const allowedLangs = ['en', 'fi'];
+  const allowedLangs = ['en', 'fi', 'es'];
 
   let lang = 'en';
 
