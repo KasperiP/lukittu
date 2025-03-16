@@ -4,13 +4,26 @@ import { metadataSchema } from '@/lib/validation/shared/metadata-schema';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { FilterChip } from '../FilterChip';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command';
 import { TeamContext } from '@/providers/TeamProvider';
 import { useContext, useState } from 'react';
 import useSWR from 'swr';
-import { IMetadataGetResponse, IMetadataGetSuccessResponse } from '@/app/api/(dashboard)/metadata/route';
+import {
+  IMetadataGetResponse,
+  IMetadataGetSuccessResponse,
+} from '@/app/api/(dashboard)/metadata/route';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
@@ -47,7 +60,7 @@ export function MetadataFilterChip({
       const data = (await response.json()) as IMetadataGetResponse;
       if ('message' in data) throw new Error(data.message);
       return data;
-    }
+    },
   );
 
   const existingMetadataKeys = data?.metadata.map((m) => m.key) || [];
@@ -112,7 +125,10 @@ export function MetadataFilterChip({
                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="start" className="w-full p-0 popover-content-width-full">
+            <PopoverContent
+              align="start"
+              className="popover-content-width-full w-full p-0"
+            >
               <Command>
                 <CommandInput
                   className="h-9"
@@ -140,7 +156,9 @@ export function MetadataFilterChip({
                           <Check
                             className={cn(
                               'ml-auto h-4 w-4',
-                              tempMetadataKey === key ? 'opacity-100' : 'opacity-0'
+                              tempMetadataKey === key
+                                ? 'opacity-100'
+                                : 'opacity-0',
                             )}
                           />
                         </CommandItem>
