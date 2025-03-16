@@ -1,15 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { JsonValue } from '@prisma/client/runtime/library';
+import { Metadata } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 
 interface MetadataAsideProps {
-  metadata: JsonValue | null;
+  metadata: Metadata[] | null;
 }
 
 export default function MetadataAside({ metadata }: MetadataAsideProps) {
   const t = useTranslations();
-  const metadataCasted = metadata as { key: string; value: string }[] | null;
 
   return (
     <>
@@ -21,9 +20,9 @@ export default function MetadataAside({ metadata }: MetadataAsideProps) {
         </CardHeader>
         <CardContent className="mt-4">
           <div className="flex flex-col gap-4">
-            {metadataCasted ? (
-              metadataCasted.length ? (
-                metadataCasted.map((item, index) => (
+            {metadata ? (
+              metadata.length ? (
+                metadata.map((item, index) => (
                   <div key={index} className="flex flex-col gap-2">
                     <h3 className="break-all text-sm font-semibold">
                       {item.key}

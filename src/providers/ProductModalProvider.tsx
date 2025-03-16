@@ -1,16 +1,20 @@
 'use client';
 import { DeleteProductConfirmModal } from '@/components/dashboard/products/ProductDeleteConfirmModal';
 import SetProductModal from '@/components/dashboard/products/list/SetProductModal';
-import { Product } from '@prisma/client';
+import { Metadata, Product } from '@prisma/client';
 import { createContext, useState } from 'react';
 
+type ProductExtended = Product & {
+  metadata: Metadata[];
+};
+
 export const ProductModalContext = createContext({
-  setProductToDelete: (product: Product | null) => {},
-  setProductToEdit: (product: Product | null) => {},
+  setProductToDelete: (product: ProductExtended | null) => {},
+  setProductToEdit: (product: ProductExtended | null) => {},
   setProductModalOpen: (open: boolean) => {},
   setProductToDeleteModalOpen: (open: boolean) => {},
-  productToEdit: null as Product | null,
-  productToDelete: null as Product | null,
+  productToEdit: null as ProductExtended | null,
+  productToDelete: null as ProductExtended | null,
   productToDeleteModalOpen: false,
   productModalOpen: false,
 });
@@ -20,10 +24,10 @@ export const ProductModalProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductExtended | null>(null);
   const [productToDeleteModalOpen, setProductToDeleteModalOpen] =
     useState(false);
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToEdit, setProductToEdit] = useState<(ProductExtended) | null>(null);
   const [productModalOpen, setProductModalOpen] = useState(false);
 
   return (

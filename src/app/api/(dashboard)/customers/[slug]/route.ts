@@ -15,6 +15,7 @@ import {
   AuditLogAction,
   AuditLogTargetType,
   Customer,
+  Metadata,
   User,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
@@ -23,6 +24,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export type ICustomerGetSuccessResponse = {
   customer: Customer & {
     address: Address | null;
+    metadata: Metadata[];
     createdBy: Omit<User, 'passwordHash'> | null;
   };
 };
@@ -75,6 +77,7 @@ export async function GET(
                 include: {
                   createdBy: true,
                   address: true,
+                  metadata: true,
                 },
               },
             },
@@ -261,7 +264,15 @@ export async function PUT(
       data: {
         email,
         fullName,
-        metadata,
+        metadata: {
+          deleteMany: {},
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         address: {
           upsert: {
             create: {
@@ -272,6 +283,9 @@ export async function PUT(
             },
           },
         },
+      },
+      include: {
+        metadata: true,
       },
     });
 

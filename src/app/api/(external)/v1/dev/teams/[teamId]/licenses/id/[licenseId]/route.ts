@@ -72,8 +72,16 @@ export async function GET(
         teamId,
       },
       include: {
-        customers: true,
-        products: true,
+        customers: {
+          include: {
+            metadata: true,
+          },
+        },
+        products: {
+          include: {
+            metadata: true,
+          },
+        },
       },
     });
 

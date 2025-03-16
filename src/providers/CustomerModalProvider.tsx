@@ -1,19 +1,24 @@
 'use client';
 import { DeleteCustomerConfirmModal } from '@/components/dashboard/customers/CustomerDeleteConfirmModal';
 import SetCustomerModal from '@/components/dashboard/customers/list/SetCustomerModal';
-import { Address, Customer } from '@prisma/client';
+import { Address, Customer, Metadata } from '@prisma/client';
 import { createContext, useState } from 'react';
+
+type CustomerExtended = Customer & {
+  metadata: Metadata[];
+  address: Address | null;
+};
 
 export const CustomerModalContext = createContext({
   setCustomerModalOpen: (open: boolean) => {},
-  setCustomerToDelete: (customer: Customer | null) => {},
+  setCustomerToDelete: (customer: CustomerExtended | null) => {},
   setCustomerToEdit: (
-    customer: (Customer & { address: Address | null }) | null,
+    customer: (CustomerExtended) | null,
   ) => {},
   setCustomerToDeleteModalOpen: (open: boolean) => {},
   customerModalOpen: false,
-  customerToDelete: null as Customer | null,
-  customerToEdit: null as (Customer & { address: Address | null }) | null,
+  customerToDelete: null as CustomerExtended | null,
+  customerToEdit: null as CustomerExtended | null,
   customerToDeleteModalOpen: false,
 });
 
@@ -26,9 +31,9 @@ export const CustomerModalProvider = ({
     useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<
-    (Customer & { address: Address | null }) | null
+    CustomerExtended | null
   >(null);
-  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(
+  const [customerToDelete, setCustomerToDelete] = useState<CustomerExtended | null>(
     null,
   );
 

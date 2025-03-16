@@ -369,7 +369,15 @@ export async function PUT(
       const release = await prisma.release.update({
         where: { id: releaseId },
         data: {
-          metadata,
+          metadata: {
+            deleteMany: {},
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
           productId,
           status,
           version,

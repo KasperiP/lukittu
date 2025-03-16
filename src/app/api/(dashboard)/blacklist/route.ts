@@ -15,6 +15,7 @@ import {
   AuditLogAction,
   AuditLogTargetType,
   Blacklist,
+  Metadata,
   Prisma,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
@@ -24,6 +25,7 @@ export type IBlacklistGetSuccessResponse = {
   blacklist: (Blacklist & {
     alpha2: string | null;
     country: string | null;
+    metadata: Metadata[];
   })[];
   totalResults: number;
   hasResults: boolean;
@@ -132,6 +134,9 @@ export async function GET(
                 take,
                 orderBy: {
                   [sortColumn]: sortDirection,
+                },
+                include: {
+                  metadata: true,
                 },
               },
             },
@@ -308,7 +313,14 @@ export async function POST(
       data: {
         value,
         type,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         createdBy: {
           connect: {
             id: session.user.id,
@@ -319,6 +331,9 @@ export async function POST(
             id: selectedTeam,
           },
         },
+      },
+      include: {
+        metadata: true,
       },
     });
 

@@ -15,13 +15,17 @@ import {
   AuditLogAction,
   AuditLogTargetType,
   Customer,
+  Metadata,
   Prisma,
 } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export type ICustomersGetSuccessResponse = {
-  customers: (Customer & { address: Address | null })[];
+  customers: (Customer & {
+    address: Address | null;
+    metadata: Metadata[];
+  })[];
   totalResults: number;
   hasResults: boolean;
 };
@@ -88,7 +92,6 @@ export async function GET(
     }
 
     const hasValidMetadata = Boolean(metadata && metadataValue);
-    const metadataJson = [{ key: metadata, value: metadataValue }];
 
     if (licenseId && !regex.uuidV4.test(licenseId)) {
       return NextResponse.json(
@@ -191,7 +194,13 @@ export async function GET(
         : undefined,
       metadata: hasValidMetadata
         ? {
-            array_contains: metadataJson,
+            some: {
+              key: metadata,
+              value: {
+                contains: metadataValue,
+                mode: 'insensitive',
+              },
+            },
           }
         : undefined,
     } as Prisma.CustomerWhereInput;
@@ -214,6 +223,7 @@ export async function GET(
                 take,
                 include: {
                   address: true,
+                  metadata: true,
                 },
               },
             },
@@ -384,7 +394,14 @@ export async function POST(
       data: {
         email,
         fullName,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         address: {
           create: address,
         },
@@ -398,6 +415,9 @@ export async function POST(
             id: team.id,
           },
         },
+      },
+      include: {
+        metadata: true,
       },
     });
 
