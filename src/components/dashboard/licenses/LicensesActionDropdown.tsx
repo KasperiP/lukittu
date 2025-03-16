@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LicenseModalContext } from '@/providers/LicenseModalProvider';
-import { Customer, License, Product } from '@prisma/client';
+import { Customer, License, Metadata, Product } from '@prisma/client';
 import { VariantProps } from 'class-variance-authority';
 import { Copy, Edit, Ellipsis, Send, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -20,6 +20,7 @@ interface LicensesActionDropdownProps {
     | (Omit<License, 'licenseKeyLookup'> & {
         products: Product[];
         customers: Customer[];
+        metadata: Metadata[];
       })
     | undefined;
   variant?: VariantProps<typeof buttonVariants>['variant'];

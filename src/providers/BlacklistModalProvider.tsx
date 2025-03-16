@@ -1,12 +1,13 @@
 'use client';
 import { DeleteBlacklistConfirmModal } from '@/components/dashboard/blacklist/BlacklistDeleteConfirmModal';
 import SetBlacklistModal from '@/components/dashboard/blacklist/SetBlacklistModal';
-import { Blacklist } from '@prisma/client';
+import { Blacklist, Metadata } from '@prisma/client';
 import { createContext, useState } from 'react';
 
 type BlacklistExtended = Blacklist & {
   country: string | null;
   alpha2: string | null;
+  metadata: Metadata[];
 };
 
 export const BlacklistModalContext = createContext({

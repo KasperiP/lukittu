@@ -20,6 +20,7 @@ import {
   AuditLogTargetType,
   Customer,
   License,
+  Metadata,
   Product,
   User,
 } from '@prisma/client';
@@ -31,6 +32,7 @@ export type ILicenseGetSuccessResponse = {
     products: Product[];
     customers: Customer[];
     createdBy: Omit<User, 'passwordHash'> | null;
+    metadata: Metadata[];
   };
 };
 
@@ -91,6 +93,7 @@ export async function GET(
                     },
                   },
                   createdBy: true,
+                  metadata: true,
                 },
               },
             },
@@ -332,7 +335,15 @@ export async function PUT(
         ipLimit,
         licenseKey: encryptedLicenseKey,
         licenseKeyLookup: hmac,
-        metadata,
+        metadata: {
+          deleteMany: {},
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         suspended,
         seats,
         products: {
@@ -341,6 +352,9 @@ export async function PUT(
         customers: {
           set: customerIds.map((id) => ({ id })),
         },
+      },
+      include: {
+        metadata: true,
       },
     });
 

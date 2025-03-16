@@ -14,6 +14,7 @@ import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
   AuditLogTargetType,
+  Metadata,
   Product,
   User,
 } from '@prisma/client';
@@ -25,6 +26,7 @@ export type IProductGetSuccessResponse = {
     latestRelease: string | null;
     totalReleases: number;
     createdBy: Omit<User, 'passwordHash'> | null;
+    metadata: Metadata[];
   };
 };
 
@@ -76,6 +78,7 @@ export async function GET(
                 include: {
                   createdBy: true,
                   releases: true,
+                  metadata: true,
                 },
               },
             },
@@ -408,7 +411,15 @@ export async function PUT(
       data: {
         name,
         url: url || null,
-        metadata,
+        metadata: {
+          deleteMany: {},
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
       },
     });
 

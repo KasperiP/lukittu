@@ -23,6 +23,7 @@ import {
   AuditLogAction,
   AuditLogTargetType,
   License,
+  Metadata,
   Prisma,
   Product,
   Release,
@@ -140,6 +141,7 @@ export async function POST(request: NextRequest) {
                 },
               },
               limits: true,
+              metadata: true,
             },
           },
         },
@@ -344,7 +346,14 @@ export async function POST(request: NextRequest) {
 
       const release = await prisma.release.create({
         data: {
-          metadata,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
           productId,
           status,
           version,
@@ -411,6 +420,7 @@ export type IProductsReleasesGetSuccessResponse = {
     file: ReleaseFile | null;
     product: Product;
     allowedLicenses: Omit<License, 'licenseKeyLookup'>[];
+    metadata: Metadata[];
   })[];
   totalResults: number;
   hasLatestRelease: boolean;
@@ -505,6 +515,7 @@ export async function GET(
                   product: true,
                   file: true,
                   allowedLicenses: true,
+                  metadata: true,
                 },
                 skip,
                 take,

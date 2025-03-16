@@ -21,6 +21,7 @@ import {
   AuditLogTargetType,
   Customer,
   License,
+  Metadata,
   Prisma,
   Product,
 } from '@prisma/client';
@@ -31,6 +32,7 @@ export type ILicensesGetSuccessResponse = {
   licenses: (Omit<License, 'licenseKeyLookup'> & {
     products: Product[];
     customers: Customer[];
+    metadata: Metadata[];
   })[];
   totalResults: number;
   hasResults: boolean;
@@ -95,7 +97,6 @@ export async function GET(
     }
 
     const hasValidMetadata = Boolean(metadata && metadataValue);
-    const metadataJson = [{ key: metadata, value: metadataValue }];
 
     if (!allowedSortDirections.includes(sortDirection)) {
       sortDirection = 'desc';
@@ -342,7 +343,13 @@ export async function GET(
         : undefined,
       metadata: hasValidMetadata
         ? {
-            array_contains: metadataJson,
+            some: {
+              key: metadata,
+              value: {
+                contains: metadataValue,
+                mode: 'insensitive',
+              },
+            },
           }
         : undefined,
     } as Prisma.LicenseWhereInput;
@@ -366,6 +373,7 @@ export async function GET(
                 include: {
                   products: true,
                   customers: true,
+                  metadata: true,
                 },
               },
             },
@@ -609,7 +617,14 @@ export async function POST(
         ipLimit,
         licenseKey: encryptedLicenseKey,
         licenseKeyLookup: hmac,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         suspended,
         teamId: team.id,
         seats,

@@ -186,7 +186,14 @@ export async function POST(
         ipLimit,
         licenseKey: encryptedLicenseKey,
         licenseKeyLookup: hmac,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         suspended,
         teamId: team.id,
         seats,
@@ -200,6 +207,7 @@ export async function POST(
       include: {
         customers: true,
         products: true,
+        metadata: true,
       },
     });
 
@@ -408,6 +416,9 @@ export async function GET(
       take: pageSize + 1,
       orderBy: {
         [sortColumn]: sortDirection,
+      },
+      include: {
+        metadata: true,
       },
     });
 

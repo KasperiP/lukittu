@@ -103,7 +103,14 @@ export async function POST(
       data: {
         email,
         fullName,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         address: {
           create: address,
         },
@@ -112,6 +119,9 @@ export async function POST(
             id: team.id,
           },
         },
+      },
+      include: {
+        metadata: true,
       },
     });
 

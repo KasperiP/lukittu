@@ -76,8 +76,17 @@ export async function GET(
         },
       },
       include: {
-        customers: true,
-        products: true,
+        customers: {
+          include: {
+            metadata: true,
+          },
+        },
+        products: {
+          include: {
+            metadata: true,
+          },
+        },
+        metadata: true,
       },
     });
 

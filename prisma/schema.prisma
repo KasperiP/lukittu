@@ -66,6 +66,7 @@ model Team {
   devices              Device[]
   releases             Release[]
   blacklist            Blacklist[]
+  metadata             Metadata[]
   watermarkingSettings WatermarkingSettings?
   limits               Limits?
   stripeIntegration    StripeIntegration?
@@ -111,7 +112,7 @@ model Blacklist {
   type            BlacklistType
   value           String
   hits            Int           @default(0)
-  metadata        Json
+  metadata        Metadata[]
   updatedAt       DateTime      @updatedAt
   createdAt       DateTime      @default(now())
   teamId          String
@@ -209,7 +210,7 @@ model Product {
   id              String       @id @default(uuid())
   name            String
   url             String?
-  metadata        Json
+  metadata        Metadata[]
   teamId          String
   team            Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   createdByUserId String?
@@ -226,7 +227,7 @@ model Product {
 model Release {
   id              String        @id @default(uuid())
   version         String
-  metadata        Json
+  metadata        Metadata[]
   status          ReleaseStatus @default(DRAFT)
   latest          Boolean       @default(false)
   teamId          String
@@ -275,7 +276,7 @@ model Customer {
   id              String       @id @default(uuid())
   email           String
   fullName        String?
-  metadata        Json
+  metadata        Metadata[]
   teamId          String
   team            Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   licenses        License[]
@@ -289,12 +290,40 @@ model Customer {
   @@unique([email, teamId])
 }
 
+model Metadata {
+  id          String     @id @default(uuid())
+  key         String
+  value       String
+  locked      Boolean    @default(false)
+  teamId      String
+  team        Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  //
+  customerId  String?
+  customer    Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  //
+  licenseId   String?
+  license     License?   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  //
+  productId   String?
+  product     Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  //
+  releaseId   String?
+  release     Release?   @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  //
+  blacklistId String?
+  blacklist   Blacklist? @relation(fields: [blacklistId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+}
+
 model License {
   id               String                 @id @default(uuid())
   licenseKey       String
   licenseKeyLookup String
   ipLimit          Int?
-  metadata         Json
+  metadata         Metadata[]
   expirationType   LicenseExpirationType  @default(NEVER)
   expirationStart  LicenseExpirationStart @default(CREATION)
   expirationDate   DateTime?

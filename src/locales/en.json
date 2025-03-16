@@ -119,6 +119,9 @@
     "max_releases_reached": "Your team has reached the maximum number of releases allowed for the current plan. Please upgrade to add more releases."
   },
   "general": {
+    "select_key": "Select key",
+    "search_keys": "Search keys...",
+    "no_keys_found": "No keys found",
     "ip_addresses": "IP-addresses",
     "request_count": "Request count",
     "select_date_range": "Select date range",

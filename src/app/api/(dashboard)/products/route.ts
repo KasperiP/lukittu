@@ -13,6 +13,7 @@ import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
   AuditLogTargetType,
+  Metadata,
   Prisma,
   Product,
 } from '@prisma/client';
@@ -23,6 +24,7 @@ export type IProductsGetSuccessResponse = {
   products: (Product & {
     latestRelease: string | null;
     totalReleases: number;
+    metadata: Metadata[];
   })[];
   totalResults: number;
   hasResults: boolean;
@@ -170,6 +172,7 @@ export async function GET(
                 where,
                 include: {
                   releases: true,
+                  metadata: true,
                 },
                 skip,
                 take,
@@ -348,7 +351,14 @@ export async function POST(
       data: {
         name,
         url: url || null,
-        metadata,
+        metadata: {
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
         createdBy: {
           connect: {
             id: session.user.id,

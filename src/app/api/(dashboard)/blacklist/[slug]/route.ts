@@ -252,7 +252,15 @@ export async function PUT(
       data: {
         value,
         type,
-        metadata,
+        metadata: {
+          deleteMany: {},
+          createMany: {
+            data: metadata.map((m) => ({
+              ...m,
+              teamId: team.id,
+            })),
+          },
+        },
       },
     });
 

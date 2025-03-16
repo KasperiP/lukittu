@@ -24,7 +24,9 @@ describe('getMainClassFromJar', () => {
       let compression = 0;
 
       if (file.compressed) {
-        compressedContent = deflateRawSync(contentBuffer);
+        compressedContent = deflateRawSync(
+          contentBuffer,
+        ) as Buffer<ArrayBuffer>;
         compression = 8;
       }
 
@@ -78,7 +80,7 @@ describe('getMainClassFromJar', () => {
         zipBuffer.buffer.slice(
           zipBuffer.byteOffset,
           zipBuffer.byteOffset + zipBuffer.length,
-        ),
+        ) as ArrayBuffer,
       name: 'test.jar',
       type: 'application/java-archive',
     };

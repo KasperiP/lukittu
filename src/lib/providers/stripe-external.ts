@@ -154,7 +154,14 @@ export const handleInvoicePaid = async (
             email: stripeCustomer.email!,
             fullName: stripeCustomer.name ?? undefined,
             teamId: team.id,
-            metadata,
+            metadata: {
+              createMany: {
+                data: metadata.map((m) => ({
+                  ...m,
+                  teamId: team.id,
+                })),
+              },
+            },
           },
           update: {},
         });
@@ -179,7 +186,14 @@ export const handleInvoicePaid = async (
               },
             },
             licenseKeyLookup: hmac,
-            metadata,
+            metadata: {
+              createMany: {
+                data: metadata.map((m) => ({
+                  ...m,
+                  teamId: team.id,
+                })),
+              },
+            },
             products: {
               connect: {
                 id: lukittuProductId,
@@ -522,7 +536,14 @@ export const handleCheckoutSessionCompleted = async (
               }
             : undefined,
           teamId: team.id,
-          metadata,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
         },
         update: {},
       });
@@ -547,7 +568,14 @@ export const handleCheckoutSessionCompleted = async (
             },
           },
           licenseKeyLookup: hmac,
-          metadata,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
           products: {
             connect: {
               id: lukittuProductId,
