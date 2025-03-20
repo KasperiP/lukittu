@@ -324,7 +324,7 @@
       "email_already_in_use": "Este correo electrónico ya está en uso!",
       "email_sent_title": "Confirma tu registro",
       "email_sent_description": "Hemos enviado un correo de verificación a <strong>{email}</strong>. Por favor, revisa tu bandeja de entrada y carpeta de spam. Si no recibes el correo en unos minutos, puedes intentar registrarte de nuevo.",
-      "seo_title": "Regístrate y Create una Cuenta de Lukittu | Lukittu"
+      "seo_title": "Regístrate y Crea una Cuenta de Lukittu | Lukittu"
     },
     "forgot_password": {
       "title": "¿Olvidaste tu contraseña?",
@@ -573,7 +573,7 @@
       "no_audit_logs_title": "No tienes registros de auditoría",
       "no_audit_logs_description": "No se encontraron registros de auditoría. Los registros de auditoría se crean cuando se realiza una acción en el sistema. Puedes ver los detalles de la acción aquí.",
       "actions_types": {
-        "set_latest_release": "establecer última versión",
+        "set_latest_release": "Establecer última versión",
         "leave_team": "Abandonó el equipo",
         "create_team": "Creó equipo",
         "delete_team": "Eliminó equipo",
