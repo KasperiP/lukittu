@@ -41,7 +41,8 @@ export default function SetCustomerModal() {
   const form = useForm<SetCustomerSchema>({
     resolver: zodResolver(setCustomerSchema(t)),
     defaultValues: {
-      email: '',
+      email: null,
+      username: null,
       fullName: null,
       address: {
         city: null,
@@ -59,7 +60,8 @@ export default function SetCustomerModal() {
 
   useEffect(() => {
     if (ctx.customerToEdit) {
-      setValue('email', ctx.customerToEdit.email);
+      setValue('email', ctx.customerToEdit?.email ?? null);
+      setValue('username', ctx.customerToEdit?.username ?? null);
       setValue('fullName', ctx.customerToEdit.fullName);
       setValue('address.city', ctx.customerToEdit.address?.city ?? null);
       setValue('address.country', ctx.customerToEdit.address?.country ?? null);
@@ -186,7 +188,39 @@ export default function SetCustomerModal() {
                       placeholder="support@lukittu.com"
                       type="email"
                       {...field}
+                      value={field.value ?? ''}
                       required
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          return setValue('email', null);
+                        }
+                        return setValue('email', e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('general.username')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Lukittu"
+                      type="username"
+                      {...field}
+                      value={field.value ?? ''}
+                      required
+                      onChange={(e) => {
+                        if (!e.target.value) {
+                          return setValue('username', null);
+                        }
+                        return setValue('username', e.target.value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

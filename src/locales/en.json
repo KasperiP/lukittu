@@ -4,6 +4,13 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "buildbybit_integration_not_found": "BuildByBit integration not found!",
+    "buildbybit_secret_required": "BuildByBit API-secret is required!",
+    "buildbybit_secret_invalid": "BuildByBit API-secret is invalid!",
+    "email_or_username_required": "Email or username is required!",
+    "username_required": "Username is required!",
+    "username_min_length": "Username must be at least 1 characters long!",
+    "username_max_length": "Username must be at most 255 characters long!",
     "no_discord_account": "You don't have a Discord account connected!",
     "invalid_email": "Invalid email address!",
     "invalid_token": "Invalid token.",
@@ -48,12 +55,10 @@
     "license_key_invalid": "License key must contain 5 groups of 5 characters separated by dashes!",
     "expiration_days_required": "Days are required!",
     "expiration_date_required": "Expiration date is required!",
-    "email_or_full_name_required": "Email or full name is required!",
     "metadata_key_min_length": "Metadata key must be at least 1 characters long!",
     "metadata_key_max_length": "Metadata key must be at most 255 characters long!",
     "metadata_value_min_length": "Metadata value must be at least 1 characters long!",
     "metadata_value_max_length": "Metadata value must be at most 255 characters long!",
-    "customer_exists": "Customer already exists with given email!",
     "license_key_exists": "License key already exists!",
     "customer_not_found": "Customer not found!",
     "license_not_found": "License not found!",
@@ -120,6 +125,8 @@
     "max_releases_reached": "Your team has reached the maximum number of releases allowed for the current plan. Please upgrade to add more releases."
   },
   "general": {
+    "api_secret": "API-secret",
+    "username": "Username",
     "select_key": "Select key",
     "search_keys": "Search keys...",
     "no_keys_found": "No keys found",
@@ -615,7 +622,9 @@
         "delete_email_picture": "deleted team's email picture",
         "delete_team_picture": "deleted team picture",
         "create_api_key": "created API key",
-        "delete_api_key": "deleted API key"
+        "delete_api_key": "deleted API key",
+        "set_build_by_bit_integration": "set BuildByBit integration",
+        "delete_build_by_bit_integration": "deleted BuildByBit integration"
       }
     },
     "members": {
@@ -638,6 +647,15 @@
       "no_members_description": "No members found. Members are the users who have access to the team and its resources."
     },
     "integrations": {
+      "reroll_secret": "Reroll secret",
+      "reroll_secret_warning": "Are you sure you want to reroll the API-secret?",
+      "reset_secret": "Reset API-secret",
+      "regenerate_secret": "Regenerate API-secret",
+      "buildbybit_integration_deleted": "BuildByBit integration deleted",
+      "buildbybit_integration_created": "BuildByBit integration created",
+      "buildbybit_integration_updated": "BuildByBit integration updated",
+      "buildbybit_integration_description": "For automatic license generation and distribution, you can integrate Lukittu with BuildByBit. When a customer purchases a product, a license will be automatically generated and sent to the customer.",
+
       "need_integrations": "<strong>Need integrations?</strong> We are working on integrations with popular services. If you have a specific service in mind, send us an email at <emailElement>support@lukittu.com</emailElement>!",
       "setup_integration": "Setup integration",
       "manage_integration": "Manage integration",

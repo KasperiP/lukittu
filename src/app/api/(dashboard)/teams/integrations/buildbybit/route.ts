@@ -4,32 +4,32 @@ import { logger } from '@/lib/logging/logger';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
-  setStripeIntegrationSchema,
-  SetStripeIntegrationSchema,
-} from '@/lib/validation/integrations/set-stripe-integration-schema';
+  SetBuildByBitIntegrationSchema,
+  setBuildByBitIntegrationSchema,
+} from '@/lib/validation/integrations/set-buildbybit-integration-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import { AuditLogAction, AuditLogTargetType } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 
-export interface ITeamsIntegrationsStripeSetSuccessResponse {
+export interface ITeamsIntegrationsBuildByBitSetSuccessResponse {
   success: boolean;
 }
 
-export type ITeamsIntegrationsStripeSetResponse =
+export type ITeamsIntegrationsBuildByBitSetResponse =
   | ErrorResponse
-  | ITeamsIntegrationsStripeSetSuccessResponse;
+  | ITeamsIntegrationsBuildByBitSetSuccessResponse;
 
 export async function POST(
   request: NextRequest,
-): Promise<NextResponse<ITeamsIntegrationsStripeSetResponse>> {
+): Promise<NextResponse<ITeamsIntegrationsBuildByBitSetResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
-    const body = (await request.json()) as SetStripeIntegrationSchema;
-    const validated = await setStripeIntegrationSchema(t).safeParseAsync(body);
+    const body = (await request.json()) as SetBuildByBitIntegrationSchema;
+    const validated =
+      await setBuildByBitIntegrationSchema(t).safeParseAsync(body);
 
     if (!validated.success) {
       return NextResponse.json(
@@ -41,7 +41,7 @@ export async function POST(
       );
     }
 
-    const { active, apiKey, webhookSecret } = validated.data;
+    const { active, apiSecret } = validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -86,26 +86,9 @@ export async function POST(
       );
     }
 
-    const stripe = new Stripe(apiKey, {
-      apiVersion: '2025-02-24.acacia',
-    });
-
-    try {
-      await stripe.customers.list();
-    } catch (error) {
-      logger.error('Error occurred while validating Stripe API key', error);
-      return NextResponse.json(
-        {
-          message: t('validation.stripe_api_key_invalid'),
-          field: 'apiKey',
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
     const team = session.user.teams[0];
 
-    await prisma.stripeIntegration.upsert({
+    await prisma.buildByBitIntegration.upsert({
       where: {
         teamId: team.id,
       },
@@ -116,8 +99,7 @@ export async function POST(
           },
         },
         active,
-        apiKey,
-        webhookSecret,
+        apiSecret,
         createdBy: {
           connect: {
             id: session.user.id,
@@ -126,8 +108,7 @@ export async function POST(
       },
       update: {
         active,
-        apiKey,
-        webhookSecret,
+        apiSecret,
       },
     });
 
@@ -138,7 +119,7 @@ export async function POST(
     createAuditLog({
       userId: session.user.id,
       teamId: selectedTeam,
-      action: AuditLogAction.SET_STRIPE_INTEGRATION,
+      action: AuditLogAction.SET_BUILD_BY_BIT_INTEGRATION,
       targetId: selectedTeam,
       targetType: AuditLogTargetType.TEAM,
       requestBody: body,
@@ -147,7 +128,10 @@ export async function POST(
 
     return NextResponse.json(response);
   } catch (error) {
-    logger.error("Error occurred in 'teams/integrations/stripe' route", error);
+    logger.error(
+      "Error occurred in 'teams/integrations/buildbybit' route",
+      error,
+    );
     return NextResponse.json(
       {
         message: t('general.server_error'),
@@ -157,16 +141,16 @@ export async function POST(
   }
 }
 
-export interface ITeamsIntegrationsStripeDeleteSuccessResponse {
+export interface ITeamsIntegrationsBuildByBitDeleteSuccessResponse {
   success: boolean;
 }
 
-export type ITeamsIntegrationsStripeDeleteResponse =
+export type ITeamsIntegrationsBuildByBitDeleteResponse =
   | ErrorResponse
-  | ITeamsIntegrationsStripeDeleteSuccessResponse;
+  | ITeamsIntegrationsBuildByBitDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
-  NextResponse<ITeamsIntegrationsStripeDeleteResponse>
+  NextResponse<ITeamsIntegrationsBuildByBitDeleteResponse>
 > {
   const t = await getTranslations({ locale: await getLanguage() });
 
@@ -191,7 +175,7 @@ export async function DELETE(): Promise<
               deletedAt: null,
             },
             include: {
-              stripeIntegration: true,
+              buildByBitIntegration: true,
             },
           },
         },
@@ -219,16 +203,16 @@ export async function DELETE(): Promise<
 
     const team = session.user.teams[0];
 
-    if (!team.stripeIntegration) {
+    if (!team.buildByBitIntegration) {
       return NextResponse.json(
         {
-          message: t('validation.stripe_integration_not_found'),
+          message: t('validation.buildbybit_integration_not_found'),
         },
         { status: HttpStatus.NOT_FOUND },
       );
     }
 
-    await prisma.stripeIntegration.delete({
+    await prisma.buildByBitIntegration.delete({
       where: {
         teamId: team.id,
       },
@@ -241,7 +225,7 @@ export async function DELETE(): Promise<
     createAuditLog({
       userId: session.user.id,
       teamId: selectedTeam,
-      action: AuditLogAction.DELETE_STRIPE_INTEGRATION,
+      action: AuditLogAction.DELETE_BUILD_BY_BIT_INTEGRATION,
       targetId: selectedTeam,
       targetType: AuditLogTargetType.TEAM,
       requestBody: null,
@@ -250,7 +234,10 @@ export async function DELETE(): Promise<
 
     return NextResponse.json(response);
   } catch (error) {
-    logger.error("Error occurred in 'teams/integrations/stripe' route", error);
+    logger.error(
+      "Error occurred in 'teams/integrations/buildbybit' route",
+      error,
+    );
     return NextResponse.json(
       {
         message: t('general.server_error'),

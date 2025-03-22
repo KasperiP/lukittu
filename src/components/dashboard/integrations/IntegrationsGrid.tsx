@@ -1,4 +1,5 @@
 'use client';
+import buildByBitSvg from '@/../public/integrations/buildbybit.svg';
 import stripeSvg from '@/../public/integrations/stripe.svg';
 import {
   ITeamsIntegrationsGetResponse,
@@ -22,6 +23,7 @@ import Link from 'next/link';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
+import SetBuildByBitIntegrationModal from './modals/SetBuildByBitIntegrationModal';
 import SetStripeIntegrationModal from './modals/SetStripeIntegrationModal';
 
 interface InitialIntegration {
@@ -38,6 +40,13 @@ const initialIntegrations: InitialIntegration[] = [
       'Stripe is a suite of payment APIs that powers commerce for businesses of all sizes.',
     logo: stripeSvg,
     key: 'stripeIntegration',
+  },
+  {
+    name: 'BuildByBit',
+    description:
+      'The largest independent marketplace for buying and selling gaming-related goods and services.',
+    logo: buildByBitSvg,
+    key: 'buildByBitIntegration',
   },
 ];
 
@@ -89,9 +98,14 @@ export default function IntegrationsGrid() {
         stripeIntegration={integrations?.stripeIntegration ?? null}
         onOpenChange={handleIntegrationModalClose}
       />
+      <SetBuildByBitIntegrationModal
+        buildByBitIntegration={integrations?.buildByBitIntegration ?? null}
+        open={openSetupModal === 'buildByBitIntegration'}
+        onOpenChange={handleIntegrationModalClose}
+      />
       <div className="grid grid-cols-3 gap-6 max-xl:grid-cols-2 max-md:grid-cols-1">
         {initialIntegrations.map((integration) => (
-          <Card key={integration.name}>
+          <Card key={integration.name} className="flex flex-col">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-2xl font-bold">
                 {integration.name}
@@ -102,10 +116,10 @@ export default function IntegrationsGrid() {
                 src={integration.logo}
               />
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <CardDescription>{integration.description}</CardDescription>
             </CardContent>
-            <CardFooter className="flex items-center justify-between">
+            <CardFooter className="mt-auto flex items-center justify-between">
               <Badge
                 variant={
                   integrations?.[integration.key]?.active

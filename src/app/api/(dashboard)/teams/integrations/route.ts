@@ -3,13 +3,14 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { StripeIntegration } from '@prisma/client';
+import { BuildByBitIntegration, StripeIntegration } from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
 export type ITeamsIntegrationsGetSuccessResponse = {
   integrations: {
     stripeIntegration: StripeIntegration | null;
+    buildByBitIntegration: BuildByBitIntegration | null;
   };
 };
 
@@ -44,6 +45,7 @@ export async function GET(
             },
             include: {
               stripeIntegration: true,
+              buildByBitIntegration: true,
             },
           },
         },
@@ -66,11 +68,15 @@ export async function GET(
 
     const team = session.user.teams[0];
     const stripeIntegration = team.stripeIntegration;
+    const buildByBitIntegration = team.buildByBitIntegration;
 
     return NextResponse.json(
       {
         integrations: {
           stripeIntegration: stripeIntegration ? stripeIntegration : null,
+          buildByBitIntegration: buildByBitIntegration
+            ? buildByBitIntegration
+            : null,
         },
       },
       { status: HttpStatus.OK },

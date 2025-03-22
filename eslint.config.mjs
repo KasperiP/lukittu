@@ -46,7 +46,6 @@ const config = [
 
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
-      '@typescript-eslint/no-unnecessary-condition': 'warn',
       'no-unused-expressions': 'error',
       'no-unneeded-ternary': 'error',
       'no-useless-return': 'error',

@@ -14,28 +14,29 @@ datasource db {
 }
 
 model User {
-  id                        String              @id @default(uuid())
-  email                     String              @unique
-  emailVerified             Boolean             @default(false)
-  fullName                  String
-  passwordHash              String?
-  imageUrl                  String?
-  createdAt                 DateTime            @default(now())
-  updatedAt                 DateTime            @updatedAt
-  provider                  Provider            @default(CREDENTIALS)
-  discordAccount            DiscordAccount?
-  sessions                  Session[]
-  createdProducts           Product[]
-  auditLogs                 AuditLog[]
-  ownedTeams                Team[]              @relation("TeamOwner")
-  teams                     Team[]              @relation("TeamUsers")
-  createdApiKeys            ApiKey[]
-  createdLicenses           License[]
-  createdCustomers          Customer[]
-  createdStripeIntegrations StripeIntegration[]
-  createdInvitations        Invitation[]
-  blacklist                 Blacklist[]
-  releases                  Release[]
+  id                            String                  @id @default(uuid())
+  email                         String                  @unique
+  emailVerified                 Boolean                 @default(false)
+  fullName                      String
+  passwordHash                  String?
+  imageUrl                      String?
+  createdAt                     DateTime                @default(now())
+  updatedAt                     DateTime                @updatedAt
+  provider                      Provider                @default(CREDENTIALS)
+  discordAccount                DiscordAccount?
+  sessions                      Session[]
+  createdProducts               Product[]
+  auditLogs                     AuditLog[]
+  ownedTeams                    Team[]                  @relation("TeamOwner")
+  teams                         Team[]                  @relation("TeamUsers")
+  createdApiKeys                ApiKey[]
+  createdLicenses               License[]
+  createdCustomers              Customer[]
+  createdStripeIntegrations     StripeIntegration[]
+  createdBuildByBitIntegrations BuildByBitIntegration[]
+  createdInvitations            Invitation[]
+  blacklist                     Blacklist[]
+  releases                      Release[]
 }
 
 model DiscordAccount {
@@ -62,32 +63,33 @@ model Session {
 }
 
 model Team {
-  id                   String                @id @default(uuid())
-  name                 String
-  ownerId              String
-  imageUrl             String?
-  owner                User                  @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  users                User[]                @relation("TeamUsers")
-  products             Product[]
-  licenses             License[]
-  customers            Customer[]
-  requestLogs          RequestLog[]
-  auditLogs            AuditLog[]
-  invitations          Invitation[]
-  apiKeys              ApiKey[]
-  devices              Device[]
-  releases             Release[]
-  blacklist            Blacklist[]
-  metadata             Metadata[]
-  watermarkingSettings WatermarkingSettings?
-  limits               Limits?
-  stripeIntegration    StripeIntegration?
-  settings             Settings?
-  keyPair              KeyPair?
-  deletedAt            DateTime?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  subscription         Subscription?
+  id                    String                 @id @default(uuid())
+  name                  String
+  ownerId               String
+  imageUrl              String?
+  owner                 User                   @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  users                 User[]                 @relation("TeamUsers")
+  products              Product[]
+  licenses              License[]
+  customers             Customer[]
+  requestLogs           RequestLog[]
+  auditLogs             AuditLog[]
+  invitations           Invitation[]
+  apiKeys               ApiKey[]
+  devices               Device[]
+  releases              Release[]
+  blacklist             Blacklist[]
+  metadata              Metadata[]
+  watermarkingSettings  WatermarkingSettings?
+  limits                Limits?
+  stripeIntegration     StripeIntegration?
+  buildByBitIntegration BuildByBitIntegration?
+  settings              Settings?
+  keyPair               KeyPair?
+  deletedAt             DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  subscription          Subscription?
 }
 
 model Subscription {
@@ -112,6 +114,18 @@ model StripeIntegration {
   team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
   webhookSecret   String
   apiKey          String
+  active          Boolean  @default(true)
+  createdByUserId String?
+  createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BuildByBitIntegration {
+  id              String   @id @default(uuid())
+  teamId          String   @unique
+  team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  apiSecret       String
   active          Boolean  @default(true)
   createdByUserId String?
   createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
@@ -286,7 +300,8 @@ model Address {
 
 model Customer {
   id              String       @id @default(uuid())
-  email           String
+  username        String?
+  email           String?
   fullName        String?
   metadata        Metadata[]
   teamId          String
@@ -298,8 +313,6 @@ model Customer {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
   address         Address?
-
-  @@unique([email, teamId])
 }
 
 model Metadata {
@@ -484,6 +497,8 @@ enum AuditLogAction {
   SET_LATEST_RELEASE
   UPDATE_EMAIL_PICTURE
   DELETE_EMAIL_PICTURE
+  SET_BUILD_BY_BIT_INTEGRATION
+  DELETE_BUILD_BY_BIT_INTEGRATION
 }
 
 enum ReleaseStatus {

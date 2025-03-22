@@ -7,13 +7,25 @@ export type SetCustomerSchema = z.infer<ReturnType<typeof setCustomerSchema>>;
 export const setCustomerSchema = (t?: I18nTranslator) =>
   z
     .object({
+      username: z
+        .string({
+          required_error: t?.('validation.username_required'),
+        })
+        .min(1, {
+          message: t?.('validation.username_min_length'),
+        })
+        .max(255, {
+          message: t?.('validation.username_max_length'),
+        })
+        .nullable(),
       email: z
         .string({
           required_error: t?.('validation.email_required'),
         })
         .email({
           message: t?.('validation.invalid_email'),
-        }),
+        })
+        .nullable(),
       fullName: z
         .string({
           required_error: t?.('validation.full_name_required'),
@@ -97,13 +109,25 @@ export const setCustomerSchema = (t?: I18nTranslator) =>
     .strict()
     .refine(
       (data) => {
-        if (!data.email && !data.fullName) {
+        if (!data.email && !data.username) {
           return false;
         }
         return true;
       },
       {
-        message: t?.('validation.email_or_full_name_required'),
+        message: t?.('validation.email_or_username_required'),
+        path: ['email'],
+      },
+    )
+    .refine(
+      (data) => {
+        if (!data.email && !data.username) {
+          return false;
+        }
+        return true;
+      },
+      {
+        message: t?.('validation.email_or_username_required'),
         path: ['email'],
       },
     );

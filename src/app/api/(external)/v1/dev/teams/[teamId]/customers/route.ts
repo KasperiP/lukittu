@@ -37,7 +37,7 @@ export async function POST(
       );
     }
 
-    const { email, fullName, metadata, address } = validated.data;
+    const { email, fullName, metadata, address, username } = validated.data;
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
@@ -76,33 +76,11 @@ export async function POST(
       );
     }
 
-    const existingCustomer = await prisma.customer.findUnique({
-      where: {
-        email_teamId: {
-          email,
-          teamId: team.id,
-        },
-      },
-    });
-
-    if (existingCustomer) {
-      return NextResponse.json(
-        {
-          data: existingCustomer,
-          result: {
-            details: 'Customer already exists',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.CONFLICT },
-      );
-    }
-
     const customer = await prisma.customer.create({
       data: {
         email,
         fullName,
+        username,
         metadata: {
           createMany: {
             data: metadata.map((m) => ({
