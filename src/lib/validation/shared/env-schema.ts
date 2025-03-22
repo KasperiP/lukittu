@@ -250,6 +250,23 @@ export const envSchema = z.object({
       required_error: 'STRIPE_WEBHOOK_SECRET is required',
     })
     .min(1, { message: 'STRIPE_WEBHOOK_SECRET is required' }),
+
+  // Discord oauth
+  NEXT_PUBLIC_DISCORD_CLIENT_ID: z
+    .string({
+      required_error: 'DISCORD_CLIENT_ID is required',
+    })
+    .min(1, { message: 'DISCORD_CLIENT_ID is required' }),
+  DISCORD_CLIENT_SECRET: z
+    .string({
+      required_error: 'DISCORD_CLIENT_SECRET is required',
+    })
+    .min(1, { message: 'DISCORD_CLIENT_SECRET is required' }),
+  NEXT_PUBLIC_DISCORD_REDIRECT_URI: z
+    .string({
+      required_error: 'DISCORD_REDIRECT_URI is required',
+    })
+    .url({ message: 'DISCORD_REDIRECT_URI must be a valid URL' }),
 });
 
 /**

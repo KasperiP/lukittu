@@ -116,7 +116,8 @@
     "api_key_limit_reached": "Tu equipo ha alcanzado el número máximo de claves de API permitidas para el plan actual. Por favor, actualiza para agregar más claves de API.",
     "api_key_not_found": "¡Clave de API no encontrada!",
     "max_invitations_reached": "Tu equipo ha alcanzado el número máximo de invitaciones permitidas para el plan actual. Por favor, actualiza para agregar más invitaciones.",
-    "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones."
+    "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones.",
+    "no_discord_account": "¡No tienes cuenta de Discord!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -290,7 +291,9 @@
     "remove_photo": "Eliminar foto",
     "unlock_metadata": "Desbloquear metadatos",
     "locked_metadata_warning": "Este campo de metadatos está bloqueado. Estos campos suelen estar bloqueados porque son generados por el sistema. Modificar este campo puede causar problemas con las integraciones que dependen de estos datos.",
-    "confirm": "Confirmar"
+    "confirm": "Confirmar",
+    "connect": "Conectar",
+    "disconnect": "Desconectar"
   },
   "auth": {
     "oauth": {
@@ -298,7 +301,8 @@
       "credentials": "correo electrónico y contraseña",
       "google": "Google",
       "github": "GitHub",
-      "server_error": "No se pudo autenticar con <strong>{provider}</strong>. Por favor, intenta de nuevo más tarde."
+      "server_error": "No se pudo autenticar con <strong>{provider}</strong>. Por favor, intenta de nuevo más tarde.",
+      "discord": "Discord"
     },
     "login": {
       "title": "Inicia sesión en tu cuenta",
@@ -476,7 +480,11 @@
       "delete_team": "Eliminar equipo",
       "transfer_ownership": "Transferir propiedad",
       "select_new_owner": "Seleccionar nuevo propietario",
-      "no_users_found": "No se encontraron usuarios"
+      "no_users_found": "No se encontraron usuarios",
+      "discord_disconnected": "Cuenta de Discord desconectada",
+      "third_party_connections": "Conexiones de terceros",
+      "discord_description": "Conecta tu cuenta de Discord para usar el bot de Discord de Lukittu.",
+      "discord_connection_failed": "Error al conectar la cuenta de Discord"
     },
     "products": {
       "add_product": "Agregar producto",

@@ -116,7 +116,8 @@
     "api_key_limit_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman API-avainten määrän. Päivitä suunnitelma lisätäksesi API-avaimia.",
     "api_key_not_found": "API-avainta ei löydy!",
     "max_invitations_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman kutsujen määrän. Päivitä suunnitelma lisätäksesi kutsuja.",
-    "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja."
+    "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja.",
+    "no_discord_account": "Ei Discord-tiliä"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -290,7 +291,9 @@
     "remove_photo": "Poista valokuva",
     "unlock_metadata": "Avaa metatiedot",
     "locked_metadata_warning": "Tämä metatietokenttä on lukittu. Nämä kentät on tyypillisesti lukittu, koska ne on luotu järjestelmän toimesta. Tämän kentän muokkaaminen voi aiheuttaa ongelmia integraatioissa, jotka riippuvat tästä tiedosta.",
-    "confirm": "Vahvista"
+    "confirm": "Vahvista",
+    "connect": "Yhdistä",
+    "disconnect": "Katkaise yhteys"
   },
   "auth": {
     "oauth": {
@@ -298,7 +301,8 @@
       "credentials": "sähköposti ja salasana",
       "google": "Google",
       "github": "GitHub",
-      "server_error": "Tunnistautuminen <strong>{provider}</strong> kanssa epäonnistui. Yritä myöhemmin uudelleen."
+      "server_error": "Tunnistautuminen <strong>{provider}</strong> kanssa epäonnistui. Yritä myöhemmin uudelleen.",
+      "discord": "Discord"
     },
     "login": {
       "title": "Kirjaudu sisään tilillesi",
@@ -476,7 +480,11 @@
       "delete_team": "Poista tiimi",
       "transfer_ownership": "Siirrä omistajuus",
       "select_new_owner": "Valitse uusi omistaja",
-      "no_users_found": "Käyttäjiä ei löytynyt"
+      "no_users_found": "Käyttäjiä ei löytynyt",
+      "discord_disconnected": "Yhteys Discord-tiliin poistettu",
+      "third_party_connections": "Kolmannen osapuolen yhteydet",
+      "discord_description": "Yhdistä Discord-tilisi käyttääksesi Lukittu Discord-bottia.",
+      "discord_connection_failed": "Discord-tilin yhdistäminen epäonnistui"
     },
     "products": {
       "add_product": "Lisää tuote",

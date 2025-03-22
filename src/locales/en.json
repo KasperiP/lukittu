@@ -4,6 +4,7 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "no_discord_account": "You don't have a Discord account connected!",
     "invalid_email": "Invalid email address!",
     "invalid_token": "Invalid token.",
     "user_not_found": "User not found.",
@@ -193,6 +194,8 @@
     "never": "Never",
     "error": "Error",
     "uploaded": "Uploaded",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
     "email": "Email",
     "full_name": "Full Name",
     "password": "Password",
@@ -298,6 +301,7 @@
       "credentials": "email and password",
       "google": "Google",
       "github": "GitHub",
+      "discord": "Discord",
       "server_error": "Failed to authenticate with <strong>{provider}</strong>. Please try again later."
     },
     "login": {
@@ -449,6 +453,10 @@
       "invitation_accepted": "Invitation has been accepted! You are now a member of <strong>{teamName}</strong>."
     },
     "profile": {
+      "discord_disconnected": "Discord account disconnected",
+      "third_party_connections": "Third-party connections",
+      "discord_description": "Connect your Discord account to use Lukittu Discord bot.",
+      "discord_connection_failed": "Failed to connect Discord account",
       "profile_updated_success": "Profile updated successfully",
       "profile_picture_updated": "Profile picture updated",
       "profile_picture_removed": "Profile picture removed",

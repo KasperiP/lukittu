@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import * as React from 'react';
 
-export const discordIcon = React.forwardRef<
+export const DiscordIcon = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(() => (
