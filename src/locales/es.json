@@ -117,7 +117,7 @@
     "api_key_not_found": "Clave de API no encontrada!",
     "max_invitations_reached": "Tu equipo ha alcanzado el número máximo de invitaciones permitidas para el plan actual. Por favor, actualiza para agregar más invitaciones.",
     "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones.",
-    "no_discord_account": "¡No tienes cuenta de Discord!"
+    "no_discord_account": "No tienes cuenta de Discord!"
   },
   "general": {
     "select_key": "Seleccionar clave",
