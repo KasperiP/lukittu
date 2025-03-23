@@ -177,77 +177,108 @@ export async function POST(
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
     const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
-    const license = await prisma.license.create({
-      data: {
-        expirationDate,
-        expirationDays,
-        expirationStart: expirationStart || 'CREATION',
-        expirationType,
-        ipLimit,
-        licenseKey: encryptedLicenseKey,
-        licenseKeyLookup: hmac,
-        metadata: {
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
-          },
-        },
-        suspended,
-        teamId: team.id,
-        seats,
-        products: productIds.length
-          ? { connect: productIds.map((id) => ({ id })) }
-          : undefined,
-        customers: customerIds.length
-          ? { connect: customerIds.map((id) => ({ id })) }
-          : undefined,
-      },
-      include: {
-        customers: true,
-        products: true,
-        metadata: true,
-      },
-    });
-
-    if (sendEmailDelivery) {
-      const customerEmails = license.customers
-        .filter((customer) => customerIds.includes(customer.id))
-        .map((customer) => customer.email)
-        .filter(Boolean) as string[];
-
-      if (customerEmails.length) {
-        const key = `email-delivery:${team.id}`;
-        const isLimited = await isRateLimited(key, 50, 86400); // 50 requests per day
-        if (isLimited) {
-          return NextResponse.json(
-            {
-              data: null,
-              result: {
-                details: 'Too many requests',
-                timestamp: new Date(),
-                valid: false,
-              },
+    const license = await prisma.$transaction(async (tx) => {
+      const license = await prisma.license.create({
+        data: {
+          expirationDate,
+          expirationDays,
+          expirationStart: expirationStart || 'CREATION',
+          expirationType,
+          ipLimit,
+          licenseKey: encryptedLicenseKey,
+          licenseKeyLookup: hmac,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
             },
-            { status: HttpStatus.TOO_MANY_REQUESTS },
-          );
-        }
+          },
+          suspended,
+          teamId: team.id,
+          seats,
+          products: productIds.length
+            ? { connect: productIds.map((id) => ({ id })) }
+            : undefined,
+          customers: customerIds.length
+            ? { connect: customerIds.map((id) => ({ id })) }
+            : undefined,
+        },
+        include: {
+          customers: true,
+          products: true,
+          metadata: true,
+        },
+      });
 
-        const emails = license.customers
-          .filter((customer) => customer.email)
-          .map(
-            async (customer) =>
-              await sendLicenseDistributionEmail({
-                customer,
-                licenseKey,
-                license,
-                team,
+      if (sendEmailDelivery) {
+        const customerEmails = license.customers
+          .filter((customer) => customerIds.includes(customer.id))
+          .map((customer) => customer.email)
+          .filter(Boolean) as string[];
+
+        if (customerEmails.length) {
+          const key = `email-delivery:${team.id}`;
+          const isLimited = await isRateLimited(key, 50, 86400); // 50 requests per day
+          if (isLimited) {
+            logger.error(
+              `Rate limit exceeded for email delivery for team ${team.id}`,
+            );
+            return NextResponse.json(
+              {
+                data: null,
+                result: {
+                  details: 'Too many requests',
+                  timestamp: new Date(),
+                  valid: false,
+                },
+              },
+              { status: HttpStatus.TOO_MANY_REQUESTS },
+            );
+          }
+
+          const emailsSent = await Promise.all(
+            license.customers
+              .filter((customer) => customer.email)
+              .map(async (customer) => {
+                const success = await sendLicenseDistributionEmail({
+                  customer,
+                  licenseKey,
+                  license,
+                  team,
+                });
+
+                return success;
               }),
           );
 
-        await Promise.all(emails);
+          const success = emailsSent.every((email) => email);
+
+          if (!success) {
+            logger.error(
+              `Failed to send email delivery for license ${license.id}`,
+            );
+            return NextResponse.json(
+              {
+                data: null,
+                result: {
+                  details: 'Failed to send email',
+                  timestamp: new Date(),
+                  valid: false,
+                },
+              },
+              { status: HttpStatus.INTERNAL_SERVER_ERROR },
+            );
+          }
+        }
       }
+
+      return license;
+    });
+
+    if (license instanceof NextResponse) {
+      return license;
     }
 
     const response: IExternalDevResponse = {

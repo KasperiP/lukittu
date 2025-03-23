@@ -5,7 +5,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -60,8 +59,6 @@ export const MembersActionDropdown = ({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="font-medium" forceMount>
-        <DropdownMenuSeparator />
-
         {!('isInvitation' in member) && (
           <DropdownMenuItem
             className="text-destructive hover:cursor-pointer"

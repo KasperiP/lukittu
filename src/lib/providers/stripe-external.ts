@@ -171,7 +171,7 @@ export const handleInvoicePaid = async (
 
         if (!licenseKey) {
           logger.error('Failed to generate a unique license key');
-          return;
+          throw new Error('Failed to generate a unique license key');
         }
 
         const encryptedLicenseKey = encryptLicenseKey(licenseKey);
@@ -209,6 +209,18 @@ export const handleInvoicePaid = async (
           },
         });
 
+        const success = await sendLicenseDistributionEmail({
+          customer: lukittuCustomer,
+          licenseKey,
+          license,
+          team,
+        });
+
+        if (!success) {
+          logger.error('Failed to send license distribution email');
+          throw new Error('Failed to send license distribution email');
+        }
+
         await stripe.subscriptions.update(subscription.id, {
           metadata: {
             ...subscription.metadata,
@@ -217,13 +229,6 @@ export const handleInvoicePaid = async (
             lukittu_license_key: licenseKey,
             lukittu_event_description: 'Recurring subscription',
           },
-        });
-
-        await sendLicenseDistributionEmail({
-          customer: lukittuCustomer,
-          licenseKey,
-          license,
-          team,
         });
 
         return license;
@@ -553,7 +558,7 @@ export const handleCheckoutSessionCompleted = async (
 
       if (!licenseKey) {
         logger.error('Failed to generate a unique license key');
-        return;
+        throw new Error('Failed to generate a unique license key');
       }
 
       const encryptedLicenseKey = encryptLicenseKey(licenseKey);
@@ -593,12 +598,17 @@ export const handleCheckoutSessionCompleted = async (
         },
       });
 
-      await sendLicenseDistributionEmail({
+      const success = await sendLicenseDistributionEmail({
         customer: lukittuCustomer,
         licenseKey,
         license,
         team,
       });
+
+      if (!success) {
+        logger.error('Failed to send license distribution email');
+        throw new Error('Failed to send license distribution email');
+      }
 
       await stripe.paymentIntents.update(session.payment_intent as string, {
         metadata: {
@@ -612,11 +622,6 @@ export const handleCheckoutSessionCompleted = async (
 
       return license;
     });
-
-    if (!license) {
-      logger.error('Failed to create a license');
-      return;
-    }
 
     logger.info('Stripe checkout session completed', {
       sessionId: session.id,

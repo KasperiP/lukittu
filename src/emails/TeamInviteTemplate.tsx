@@ -24,10 +24,7 @@ export const TeamInviteEmailTemplate = ({
   inviteLink,
 }: TeamInviteEmailTemplateProps) => (
   <Html>
-    <Head />
-    <Preview>You&apos;ve been invited to join {teamName} on Lukittu!</Preview>
-    {/* eslint-disable-next-line @next/next/no-head-element */}
-    <head>
+    <Head>
       <style>
         {`
           .container {
@@ -49,7 +46,8 @@ export const TeamInviteEmailTemplate = ({
           }
         `}
       </style>
-    </head>
+    </Head>
+    <Preview>You&apos;ve been invited to join {teamName} on Lukittu!</Preview>
     <Body className="main" style={main}>
       <Container className="emptyContainer" style={emptyContainer} />
       <Container className="container" style={container}>

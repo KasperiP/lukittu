@@ -1,6 +1,7 @@
 import GeneralSettingsCard from '@/components/dashboard/profile/GeneralSettingsCard';
 import SessionsTable from '@/components/dashboard/profile/LoginSessionsCard';
 import TeamsTable from '@/components/dashboard/profile/TeamsTable';
+import ThirdPartyConnectionsCard from '@/components/dashboard/profile/ThirdPartyConnectionsCard';
 import { Separator } from '@/components/ui/separator';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { Metadata } from 'next';
@@ -17,6 +18,7 @@ export default function ProfilePage() {
       </div>
       <div className="mt-6 flex flex-col gap-6">
         <GeneralSettingsCard />
+        <ThirdPartyConnectionsCard />
         <SessionsTable />
         <TeamsTable />
       </div>

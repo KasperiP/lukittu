@@ -157,19 +157,35 @@ export async function POST(
 
     const licenseKey = decryptLicenseKey(license.licenseKey);
 
-    const emails = license.customers
-      .filter((customer) => customer.email)
-      .map(
-        async (customer) =>
-          await sendLicenseDistributionEmail({
+    const emails = await Promise.all(
+      license.customers
+        .filter((customer) => customer.email)
+        .map(async (customer) => {
+          const success = await sendLicenseDistributionEmail({
             customer,
             licenseKey,
             license,
             team,
-          }),
-      );
+          });
 
-    await Promise.all(emails);
+          return success;
+        }),
+    );
+
+    const success = emails.every((email) => email);
+
+    if (!success) {
+      logger.error('Error occurred while sending license distribution emails', {
+        customerIds,
+        licenseId,
+      });
+      return NextResponse.json(
+        {
+          message: t('general.sending_email_failed'),
+        },
+        { status: HttpStatus.INTERNAL_SERVER_ERROR },
+      );
+    }
 
     return NextResponse.json({
       success: true,

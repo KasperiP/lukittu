@@ -1,4 +1,4 @@
-import { discordIcon } from '@/components/shared/Icons';
+import { DiscordIcon } from '@/components/shared/Icons';
 import {
   Ban,
   BookOpenText,
@@ -166,7 +166,7 @@ export function getMenuList(pathname: string): Group[] {
           href: 'https://discord.lukittu.com',
           translation: 'discord',
           active: pathname === '#',
-          icon: discordIcon as LucideIcon,
+          icon: DiscordIcon as LucideIcon,
           submenus: [],
         },
         {

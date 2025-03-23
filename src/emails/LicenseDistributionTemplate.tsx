@@ -67,10 +67,7 @@ export const LicenseDistributionEmailTemplate = ({
   businessLogoUrl,
 }: LicenseDistributionEmailTemplateProps) => (
   <Html>
-    <Head />
-    <Preview>Your License Key for {teamName} Products (via Lukittu)</Preview>
-    {/* eslint-disable-next-line @next/next/no-head-element */}
-    <head>
+    <Head>
       <style>
         {`
             .container {
@@ -92,7 +89,8 @@ export const LicenseDistributionEmailTemplate = ({
             }
         `}
       </style>
-    </head>
+    </Head>
+    <Preview>Your License Key for {teamName} Products (via Lukittu)</Preview>
     <Body className="main" style={main}>
       <Container className="emptyContainer" style={emptyContainer} />
       <Container className="container" style={container}>

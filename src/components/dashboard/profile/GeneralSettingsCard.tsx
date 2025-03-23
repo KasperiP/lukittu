@@ -319,6 +319,7 @@ export default function GeneralSettingsCard() {
                   )}
                 </div>
               </div>
+
               <div className="flex gap-2">
                 {edit ? (
                   <>

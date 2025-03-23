@@ -86,6 +86,7 @@ describe('Stripe Integration', () => {
     id: 'cs_test_123',
     payment_status: 'paid',
     mode: 'payment',
+    payment_intent: 'pi_123',
     customer_details: {
       email: 'test@example.com',
       name: 'Test User',
@@ -149,8 +150,8 @@ describe('Stripe Integration', () => {
       },
     } as unknown as jest.Mocked<Stripe>;
 
-    prismaMock.$transaction.mockImplementation((callback) =>
-      callback(prismaMock),
+    prismaMock.$transaction.mockImplementation(
+      async (callback) => await callback(prismaMock),
     );
 
     prismaMock.customer.upsert.mockResolvedValue({
@@ -172,6 +173,7 @@ describe('Stripe Integration', () => {
     } as any);
 
     (mockStripe.checkout.sessions.retrieve as jest.Mock).mockResolvedValue({
+      id: mockSession.id,
       line_items: {
         data: [
           {
@@ -213,7 +215,7 @@ describe('Stripe Integration', () => {
     (generateUniqueLicense as jest.Mock).mockResolvedValue('test-license-key');
     (generateHMAC as jest.Mock).mockReturnValue('test-hmac');
     (encryptLicenseKey as jest.Mock).mockReturnValue('encrypted-license-key');
-    (sendLicenseDistributionEmail as jest.Mock).mockResolvedValue(undefined);
+    (sendLicenseDistributionEmail as jest.Mock).mockResolvedValue(true);
 
     (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
       ...mockSubscription,
@@ -222,6 +224,16 @@ describe('Stripe Integration', () => {
 
   describe('handleCheckoutSessionCompleted', () => {
     test('successfully processes a valid checkout session', async () => {
+      const createdLicense = {
+        id: 'license_123',
+        licenseKey: 'encrypted-license-key',
+        teamId: mockTeam.id,
+        team: { name: 'Test Team' },
+        products: [{ name: 'Test Product' }],
+      };
+
+      prismaMock.license.create.mockResolvedValue(createdLicense as any);
+
       const result = await handleCheckoutSessionCompleted(
         mockSession,
         mockTeam,
@@ -351,7 +363,9 @@ describe('Stripe Integration', () => {
 
       await handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe);
 
-      expect(logger.error).toHaveBeenCalledWith('Failed to create a license');
+      expect(logger.error).toHaveBeenCalledWith(
+        'Failed to generate a unique license key',
+      );
       expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
 
@@ -380,9 +394,47 @@ describe('Stripe Integration', () => {
         billing_reason: 'subscription_create' as Stripe.Invoice.BillingReason,
       };
 
-      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+      const subscriptionWithCustomer = {
         ...mockSubscription,
+        customer: 'cus_123',
         metadata: {}, // Ensure no existing license
+      };
+
+      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue(
+        subscriptionWithCustomer,
+      );
+
+      (mockStripe.customers.retrieve as jest.Mock).mockResolvedValue({
+        id: 'cus_123',
+        email: 'subscription@example.com',
+        name: 'Subscription Customer',
+        deleted: false,
+      });
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: '123e4567-e89b-12d3-a456-426614174000',
+          ip_limit: '5',
+          seats: '10',
+        },
+      });
+
+      prismaMock.product.findUnique.mockResolvedValue({
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        name: 'Test Product',
+      } as any);
+
+      const createdLicense = {
+        id: 'subscription_license_123',
+        expirationDate: new Date(),
+      };
+
+      prismaMock.license.create.mockResolvedValue(createdLicense as any);
+
+      prismaMock.$transaction.mockImplementation(async (callback) => {
+        await callback(prismaMock);
+        return createdLicense;
       });
 
       const result = await handleInvoicePaid(invoice, mockTeam, mockStripe);

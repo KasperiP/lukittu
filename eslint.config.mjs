@@ -13,7 +13,11 @@ const compat = new FlatCompat({
 
 const config = [
   {
-    ignores: ['src/components/ui', '**/checkTranslations.js'],
+    ignores: [
+      'src/components/ui',
+      '**/checkTranslations.js',
+      '**/syncTranslations.js',
+    ],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   {

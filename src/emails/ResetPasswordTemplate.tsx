@@ -22,10 +22,7 @@ export const ResetPasswordTemplate = ({
   fullName,
 }: ResetPasswordTemplateProps) => (
   <Html>
-    <Head />
-    <Preview>Password Reset Request for Your Lukittu Account</Preview>
-    {/* eslint-disable-next-line @next/next/no-head-element */}
-    <head>
+    <Head>
       <style>
         {`
           .container {
@@ -47,7 +44,8 @@ export const ResetPasswordTemplate = ({
           }
         `}
       </style>
-    </head>
+    </Head>
+    <Preview>Password Reset Request for Your Lukittu Account</Preview>
     <Body className="main" style={main}>
       <Container style={emptyContainer} />
       <Container className="container" style={container}>

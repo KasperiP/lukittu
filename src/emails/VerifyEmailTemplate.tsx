@@ -22,10 +22,7 @@ export const VerifyEmailTemplate = ({
   link,
 }: VerifyEmailTemplateProps) => (
   <Html>
-    <Head />
-    <Preview>Welcome to Lukittu! Verify your email to get started.</Preview>
-    {/* eslint-disable-next-line @next/next/no-head-element */}
-    <head>
+    <Head>
       <style>
         {`
           .container {
@@ -47,7 +44,8 @@ export const VerifyEmailTemplate = ({
           }
         `}
       </style>
-    </head>
+    </Head>
+    <Preview>Welcome to Lukittu! Verify your email to get started.</Preview>
     <Body className="main" style={main}>
       <Container className="emptyContainer" style={emptyContainer} />
       <Container className="container" style={container}>

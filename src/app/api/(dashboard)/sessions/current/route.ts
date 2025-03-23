@@ -3,13 +3,21 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { Limits, Session, Subscription, Team, User } from '@prisma/client';
+import {
+  DiscordAccount,
+  Limits,
+  Session,
+  Subscription,
+  Team,
+  User,
+} from '@prisma/client';
 import { getTranslations } from 'next-intl/server';
 import { NextResponse } from 'next/server';
 
 export type ISessionsGetCurrentSuccessResponse = {
   session: Omit<Session, 'sessionId'> & {
     user: Omit<User, 'passwordHash'> & {
+      discordAccount: DiscordAccount | null;
       teams: (Team & {
         subscription: Subscription | null;
         limits: Limits | null;
@@ -31,6 +39,7 @@ export async function GET(): Promise<
     const session = await getSession({
       user: {
         include: {
+          discordAccount: true,
           teams: {
             where: {
               deletedAt: null,
@@ -44,16 +53,7 @@ export async function GET(): Promise<
       },
     });
 
-    if (!session) {
-      return NextResponse.json(
-        {
-          message: t('validation.unauthorized'),
-        },
-        { status: HttpStatus.UNAUTHORIZED },
-      );
-    }
-
-    if (!session.user) {
+    if (!session?.user) {
       return NextResponse.json(
         {
           message: t('validation.unauthorized'),
