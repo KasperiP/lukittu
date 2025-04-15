@@ -19,7 +19,7 @@ COPY packages/prisma/package.json ./packages/prisma/
 
 # Install dependencies based on the preferred package manager
 COPY pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
