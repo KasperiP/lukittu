@@ -19,7 +19,8 @@ COPY packages/prisma/package.json ./packages/prisma/
 
 # Install dependencies based on the preferred package manager
 COPY pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/prisma && pnpm install --frozen-lockfile
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
@@ -27,6 +28,7 @@ WORKDIR /app
 
 # Copy all workspace files
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/prisma/node_modules ./packages/prisma/node_modules
 COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY --from=deps /app/package.json ./
 
