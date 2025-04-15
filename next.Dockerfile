@@ -24,10 +24,9 @@ COPY packages/prisma/schema.prisma ./packages/prisma/
 COPY pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
-# Install Prisma dependencies and generate client in the same layer
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/prisma && \
-    pnpm install --frozen-lockfile && \
-    ../../node_modules/.bin/prisma generate --schema=./schema.prisma
+# Generate Prisma client in the same layer using the root prisma installation
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    ./node_modules/.bin/prisma generate --schema=./packages/prisma/schema.prisma
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
