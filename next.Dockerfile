@@ -39,8 +39,12 @@ COPY apps ./apps
 # Set working directory to the Next.js app
 WORKDIR /app/apps/next
 
-# Generate Prisma client
-RUN cd ../../packages/prisma && pnpm run generate
+# Generate Prisma client with environment variables to prevent npm installation
+RUN cd ../../packages/prisma && \
+    PRISMA_SKIP_POSTINSTALL_GENERATE=1 \
+    NODE_ENV=production \
+    PRISMA_CLIENT_ENGINE_TYPE=binary \
+    pnpm prisma generate --schema=./schema.prisma
 
 # Build the Next.js app
 RUN pnpm run build
