@@ -9,21 +9,36 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+# Copy root package.json and workspace config
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# 2. Rebuild the source code only when needed
+# Copy package.json files from all workspaces
+COPY apps/next/package.json ./apps/next/
+COPY packages/prisma/package.json ./packages/prisma/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# 2. Setup Prisma
+FROM base AS prisma
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY packages/prisma ./packages/prisma
+
+# Generate Prisma client
+RUN cd packages/prisma && pnpm run generate
+
+# 3. Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=prisma /app/packages/prisma/generated ./packages/prisma/generated
 COPY . .
 
-# This will do the trick, use the corresponding env file for each environment.
-# COPY .env.production.sample .env.production
-RUN pnpm run build
+# Build the Next.js application
+RUN pnpm run build --filter lukittu-next...
 
-# 3. Production image, copy all the files and run next
+# 4. Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 
@@ -32,7 +47,7 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/apps/next/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -40,8 +55,8 @@ RUN chown nextjs:nodejs .next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/next/.next/static ./.next/static
 
 USER nextjs
 

@@ -1,0 +1,13 @@
+{
+  "name": "@lukittu/prisma",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "deploy": "prisma migrate deploy"
+  },
+  "devDependencies": {
+    "prisma": "^6.6.0"
+  }
+}
