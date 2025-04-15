@@ -17,16 +17,10 @@ COPY package.json ./
 COPY apps/next/package.json ./apps/next/
 COPY packages/prisma/package.json ./packages/prisma/
 
-# Copy Prisma schema for client generation
-COPY packages/prisma/schema.prisma ./packages/prisma/
-
 # Install dependencies based on the preferred package manager
 COPY pnpm-lock.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-
-# Generate Prisma client in the same layer using the prisma package's CLI
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/prisma && \
-    ../../node_modules/.bin/prisma generate --schema=./schema.prisma
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store cd packages/prisma && pnpm install --frozen-lockfile
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
@@ -35,7 +29,6 @@ WORKDIR /app
 # Copy all workspace files
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/prisma/node_modules ./packages/prisma/node_modules
-COPY --from=deps /app/packages/prisma/generated ./packages/prisma/generated
 COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY --from=deps /app/package.json ./
 
@@ -45,6 +38,9 @@ COPY apps ./apps
 
 # Set working directory to the Next.js app
 WORKDIR /app/apps/next
+
+# Generate Prisma client
+RUN cd ../../packages/prisma && pnpm run generate
 
 # Build the Next.js app
 RUN pnpm run build
