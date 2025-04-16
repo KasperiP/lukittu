@@ -3,10 +3,10 @@ name: Build and Deploy
 on:
   push:
     branches:
-      - feature/monorepo-structure
+      - main
   pull_request:
     branches:
-      - feature/monorepo-structure
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -77,7 +77,7 @@ jobs:
     name: Build Docker Image
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/monorepo-structure'
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -125,7 +125,7 @@ jobs:
     name: Deploy to VM
     timeout-minutes: 5
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feature/monorepo-structure'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to VM
         uses: appleboy/ssh-action@master
@@ -142,7 +142,7 @@ jobs:
 
             echo "📥 Updating repository..."
             git fetch --all
-            git reset --hard origin/feature/monorepo-structure
+            git reset --hard origin/main
 
             echo "🔐 Logging into Docker registry..."
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}
