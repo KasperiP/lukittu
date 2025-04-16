@@ -1,7 +1,13 @@
 {
   "name": "lukittu",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KasperiP/lukittu.git"
+  },
   "private": true,
   "scripts": {
+    "dev": "pnpm --filter @lukittu/prisma generate && pnpm -r dev",
     "format": "prettier --write ."
   },
   "devDependencies": {
@@ -10,5 +16,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  }
 }

@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  prisma:
+    prisma:
+      specifier: latest
+      version: 6.6.0
+
 importers:
 
   .:
@@ -284,7 +290,7 @@ importers:
         version: 6.6.0(prisma@6.6.0(typescript@5.8.3))(typescript@5.8.3)
     devDependencies:
       prisma:
-        specifier: ^6.6.0
+        specifier: catalog:prisma
         version: 6.6.0(typescript@5.8.3)
 
 packages:

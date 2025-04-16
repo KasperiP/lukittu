@@ -37,6 +37,11 @@ For detailed pricing and feature comparisons, visit [our website](https://lukitt
 
 ## Local Development
 
+Lukittu uses a pnpm workspace monorepo structure with the following packages:
+
+- `apps/next`: The Next.js frontend application
+- `packages/prisma`: Shared Prisma schema and client
+
 To get started with the project locally, follow the steps below:
 
 #### 1. Setup Environment Variables
@@ -50,11 +55,11 @@ Ensure the following tools are installed on your system:
 
 - **Node.js** v20+ (Download from [nodejs.org](https://nodejs.org/))
 - **Docker** (Install from [docker.com](https://www.docker.com/get-started))
-- **pnpm** (Package manager for Node.js, install via [pnpm.io](https://pnpm.io/))
+- **pnpm** v9.11.0+ (Package manager for Node.js, install via [pnpm.io](https://pnpm.io/))
 
 #### 3. Install Dependencies
 
-Once the environment is set up:
+Once the environment is set up, install dependencies for all workspaces:
 
 ```bash
 pnpm install
@@ -75,7 +80,7 @@ This command will spin up the containers for both PostgreSQL and Redis.
 Run the necessary database migrations to set up your database schema:
 
 ```bash
-npx prisma migrate dev
+pnpm --filter @lukittu/prisma migrate
 ```
 
 #### 6. Start the Application
@@ -86,6 +91,18 @@ After the migrations are complete, start the local application:
 pnpm dev
 ```
 
+This will run the dev script for all workspaces simultaneously.
+
+To run commands for a specific workspace, use the `--filter` flag:
+
+```bash
+# Run Next.js development server only
+pnpm --filter lukittu-next dev
+
+# Generate Prisma client
+pnpm --filter @lukittu/prisma generate
+```
+
 #### 7. Access the Application
 
 Navigate to `http://localhost:3000` in your browser, and you should have everything running!
@@ -94,6 +111,7 @@ Navigate to `http://localhost:3000` in your browser, and you should have everyth
 
 - Ensure Docker is running before starting the databases.
 - Make sure to have all environment variables filled correctly in the `.env` file.
+- If you encounter dependency issues, try running `pnpm install --force` to refresh dependencies.
 
 ## Community & Support
 
