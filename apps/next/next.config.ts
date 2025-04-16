@@ -2,6 +2,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
 import pkg from './package.json' with { type: 'json' };
+import path from 'path';
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 
@@ -9,6 +10,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: false, // TODO: Enable, fixes react-leaflet for nextjs 15
   output: 'standalone',
   poweredByHeader: false,
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   env: {
     version: pkg.version,
   },
