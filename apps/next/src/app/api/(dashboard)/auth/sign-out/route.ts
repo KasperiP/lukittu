@@ -3,7 +3,7 @@ import { logger } from '@/lib/logging/logger';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { Prisma } from '@lukittu/prisma';
 import { getTranslations } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -41,7 +41,7 @@ export async function POST(): Promise<NextResponse<IAuthSignOutResponse>> {
     // We can safely ignore this error and return a success response
     const allowedErrors = ['P2025', 'P2016'];
     if (
-      error instanceof PrismaClientKnownRequestError &&
+      error instanceof Prisma.PrismaClientKnownRequestError &&
       allowedErrors.includes(error.code)
     ) {
       return NextResponse.json({

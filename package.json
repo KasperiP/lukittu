@@ -4,9 +4,6 @@
   "scripts": {
     "format": "prettier --write ."
   },
-  "dependencies": {
-    "@prisma/client": "^6.6.0"
-  },
   "devDependencies": {
     "prettier": "^3.5.3"
   },
