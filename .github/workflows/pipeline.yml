@@ -28,7 +28,7 @@ jobs:
           node-version: 'latest'
 
       - name: Run translation key check
-        run: node apps/next/src/locales/checkTranslations.js
+        run: node apps/web/src/locales/checkTranslations.js
         working-directory: .
 
   verify:
@@ -55,7 +55,7 @@ jobs:
         with:
           path: |
             ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-            apps/next/.next/cache
+            apps/web/.next/cache
             node_modules/.cache
           key: ${{ runner.os }}-nextjs-pnpm-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: |
@@ -63,13 +63,13 @@ jobs:
             ${{ runner.os }}-
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run --filter lukittu-next lint && pnpm run --filter lukittu-next test
+      - run: pnpm run --filter lukittu-web lint && pnpm run --filter lukittu-web test
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: apps/next/coverage/
+          path: apps/web/coverage/
           retention-days: 7
 
   build:
@@ -87,7 +87,7 @@ jobs:
 
       - name: Configure environment
         run: |
-          cat << EOF > apps/next/.env
+          cat << EOF > apps/web/.env
           NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
           NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
@@ -108,7 +108,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/next/Dockerfile
+          file: ./apps/web/Dockerfile
           push: true
           tags: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}:latest
           cache-from: |
@@ -151,8 +151,8 @@ jobs:
             docker pull ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}
 
             echo "🔄 Restarting containers..."
-            docker compose -f apps/next/docker-compose-prod.yml down
-            docker compose -f apps/next/docker-compose-prod.yml up -d
+            docker compose -f apps/web/docker-compose-prod.yml down
+            docker compose -f apps/web/docker-compose-prod.yml up -d
 
             # Wait for application to be ready
             echo "⏳ Waiting for application to start..."
@@ -169,5 +169,5 @@ jobs:
             done
 
             echo "❌ Application failed to start"
-            docker compose -f apps/next/docker-compose-prod.yml logs
+            docker compose -f apps/web/docker-compose-prod.yml logs
             exit 1
