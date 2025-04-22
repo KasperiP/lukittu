@@ -11,6 +11,17 @@ export type IBillingSubscriptionManagementGetResponse = ErrorResponse;
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });
+  const searchParams = request.nextUrl.searchParams;
+  const planType = searchParams.get('plan') || 'monthly';
+
+  if (!['monthly', 'yearly'].includes(planType)) {
+    return NextResponse.json(
+      {
+        message: t('validation.invalid_plan_type'),
+      },
+      { status: HttpStatus.BAD_REQUEST },
+    );
+  }
 
   try {
     const selectedTeam = await getSelectedTeam();
@@ -73,6 +84,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       apiVersion: '2025-02-24.acacia',
     });
 
+    const priceId =
+      planType === 'yearly'
+        ? process.env.STRIPE_YEARLY_PRICE_ID!
+        : process.env.STRIPE_MONTHLY_PRICE_ID!;
+
     if (team.subscription) {
       const subscription = await stripe.subscriptions.retrieve(
         team.subscription.stripeSubscriptionId,
@@ -94,7 +110,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         customer: team.subscription.stripeCustomerId,
         line_items: [
           {
-            price: process.env.STRIPE_PRICE_ID!,
+            price: priceId,
             quantity: 1,
           },
         ],
@@ -120,7 +136,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       mode: 'subscription',
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID!,
+          price: priceId,
           quantity: 1,
         },
       ],

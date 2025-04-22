@@ -230,11 +230,16 @@ export const envSchema = z.object({
     .min(1, { message: 'PRIVATE_OBJECT_STORAGE_SECRET_KEY is required' }),
 
   // Stripe payment processing
-  STRIPE_PRICE_ID: z
+  STRIPE_MONTHLY_PRICE_ID: z
     .string({
-      required_error: 'STRIPE_PRICE_ID is required',
+      required_error: 'STRIPE_MONTHLY_PRICE_ID is required',
     })
-    .min(1, { message: 'STRIPE_PRICE_ID is required' }),
+    .min(1, { message: 'STRIPE_MONTHLY_PRICE_ID is required' }),
+  STRIPE_YEARLY_PRICE_ID: z
+    .string({
+      required_error: 'STRIPE_YEARLY_PRICE_ID is required',
+    })
+    .min(1, { message: 'STRIPE_YEARLY_PRICE_ID is required' }),
   STRIPE_PUBLIC_KEY: z
     .string({
       required_error: 'STRIPE_PUBLIC_KEY is required',

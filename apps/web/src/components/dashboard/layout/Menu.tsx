@@ -20,6 +20,13 @@ import {
 } from '@/components/ui/responsive-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -121,6 +128,9 @@ export function Menu({ isOpen, topSpacing = true, onClose }: MenuProps) {
     ),
   );
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<
+    'monthly' | 'yearly'
+  >('monthly');
 
   const filteredMenuList = menuList
     .map((group) => ({
@@ -244,8 +254,9 @@ export function Menu({ isOpen, topSpacing = true, onClose }: MenuProps) {
     }));
   };
 
-  const handleSubscriptionManagement = async () => {
-    window.location.href = '/api/billing/subscription-management';
+  const handleSubscriptionManagement = async (plan?: 'monthly' | 'yearly') => {
+    const planToUse = plan || subscriptionPlan;
+    window.location.href = `/api/billing/subscription-management?plan=${planToUse}`;
   };
 
   const handleLinkClick = () => {
@@ -501,6 +512,33 @@ export function Menu({ isOpen, topSpacing = true, onClose }: MenuProps) {
                       ? t('dashboard.subscriptions.using_paid_plan')
                       : t('dashboard.subscriptions.using_free_description')}
                   </CardDescription>
+
+                  {!isActiveSubscription && (
+                    <div className="mb-4">
+                      <p className="mb-2 text-sm font-medium">
+                        {t('dashboard.subscriptions.choose_plan')}:
+                      </p>
+                      <Select
+                        defaultValue={subscriptionPlan}
+                        onValueChange={(value) =>
+                          setSubscriptionPlan(value as 'monthly' | 'yearly')
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select plan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">
+                            {t('dashboard.subscriptions.monthly_plan')}
+                          </SelectItem>
+                          <SelectItem value="yearly">
+                            {t('dashboard.subscriptions.yearly_plan')} (1{' '}
+                            {t('general.month')} {t('general.free')})
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="px-4">
                   {!isActiveSubscription ? (
@@ -511,7 +549,7 @@ export function Menu({ isOpen, topSpacing = true, onClose }: MenuProps) {
                             <ConfettiButton
                               className="flex w-full items-center gap-2"
                               disabled={!isTeamOwner}
-                              onClick={handleSubscriptionManagement}
+                              onClick={() => handleSubscriptionManagement()}
                             >
                               <Rocket className="h-5 w-5" />
                               {t('dashboard.subscriptions.upgrade_to_premium')}
@@ -534,7 +572,7 @@ export function Menu({ isOpen, topSpacing = true, onClose }: MenuProps) {
                               className="flex w-full items-center gap-2"
                               disabled={!isTeamOwner}
                               size="sm"
-                              onClick={handleSubscriptionManagement}
+                              onClick={() => handleSubscriptionManagement()}
                             >
                               <CreditCard className="h-5 w-5" />
                               {t('dashboard.subscriptions.manage_subscription')}

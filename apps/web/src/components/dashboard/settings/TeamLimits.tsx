@@ -11,6 +11,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -22,7 +29,7 @@ import { TeamContext } from '@/providers/TeamProvider';
 import { Clock, CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 
 interface TeamLimitsProps {
   team: ITeamGetSuccessResponse['team'] | null;
@@ -32,6 +39,9 @@ export default function TeamLimits({ team }: TeamLimitsProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
   const authCtx = useContext(AuthContext);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<
+    'monthly' | 'yearly'
+  >('monthly');
 
   const selectedTeam = teamCtx.teams.find(
     (team) => team.id === teamCtx.selectedTeam,
@@ -72,7 +82,7 @@ export default function TeamLimits({ team }: TeamLimitsProps) {
   ];
 
   const handleSubscriptionManagement = async () => {
-    window.location.href = '/api/billing/subscription-management';
+    window.location.href = `/api/billing/subscription-management?plan=${subscriptionPlan}`;
   };
 
   return (
@@ -150,6 +160,32 @@ export default function TeamLimits({ team }: TeamLimitsProps) {
               : t('general.disabled')}
           </span>
         </div>
+        {!hasActiveSubscription && (
+          <div className="flex flex-col gap-2 border-t pt-4">
+            <p className="mb-2 text-sm font-medium">
+              {t('dashboard.subscriptions.choose_plan')}:
+            </p>
+            <Select
+              defaultValue={subscriptionPlan}
+              onValueChange={(value) =>
+                setSubscriptionPlan(value as 'monthly' | 'yearly')
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select plan" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">
+                  {t('dashboard.subscriptions.monthly_plan')}
+                </SelectItem>
+                <SelectItem value="yearly">
+                  {t('dashboard.subscriptions.yearly_plan')} (1{' '}
+                  {t('general.month')} {t('general.free')})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         {hasActiveSubscription && team?.subscription && (
           <div className="flex flex-col gap-2 border-t pt-4">
             <div className="flex items-center justify-between">
@@ -194,7 +230,9 @@ export default function TeamLimits({ team }: TeamLimitsProps) {
                   onClick={handleSubscriptionManagement}
                 >
                   <CreditCard className="h-5 w-5" />
-                  {t('dashboard.subscriptions.manage_subscription')}
+                  {hasActiveSubscription
+                    ? t('dashboard.subscriptions.manage_subscription')
+                    : t('dashboard.subscriptions.upgrade_to_premium')}
                 </Button>
               </div>
             </TooltipTrigger>

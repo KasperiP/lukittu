@@ -117,7 +117,8 @@
     "api_key_not_found": "API-avainta ei löydy!",
     "max_invitations_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman kutsujen määrän. Päivitä suunnitelma lisätäksesi kutsuja.",
     "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja.",
-    "no_discord_account": "Ei Discord-tiliä"
+    "no_discord_account": "Ei Discord-tiliä",
+    "invalid_plan_type": "Virheellinen suunnitelmatyyppi!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -294,7 +295,8 @@
     "confirm": "Vahvista",
     "connect": "Yhdistä",
     "disconnect": "Katkaise yhteys",
-    "sending_email_failed": "Sähköpostin lähettäminen epäonnistui"
+    "sending_email_failed": "Sähköpostin lähettäminen epäonnistui",
+    "free": "Ilmainen"
   },
   "auth": {
     "oauth": {
@@ -575,7 +577,10 @@
       "manage_subscription": "Hallinnoi tilausta",
       "free_plan": "Ilmainen suunnitelma",
       "using_free_description": "Käytät parhaillaan ilmaista suunnitelmaa. Päivitä maksettuun suunnitelmaan saadaksesi suuremmat rajoitukset ja lisää ominaisuuksia!",
-      "using_paid_plan": "Käytät parhaillaan maksettua suunnitelmaa. Hallinnoi tilaustasi alla."
+      "using_paid_plan": "Käytät parhaillaan maksettua suunnitelmaa. Hallinnoi tilaustasi alla.",
+      "choose_plan": "Valitse suunnitelma",
+      "monthly_plan": "Kuukausittainen suunnitelma",
+      "yearly_plan": "Vuotuinen suunnitelma"
     },
     "audit_logs": {
       "show_request": "Näytä pyyntö",

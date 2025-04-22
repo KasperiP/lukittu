@@ -117,7 +117,8 @@
     "api_key_not_found": "Clave de API no encontrada!",
     "max_invitations_reached": "Tu equipo ha alcanzado el número máximo de invitaciones permitidas para el plan actual. Por favor, actualiza para agregar más invitaciones.",
     "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones.",
-    "no_discord_account": "No tienes cuenta de Discord!"
+    "no_discord_account": "No tienes cuenta de Discord!",
+    "invalid_plan_type": "Tipo de plan no válido!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -294,7 +295,8 @@
     "confirm": "Confirmar",
     "connect": "Conectar",
     "disconnect": "Desconectar",
-    "sending_email_failed": "El envío del correo electrónico falló"
+    "sending_email_failed": "El envío del correo electrónico falló",
+    "free": "Gratis"
   },
   "auth": {
     "oauth": {
@@ -575,7 +577,10 @@
       "manage_subscription": "Gestionar suscripción",
       "free_plan": "Plan gratuito",
       "using_free_description": "Actualmente estás usando el plan gratuito. Actualiza al plan de pago para obtener un aumento de límites y más funciones.",
-      "using_paid_plan": "Actualmente estás usando el plan de pago. Gestiona tu suscripción a continuación."
+      "using_paid_plan": "Actualmente estás usando el plan de pago. Gestiona tu suscripción a continuación.",
+      "choose_plan": "Elegir plan",
+      "monthly_plan": "Plan mensual",
+      "yearly_plan": "Plan anual"
     },
     "audit_logs": {
       "show_request": "Mostrar solicitud",

@@ -4,6 +4,7 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "invalid_plan_type": "Invalid plan type!",
     "no_discord_account": "You don't have a Discord account connected!",
     "invalid_email": "Invalid email address!",
     "invalid_token": "Invalid token.",
@@ -253,6 +254,7 @@
     "security": "Security",
     "search_user": "Search user...",
     "url": "URL",
+    "free": "Free",
     "created_at": "Created at",
     "updated_at": "Updated at",
     "page_of": "Page {page} of {pages}",
@@ -575,7 +577,10 @@
       "manage_subscription": "Manage subscription",
       "free_plan": "Free plan",
       "using_free_description": "You are currently using the free plan. Upgrade to the paid plan for increased limits & get more features!",
-      "using_paid_plan": "You are currently using the paid plan. Manage your subscription below."
+      "using_paid_plan": "You are currently using the paid plan. Manage your subscription below.",
+      "choose_plan": "Choose a plan",
+      "monthly_plan": "Monthly plan",
+      "yearly_plan": "Yearly plan"
     },
     "audit_logs": {
       "show_request": "Show request",
