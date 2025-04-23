@@ -661,7 +661,9 @@
       "discord_integration_updated": "Discord integration updated",
       "add_to_server": "Add to server",
       "user_install": "User install",
-      "install_bot": "Install bot"
+      "install_bot": "Install bot",
+      "server_install_description": "Install the bot on your server. This allows you and others to use the bot, but only within this specific server.",
+      "user_install_description": "Install the bot for personal use. This allows you to use the bot anywhere, but others won't be able to use it."
     },
     "releases": {
       "license_restricted_tooltip": "Release is restricted to specific licenses",

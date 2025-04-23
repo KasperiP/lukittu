@@ -661,7 +661,9 @@
       "discord_integration_updated": "Integración con Discord actualizada",
       "add_to_server": "Agregar al servidor",
       "user_install": "Instalación del usuario",
-      "install_bot": "Instalar bot"
+      "install_bot": "Instalar bot",
+      "server_install_description": "Instala el bot en tu servidor. Esto permite que tú y otros lo usen, pero solo dentro de este servidor específico.",
+      "user_install_description": "Instala el bot para uso personal. Esto te permite usarlo en cualquier lugar, pero otros no podrán utilizarlo."
     },
     "releases": {
       "license_restricted_tooltip": "La versión está restringida a licencias específicas",

@@ -661,7 +661,9 @@
       "discord_integration_updated": "Discord-integraatio päivitetty",
       "add_to_server": "Lisää palvelimelle",
       "user_install": "Käyttäjän asennus",
-      "install_bot": "Asenna botti"
+      "install_bot": "Asenna botti",
+      "server_install_description": "Asenna botti palvelimellesi. Näin sinä ja muut voitte käyttää bottia, mutta vain tällä tietyllä palvelimella.",
+      "user_install_description": "Asenna botti henkilökohtaiseen käyttöön. Näin voit käyttää bottia missä tahansa, mutta muut eivät voi käyttää sitä."
     },
     "releases": {
       "license_restricted_tooltip": "Julkaisu on rajoitettu tietyille lisensseille",
