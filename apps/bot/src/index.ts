@@ -105,6 +105,9 @@ async function checkLinkedAccountAndPermission(
             where: {
               deletedAt: null,
             },
+            include: {
+              discordIntegration: true,
+            },
           },
         },
       },
@@ -186,7 +189,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       // Team has to have Discord integration enabled
       if (
         linkedDiscordAccount.selectedTeam &&
-        !linkedDiscordAccount.selectedTeam.discordIntegration?.active
+        !linkedDiscordAccount.selectedTeam.discordIntegration?.active &&
+        command.data.name !== 'choose-team'
       ) {
         return interaction.reply({
           content:
@@ -249,7 +253,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       // Team has to have Discord integration enabled
       if (
         linkedDiscordAccount.selectedTeam &&
-        !linkedDiscordAccount.selectedTeam.discordIntegration?.active
+        !linkedDiscordAccount.selectedTeam.discordIntegration?.active &&
+        command.data.name !== 'choose-team'
       ) {
         return interaction.respond([]);
       }

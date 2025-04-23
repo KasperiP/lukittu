@@ -13,7 +13,9 @@ import {
 
 export type LinkedDiscordAccount = DiscordAccount & {
   user: Omit<User, 'passwordHash'> & {
-    teams: Team[];
+    teams: (Team & {
+      discordIntegration: DiscordIntegration | null;
+    })[];
   };
   selectedTeam:
     | (Team & {

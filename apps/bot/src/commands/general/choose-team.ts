@@ -66,6 +66,14 @@ export default Command({
         return;
       }
 
+      if (!team.discordIntegration?.active) {
+        await interaction.editReply({
+          content:
+            'The selected team does not have the Discord integration enabled.',
+        });
+        return;
+      }
+
       await prisma.discordAccount.update({
         where: {
           id: discordAccount.id,
