@@ -87,6 +87,7 @@
     "stripe_webhook_secret_required": "Stripe webhook secret is required!",
     "stripe_webhook_secret_invalid": "Stripe webhook secret is invalid!",
     "stripe_integration_not_found": "Stripe integration not found!",
+    "discord_integration_not_found": "Discord integration not found!",
     "release_version_required": "Version is required!",
     "release_version_min_length": "Version number must be at least 3 characters long!",
     "release_version_max_length": "Version number must be at most 255 characters long!",
@@ -614,6 +615,8 @@
         "update_blacklist": "updated blacklist",
         "delete_stripe_integration": "deleted Stripe integration",
         "set_stripe_integration": "set Stripe integration",
+        "set_discord_integration": "set Discord integration",
+        "delete_discord_integration": "deleted Discord integration",
         "create_release": "created release",
         "delete_release": "deleted release",
         "update_release": "updated release",
@@ -651,7 +654,14 @@
       "webhook_secret": "Webhook secret",
       "stripe_integration_updated": "Stripe integration updated",
       "stripe_integration_created": "Stripe integration created",
-      "stripe_integration_deleted": "Stripe integration deleted"
+      "stripe_integration_deleted": "Stripe integration deleted",
+      "discord_integration_description": "Handle your licensing needs directly in Discord. You can use the Lukittu Discord bot to verify licenses, manage devices, and more.",
+      "discord_integration_deleted": "Discord integration deleted",
+      "discord_integration_created": "Discord integration created",
+      "discord_integration_updated": "Discord integration updated",
+      "add_to_server": "Add to server",
+      "user_install": "User install",
+      "install_bot": "Install bot"
     },
     "releases": {
       "license_restricted_tooltip": "Release is restricted to specific licenses",

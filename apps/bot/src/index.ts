@@ -96,6 +96,7 @@ async function checkLinkedAccountAndPermission(
         },
         include: {
           limits: true,
+          discordIntegration: true,
         },
       },
       user: {
@@ -182,6 +183,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
         });
       }
 
+      // Team has to have Discord integration enabled
+      if (
+        linkedDiscordAccount.selectedTeam &&
+        !linkedDiscordAccount.selectedTeam.discordIntegration?.active
+      ) {
+        return interaction.reply({
+          content:
+            'Your team does not have the Discord integration enabled. Please contact your team administrator.',
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+
       // Defer the reply to handle long-running commands
       await interaction.deferReply({
         flags: command.data.ephemeral ? MessageFlags.Ephemeral : undefined,
@@ -230,6 +243,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       if (!linkedDiscordAccount) {
         // If not linked, return an empty response
+        return interaction.respond([]);
+      }
+
+      // Team has to have Discord integration enabled
+      if (
+        linkedDiscordAccount.selectedTeam &&
+        !linkedDiscordAccount.selectedTeam.discordIntegration?.active
+      ) {
         return interaction.respond([]);
       }
 

@@ -1,4 +1,10 @@
-import { DiscordAccount, Limits, Team, User } from '@lukittu/shared';
+import {
+  DiscordAccount,
+  DiscordIntegration,
+  Limits,
+  Team,
+  User,
+} from '@lukittu/shared';
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
@@ -12,6 +18,7 @@ export type LinkedDiscordAccount = DiscordAccount & {
   selectedTeam:
     | (Team & {
         limits: Limits | null;
+        discordIntegration: DiscordIntegration | null;
       })
     | null;
 };

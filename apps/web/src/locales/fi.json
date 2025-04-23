@@ -118,7 +118,8 @@
     "max_invitations_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman kutsujen määrän. Päivitä suunnitelma lisätäksesi kutsuja.",
     "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja.",
     "no_discord_account": "Ei Discord-tiliä",
-    "invalid_plan_type": "Virheellinen suunnitelmatyyppi!"
+    "invalid_plan_type": "Virheellinen suunnitelmatyyppi!",
+    "discord_integration_not_found": "Discord-integraatiota ei löydy!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -621,7 +622,9 @@
         "delete_email_picture": "poisti tiimin sähköpostikuvan",
         "delete_team_picture": "poisti tiimin kuvan",
         "create_api_key": "loi API-avaimen",
-        "delete_api_key": "poisti API-avaimen"
+        "delete_api_key": "poisti API-avaimen",
+        "set_discord_integration": "asetti Discord-integraation",
+        "delete_discord_integration": "poisti Discord-integraation"
       }
     },
     "members": {
@@ -651,7 +654,14 @@
       "webhook_secret": "Webhook-salaisuus",
       "stripe_integration_updated": "Stripe-integraatio päivitetty",
       "stripe_integration_created": "Stripe-integraatio luotu",
-      "stripe_integration_deleted": "Stripe-integraatio poistettu"
+      "stripe_integration_deleted": "Stripe-integraatio poistettu",
+      "discord_integration_description": "Hallitse lisenssejäsi suoraan Discordissa. Voit käyttää Lukittu Discord-bottia lisenssien vahvistamiseen, laitteiden hallintaan ja muuhun.",
+      "discord_integration_deleted": "Discord-integraatio poistettu",
+      "discord_integration_created": "Discord-integraatio luotu",
+      "discord_integration_updated": "Discord-integraatio päivitetty",
+      "add_to_server": "Lisää palvelimelle",
+      "user_install": "Käyttäjän asennus",
+      "install_bot": "Asenna botti"
     },
     "releases": {
       "license_restricted_tooltip": "Julkaisu on rajoitettu tietyille lisensseille",

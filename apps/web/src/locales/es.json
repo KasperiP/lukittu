@@ -118,7 +118,8 @@
     "max_invitations_reached": "Tu equipo ha alcanzado el número máximo de invitaciones permitidas para el plan actual. Por favor, actualiza para agregar más invitaciones.",
     "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones.",
     "no_discord_account": "No tienes cuenta de Discord!",
-    "invalid_plan_type": "Tipo de plan no válido!"
+    "invalid_plan_type": "Tipo de plan no válido!",
+    "discord_integration_not_found": "Integración de Discord no encontrada."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -621,7 +622,9 @@
         "delete_email_picture": "Eliminó la imagen de correo del equipo",
         "delete_team_picture": "Eliminó imagen del equipo",
         "create_api_key": "Creó clave de API",
-        "delete_api_key": "Eliminó clave de API"
+        "delete_api_key": "Eliminó clave de API",
+        "set_discord_integration": "Estableció integración de Discord",
+        "delete_discord_integration": "Eliminó integración de Discord"
       }
     },
     "members": {
@@ -651,7 +654,14 @@
       "webhook_secret": "Secreto del webhook",
       "stripe_integration_updated": "Integración de Stripe actualizada",
       "stripe_integration_created": "Integración de Stripe creada",
-      "stripe_integration_deleted": "Integración de Stripe eliminada"
+      "stripe_integration_deleted": "Integración de Stripe eliminada",
+      "discord_integration_description": "Gestiona tus licencias directamente en Discord. Puedes usar el bot de Discord de Lukittu para verificar licencias, administrar dispositivos y más.",
+      "discord_integration_deleted": "Integración con Discord eliminada",
+      "discord_integration_created": "Integración con Discord creada",
+      "discord_integration_updated": "Integración con Discord actualizada",
+      "add_to_server": "Agregar al servidor",
+      "user_install": "Instalación del usuario",
+      "install_bot": "Instalar bot"
     },
     "releases": {
       "license_restricted_tooltip": "La versión está restringida a licencias específicas",
