@@ -54,7 +54,13 @@ export async function GET(
 
     const allowedPageSizes = [10, 25, 50, 100];
     const allowedSortDirections = ['asc', 'desc'];
-    const allowedSortColumns = ['fullName', 'createdAt', 'updatedAt', 'email'];
+    const allowedSortColumns = [
+      'fullName',
+      'createdAt',
+      'updatedAt',
+      'email',
+      'username',
+    ];
 
     const search = (searchParams.get('search') as string) || '';
 
@@ -308,7 +314,7 @@ export async function POST(
       );
     }
 
-    const { email, fullName, metadata, address } = validated.data;
+    const { email, fullName, metadata, address, username } = validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -377,23 +383,11 @@ export async function POST(
       );
     }
 
-    const existingCustomer = team.customers.find(
-      (customer) => customer.email === email,
-    );
-    if (existingCustomer) {
-      return NextResponse.json(
-        {
-          message: t('validation.customer_exists'),
-          field: 'email',
-        },
-        { status: HttpStatus.CONFLICT },
-      );
-    }
-
     const customer = await prisma.customer.create({
       data: {
         email,
         fullName,
+        username,
         metadata: {
           createMany: {
             data: metadata.map((m) => ({

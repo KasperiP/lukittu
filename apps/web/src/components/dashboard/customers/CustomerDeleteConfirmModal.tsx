@@ -21,8 +21,7 @@ export function DeleteCustomerConfirmModal() {
   const t = useTranslations();
   const ctx = useContext(CustomerModalContext);
   const [loading, setLoading] = useState(false);
-  const [customerEmailConfirmation, setCustomerEmailConfirmation] =
-    useState('');
+  const [customerConfirmation, setCustomerConfirmation] = useState('');
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const pathname = usePathname();
@@ -30,6 +29,9 @@ export function DeleteCustomerConfirmModal() {
   const customer = ctx.customerToDelete;
 
   if (!customer) return null;
+
+  const confirmationField = customer.email ? 'email' : 'username';
+  const confirmationValue = customer[confirmationField];
 
   const handleDeleteCustomer = async (customerId: string) => {
     const response = await fetch(`/api/customers/${customerId}`, {
@@ -71,7 +73,7 @@ export function DeleteCustomerConfirmModal() {
 
   const handleOpenChange = (open: boolean) => {
     ctx.setCustomerToDeleteModalOpen(open);
-    setCustomerEmailConfirmation('');
+    setCustomerConfirmation('');
   };
 
   return (
@@ -89,24 +91,24 @@ export function DeleteCustomerConfirmModal() {
               {t.rich(
                 'dashboard.customers.delete_customer_confirm_description',
                 {
-                  name: customer.fullName ?? customer.email,
+                  name: customer.fullName ?? customer[confirmationField],
                   strong: (child) => <strong>{child}</strong>,
                 },
               )}
             </ResponsiveDialogDescription>
           </ResponsiveDialogHeader>
           <div className="grid w-full gap-1.5 max-md:px-2">
-            <Label htmlFor="customerEmailConfirmation">
+            <Label htmlFor="customerConfirmation">
               {t.rich('dashboard.customers.delete_customer_confirm_input', {
-                name: `"${customer.email.toUpperCase()}"`,
+                name: `"${confirmationValue?.toUpperCase()}"`,
                 code: (child) => (
                   <code className="text-xs font-semibold">{child}</code>
                 ),
               })}
             </Label>
             <Input
-              id="customerEmailConfirmation"
-              onChange={(e) => setCustomerEmailConfirmation(e.target.value)}
+              id="customerConfirmation"
+              onChange={(e) => setCustomerConfirmation(e.target.value)}
             />
           </div>
           <ResponsiveDialogFooter>
@@ -122,7 +124,7 @@ export function DeleteCustomerConfirmModal() {
             </LoadingButton>
             <LoadingButton
               disabled={
-                customerEmailConfirmation !== customer.email.toUpperCase()
+                customerConfirmation !== confirmationValue?.toUpperCase()
               }
               pending={loading}
               size="sm"

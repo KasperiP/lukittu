@@ -101,6 +101,11 @@ export async function POST(
           },
         },
         active,
+        createdBy: {
+          connect: {
+            id: session.user.id,
+          },
+        },
       },
       update: {
         active,

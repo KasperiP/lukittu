@@ -88,7 +88,7 @@ export const CustomersMultiselect = ({
   const defaultOptions = useMemo(
     () =>
       selectedCustomers?.map((customer) => ({
-        label: customer.email,
+        label: `${customer.username ?? 'N/A'} (${customer.email ?? 'N/A'})`,
         value: customer.id,
       })) ?? [],
     [selectedCustomers],
@@ -97,7 +97,7 @@ export const CustomersMultiselect = ({
   const options = useMemo(
     () =>
       allCustomers.map((customer) => ({
-        label: customer.email,
+        label: `${customer.username ?? 'N/A'} (${customer.email ?? 'N/A'})`,
         value: customer.id,
       })),
     [allCustomers],

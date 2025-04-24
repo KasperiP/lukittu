@@ -95,6 +95,7 @@ export const CustomersSearchFilter = ({
         id: customer.id,
         fullName: customer.fullName,
         email: customer.email,
+        username: customer.username,
       })),
     );
   }, [data]);
@@ -106,7 +107,10 @@ export const CustomersSearchFilter = ({
           customer.fullName
             ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          customer.email.toLowerCase().includes(searchQuery.toLowerCase()),
+          customer.username
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          customer.email?.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
     [searchQuery, customers],
   );

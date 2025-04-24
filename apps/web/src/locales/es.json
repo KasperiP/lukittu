@@ -47,12 +47,10 @@
     "license_key_invalid": "La clave de licencia debe contener 5 grupos de 5 caracteres separados por guiones!",
     "expiration_days_required": "Días son obligatorios!",
     "expiration_date_required": "Fecha de expiración es obligatoria!",
-    "email_or_full_name_required": "Correo electrónico o nombre completo es obligatorio!",
     "metadata_key_min_length": "La clave de los metadatos debe tener al menos 1 carácter!",
     "metadata_key_max_length": "La clave de los metadatos debe tener como máximo 255 caracteres!",
     "metadata_value_min_length": "El valor de los metadatos debe tener al menos 1 carácter!",
     "metadata_value_max_length": "El valor de los metadatos debe tener como máximo 255 caracteres!",
-    "customer_exists": "Ya existe un cliente con el correo electrónico dado!",
     "license_key_exists": "La clave de licencia ya existe!",
     "customer_not_found": "Cliente no encontrado.",
     "license_not_found": "Licencia no encontrada.",
@@ -119,7 +117,14 @@
     "max_releases_reached": "Tu equipo ha alcanzado el número máximo de versiones permitidas para el plan actual. Por favor, actualiza para agregar más versiones.",
     "no_discord_account": "No tienes cuenta de Discord!",
     "invalid_plan_type": "Tipo de plan no válido!",
-    "discord_integration_not_found": "Integración de Discord no encontrada."
+    "discord_integration_not_found": "Integración de Discord no encontrada.",
+    "built_by_bit_integration_not_found": "¡Integración con BuiltByBit no encontrada!",
+    "built_by_bit_secret_required": "¡Se requiere la clave secreta de la API de BuiltByBit!",
+    "built_by_bit_secret_invalid": "¡La clave secreta de la API de BuiltByBit no es válida!",
+    "email_or_username_required": "¡Se requiere correo electrónico o nombre de usuario!",
+    "username_required": "¡Se requiere nombre de usuario!",
+    "username_min_length": "¡El nombre de usuario debe tener al menos 1 carácter!",
+    "username_max_length": "¡El nombre de usuario debe tener como máximo 255 caracteres!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -297,7 +302,9 @@
     "connect": "Conectar",
     "disconnect": "Desconectar",
     "sending_email_failed": "El envío del correo electrónico falló",
-    "free": "Gratis"
+    "free": "Gratis",
+    "api_secret": "Secreto de API",
+    "username": "Nombre de usuario"
   },
   "auth": {
     "oauth": {
@@ -624,7 +631,9 @@
         "create_api_key": "Creó clave de API",
         "delete_api_key": "Eliminó clave de API",
         "set_discord_integration": "Estableció integración de Discord",
-        "delete_discord_integration": "Eliminó integración de Discord"
+        "delete_discord_integration": "Eliminó integración de Discord",
+        "set_build_by_bit_integration": "Estableció integración de BuiltByBit",
+        "delete_build_by_bit_integration": "Eliminó integración de BuiltByBit"
       }
     },
     "members": {
@@ -663,7 +672,15 @@
       "user_install": "Instalación del usuario",
       "install_bot": "Instalar bot",
       "server_install_description": "Instala el bot en tu servidor. Esto permite que tú y otros lo usen, pero solo dentro de este servidor específico.",
-      "user_install_description": "Instala el bot para uso personal. Esto te permite usarlo en cualquier lugar, pero otros no podrán utilizarlo."
+      "user_install_description": "Instala el bot para uso personal. Esto te permite usarlo en cualquier lugar, pero otros no podrán utilizarlo.",
+      "reroll_secret": "Regenerar clave secreta",
+      "reroll_secret_warning": "¿Estás seguro de que deseas regenerar la clave secreta de la API?",
+      "reset_secret": "Restablecer clave secreta de la API",
+      "regenerate_secret": "Regenerar clave secreta de la API",
+      "built_by_bit_integration_deleted": "Integración con BuiltByBit eliminada",
+      "built_by_bit_integration_created": "Integración con BuiltByBit creada",
+      "built_by_bit_integration_updated": "Integración con BuiltByBit actualizada",
+      "built_by_bit_integration_description": "Para la generación y distribución automática de licencias, puedes integrar Lukittu con BuiltByBit. Cuando un cliente compre un producto, se generará automáticamente una licencia."
     },
     "releases": {
       "license_restricted_tooltip": "La versión está restringida a licencias específicas",

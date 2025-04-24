@@ -47,12 +47,10 @@
     "license_key_invalid": "Lisenssiavain tulee sisältää 5 ryhmää, joissa on 5 merkkiä, erotettuna viivoilla!",
     "expiration_days_required": "Päivät ovat pakollisia!",
     "expiration_date_required": "Erääntymispäivämäärä on pakollinen!",
-    "email_or_full_name_required": "Sähköposti tai koko nimi on pakollinen!",
     "metadata_key_min_length": "Metatiedon avaimen on oltava vähintään 1 merkki pitkä!",
     "metadata_key_max_length": "Metatiedon avaimen on oltava enintään 255 merkkiä pitkä!",
     "metadata_value_min_length": "Metatiedon arvon on oltava vähintään 1 merkki pitkä!",
     "metadata_value_max_length": "Metatiedon arvon on oltava enintään 255 merkkiä pitkä!",
-    "customer_exists": "Asiakas on jo olemassa annetulla sähköpostilla!",
     "license_key_exists": "Lisenssiavain on jo olemassa!",
     "customer_not_found": "Asiakasta ei löydy!",
     "license_not_found": "Lisenssiä ei löydy!",
@@ -119,7 +117,14 @@
     "max_releases_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman julkaisujen määrän. Päivitä suunnitelma lisätäksesi julkaisuja.",
     "no_discord_account": "Ei Discord-tiliä",
     "invalid_plan_type": "Virheellinen suunnitelmatyyppi!",
-    "discord_integration_not_found": "Discord-integraatiota ei löydy!"
+    "discord_integration_not_found": "Discord-integraatiota ei löydy!",
+    "built_by_bit_integration_not_found": "BuiltByBit-integraatiota ei löydy!",
+    "built_by_bit_secret_required": "BuiltByBit-salaisuus on pakollinen!",
+    "built_by_bit_secret_invalid": "BuiltByBit-salaisuus on virheellinen!",
+    "email_or_username_required": "Sähköposti tai käyttäjätunnus on pakollinen!",
+    "username_required": "Käyttäjätunnus on pakollinen!",
+    "username_min_length": "Käyttäjätunnuksen on oltava vähintään 3 merkkiä pitkä!",
+    "username_max_length": "Käyttäjätunnuksen on oltava enintään 255 merkkiä pitkä!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -297,7 +302,9 @@
     "connect": "Yhdistä",
     "disconnect": "Katkaise yhteys",
     "sending_email_failed": "Sähköpostin lähettäminen epäonnistui",
-    "free": "Ilmainen"
+    "free": "Ilmainen",
+    "api_secret": "API-salaisuus",
+    "username": "Käyttäjätunnus"
   },
   "auth": {
     "oauth": {
@@ -624,7 +631,9 @@
         "create_api_key": "loi API-avaimen",
         "delete_api_key": "poisti API-avaimen",
         "set_discord_integration": "asetti Discord-integraation",
-        "delete_discord_integration": "poisti Discord-integraation"
+        "delete_discord_integration": "poisti Discord-integraation",
+        "set_build_by_bit_integration": "asetti BuiltByBit-integraation",
+        "delete_build_by_bit_integration": "poisti BuiltByBit-integraation"
       }
     },
     "members": {
@@ -663,7 +672,15 @@
       "user_install": "Käyttäjän asennus",
       "install_bot": "Asenna botti",
       "server_install_description": "Asenna botti palvelimellesi. Näin sinä ja muut voitte käyttää bottia, mutta vain tällä tietyllä palvelimella.",
-      "user_install_description": "Asenna botti henkilökohtaiseen käyttöön. Näin voit käyttää bottia missä tahansa, mutta muut eivät voi käyttää sitä."
+      "user_install_description": "Asenna botti henkilökohtaiseen käyttöön. Näin voit käyttää bottia missä tahansa, mutta muut eivät voi käyttää sitä.",
+      "reroll_secret": "Uudelleenluo salaisuus",
+      "reroll_secret_warning": "Oletko varma, että haluat luoda uuden salaisuuden? Tämä mitätöi nykyisen salaisuuden ja kaikki siihen liittyvät integraatiot lakkaavat toimimasta.",
+      "reset_secret": "Nollaa salaisuus",
+      "regenerate_secret": "Uudelleenluo salaisuus",
+      "built_by_bit_integration_deleted": "BuiltByBit-integraatio poistettu",
+      "built_by_bit_integration_created": "BuiltByBit-integraatio luotu",
+      "built_by_bit_integration_updated": "BuiltByBit-integraatio päivitetty",
+      "built_by_bit_integration_description": "BuiltByBit-integraatio mahdollistaa ohjelmistosi automaattisen jakelun BuiltByBit-alustalla. Kun asiakas ostaa tuotteen, lisenssi luodaan automaattisesti."
     },
     "releases": {
       "license_restricted_tooltip": "Julkaisu on rajoitettu tietyille lisensseille",

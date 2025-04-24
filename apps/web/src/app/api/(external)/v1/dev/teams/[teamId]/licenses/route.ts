@@ -217,6 +217,7 @@ export async function POST(
       if (sendEmailDelivery) {
         const customerEmails = license.customers
           .filter((customer) => customerIds.includes(customer.id))
+          .filter((customer) => customer.email)
           .map((customer) => customer.email)
           .filter(Boolean) as string[];
 

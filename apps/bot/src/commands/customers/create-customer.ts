@@ -18,7 +18,8 @@ import { Command } from '../../structures/command';
 type WizardStep = 'basic_info' | 'address' | 'metadata' | 'review';
 
 interface CustomerCreationState {
-  email: string;
+  username: string | null;
+  email: string | null;
   fullName: string | null;
   address: {
     line1: string | null;
@@ -32,11 +33,30 @@ interface CustomerCreationState {
   step: WizardStep;
 }
 
-function validateEmail(email: string): { isValid: boolean; message?: string } {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email) {
-    return { isValid: false, message: 'Email is required' };
+function validateUsername(username: string | null): {
+  isValid: boolean;
+  message?: string;
+} {
+  if (!username) return { isValid: true }; // It's optional if email is present
+  if (username.length < 1) {
+    return { isValid: false, message: 'Username must not be empty' };
   }
+  if (username.length > 255) {
+    return {
+      isValid: false,
+      message: 'Username must be less than 255 characters',
+    };
+  }
+  return { isValid: true };
+}
+
+function validateEmail(email: string | null): {
+  isValid: boolean;
+  message?: string;
+} {
+  if (!email) return { isValid: true }; // It's optional if username is present
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (email.length > 255) {
     return {
       isValid: false,
@@ -45,6 +65,19 @@ function validateEmail(email: string): { isValid: boolean; message?: string } {
   }
   if (!emailRegex.test(email)) {
     return { isValid: false, message: 'Invalid email address' };
+  }
+  return { isValid: true };
+}
+
+function validateEmailOrUsername(
+  email: string | null,
+  username: string | null,
+): { isValid: boolean; message?: string } {
+  if (!email && !username) {
+    return {
+      isValid: false,
+      message: 'Either email or username must be provided',
+    };
   }
   return { isValid: true };
 }
@@ -222,7 +255,8 @@ export default Command({
       }
 
       const state: CustomerCreationState = {
-        email: '',
+        username: null,
+        email: null,
         fullName: null,
         address: {
           line1: null,
@@ -394,6 +428,11 @@ async function showBasicInfoStep(
     )
     .addFields(
       {
+        name: 'Username',
+        value: state.username || '_Not set_',
+        inline: true,
+      },
+      {
         name: 'Email',
         value: state.email || '_Not set_',
         inline: true,
@@ -423,7 +462,7 @@ async function showBasicInfoStep(
     .setCustomId('wizard_next')
     .setLabel('Next: Address')
     .setStyle(ButtonStyle.Primary)
-    .setDisabled(!state.email);
+    .setDisabled(!state.email && !state.username);
 
   const cancelButton = new ButtonBuilder()
     .setCustomId('wizard_cancel')
@@ -473,8 +512,13 @@ async function showAddressStep(
     )
     .addFields(
       {
+        name: 'Username',
+        value: state.username || '_Not set_',
+        inline: true,
+      },
+      {
         name: 'Email',
-        value: state.email,
+        value: state.email || '_Not set_',
         inline: true,
       },
       {
@@ -579,8 +623,13 @@ async function showMetadataStep(
     )
     .addFields(
       {
+        name: 'Username',
+        value: state.username || '_Not set_',
+        inline: true,
+      },
+      {
         name: 'Email',
-        value: state.email,
+        value: state.email || '_Not set_',
         inline: true,
       },
       {
@@ -667,8 +716,13 @@ async function showReviewStep(
     .setDescription('Please review the customer details before creation.')
     .addFields(
       {
+        name: 'Username',
+        value: state.username || '_Not set_',
+        inline: true,
+      },
+      {
         name: 'Email',
-        value: state.email,
+        value: state.email || '_Not set_',
         inline: true,
       },
       {
@@ -844,18 +898,29 @@ async function handlePreviousStep(
 async function handleBasicInfoModal(
   interaction: MessageComponentInteraction,
   state: CustomerCreationState,
-  teamId: string,
 ) {
   const modal = new ModalBuilder()
     .setCustomId('basic_info_modal')
     .setTitle('Customer Basic Information');
 
+  const usernameInput = new TextInputBuilder()
+    .setCustomId('username')
+    .setLabel('Username (username or email required)')
+    .setStyle(TextInputStyle.Short)
+    .setPlaceholder('johndoe')
+    .setRequired(false)
+    .setMaxLength(255);
+
+  if (state.username) {
+    usernameInput.setValue(state.username);
+  }
+
   const emailInput = new TextInputBuilder()
     .setCustomId('email')
-    .setLabel('Email (required)')
+    .setLabel('Email (username or email required)')
     .setStyle(TextInputStyle.Short)
     .setPlaceholder('customer@example.com')
-    .setRequired(true)
+    .setRequired(false)
     .setMaxLength(255);
 
   if (state.email) {
@@ -874,14 +939,19 @@ async function handleBasicInfoModal(
     nameInput.setValue(state.fullName);
   }
 
+  const usernameRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    usernameInput,
+  );
+
   const emailRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
     emailInput,
   );
+
   const nameRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
     nameInput,
   );
 
-  modal.addComponents(emailRow, nameRow);
+  modal.addComponents(usernameRow, emailRow, nameRow);
   await interaction.showModal(modal);
 
   try {
@@ -889,14 +959,33 @@ async function handleBasicInfoModal(
       time: 120000,
     });
 
-    const email = modalResponse.fields.getTextInputValue('email');
+    const username = modalResponse.fields.getTextInputValue('username') || null;
+    const email = modalResponse.fields.getTextInputValue('email') || null;
     const fullName =
       modalResponse.fields.getTextInputValue('full_name') || null;
+
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.isValid) {
+      await modalResponse.reply({
+        content: `Invalid username: ${usernameValidation.message}`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
 
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
       await modalResponse.reply({
         content: `Invalid email: ${emailValidation.message}`,
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    const emailOrUsernameValidation = validateEmailOrUsername(email, username);
+    if (!emailOrUsernameValidation.isValid) {
+      await modalResponse.reply({
+        content: `Error: ${emailOrUsernameValidation.message}`,
         flags: MessageFlags.Ephemeral,
       });
       return;
@@ -916,21 +1005,7 @@ async function handleBasicInfoModal(
     await modalResponse.deferUpdate();
 
     try {
-      const existingCustomer = await prisma.customer.findFirst({
-        where: {
-          teamId,
-          email,
-        },
-      });
-
-      if (existingCustomer) {
-        await modalResponse.followUp({
-          content: `A customer with the email "${email}" already exists in your team.`,
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
+      state.username = username;
       state.email = email;
       state.fullName = fullName;
 
@@ -947,8 +1022,13 @@ async function handleBasicInfoModal(
         )
         .addFields(
           {
+            name: 'Username',
+            value: state.username || '_Not set_',
+            inline: true,
+          },
+          {
             name: 'Email',
-            value: state.email,
+            value: state.email || '_Not set_',
             inline: true,
           },
           {
@@ -976,7 +1056,7 @@ async function handleBasicInfoModal(
         .setCustomId('wizard_next')
         .setLabel('Next: Address')
         .setStyle(ButtonStyle.Primary)
-        .setDisabled(!state.email);
+        .setDisabled(!state.email && !state.username);
 
       const cancelButton = new ButtonBuilder()
         .setCustomId('wizard_cancel')
@@ -1254,22 +1334,6 @@ async function finalizeCustomerCreation(
   try {
     await interaction.deferUpdate();
 
-    const existingCustomer = await prisma.customer.findFirst({
-      where: {
-        teamId,
-        email: state.email,
-      },
-    });
-
-    if (existingCustomer) {
-      await interaction.editReply({
-        content: `A customer with the email "${state.email}" already exists in your team.`,
-        embeds: [],
-        components: [],
-      });
-      return;
-    }
-
     const addressData: {
       line1?: string;
       line2?: string;
@@ -1289,6 +1353,7 @@ async function finalizeCustomerCreation(
 
     const customer = await prisma.customer.create({
       data: {
+        username: state.username,
         email: state.email,
         fullName: state.fullName,
         metadata: {
@@ -1332,8 +1397,13 @@ async function finalizeCustomerCreation(
           inline: false,
         },
         {
+          name: 'Username',
+          value: customer.username || '_Not provided_',
+          inline: true,
+        },
+        {
           name: 'Email',
-          value: customer.email,
+          value: customer.email || '_Not provided_',
           inline: true,
         },
         {

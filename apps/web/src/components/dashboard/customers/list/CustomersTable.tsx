@@ -60,7 +60,7 @@ export function CustomersTable() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [sortColumn, setSortColumn] = useState<
-    'createdAt' | 'updatedAt' | 'fullName' | 'email' | null
+    'createdAt' | 'updatedAt' | 'fullName' | 'email' | 'username' | null
   >(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
     null,
@@ -302,7 +302,23 @@ export function CustomersTable() {
                           );
                         }}
                       >
-                        {t('general.name')}
+                        {t('general.full_name')}
+                        <ArrowDownUp className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="truncate">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setSortColumn('username');
+                          setSortDirection(
+                            sortColumn === 'username' && sortDirection === 'asc'
+                              ? 'desc'
+                              : 'asc',
+                          );
+                        }}
+                      >
+                        {t('general.username')}
                         <ArrowDownUp className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -351,7 +367,7 @@ export function CustomersTable() {
                   </TableRow>
                 </TableHeader>
                 {isLoading ? (
-                  <TableSkeleton columns={5} rows={6} />
+                  <TableSkeleton columns={6} rows={6} />
                 ) : (
                   <TableBody>
                     {customers.map((customer) => (
@@ -363,11 +379,22 @@ export function CustomersTable() {
                         }
                       >
                         <TableCell className="truncate">
-                          {customer.email}
+                          {customer.email ? (
+                            customer.email
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
                         </TableCell>
                         <TableCell className="truncate">
                           {customer.fullName ? (
                             customer.fullName
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {customer.username ? (
+                            customer.username
                           ) : (
                             <span className="text-muted-foreground">N/A</span>
                           )}

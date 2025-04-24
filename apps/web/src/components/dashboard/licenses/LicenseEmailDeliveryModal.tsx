@@ -75,7 +75,9 @@ export function LicenseEmailDeliveryModal() {
     setSelectedCustomers([]);
   };
 
-  const handleCustomerToggle = (customerId: string) => {
+  const handleCustomerToggle = (customerId: string, hasEmail: boolean) => {
+    if (!hasEmail) return;
+
     setSelectedCustomers((prev) =>
       prev.includes(customerId)
         ? prev.filter((id) => id !== customerId)
@@ -101,40 +103,46 @@ export function LicenseEmailDeliveryModal() {
           <h2 className="text-sm font-semibold">
             {t('dashboard.navigation.customers')}
           </h2>
-          {license.customers.map((customer) => (
-            <Card
-              key={customer.id}
-              className="cursor-pointer"
-              role="button"
-              onClick={() => handleCustomerToggle(customer.id)}
-            >
-              <CardContent className="flex items-center px-4 py-2">
-                <div className="flex flex-1 items-center">
-                  <Checkbox
-                    checked={selectedCustomers.includes(customer.id)}
-                    className="mr-4"
-                    id={`customer-${customer.id}`}
-                    onCheckedChange={() => handleCustomerToggle(customer.id)}
-                  />
-                  <div className="grid">
-                    <h2 className="truncate font-semibold">
-                      {customer.fullName ?? t('general.unknown')}
-                    </h2>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {customer.email ?? t('general.unknown')}
-                    </p>
+          {license.customers.map((customer) => {
+            const hasEmail = Boolean(customer.email);
+            return (
+              <Card
+                key={customer.id}
+                className={`${hasEmail ? 'cursor-pointer' : 'opacity-60'}`}
+                role="button"
+                onClick={() => handleCustomerToggle(customer.id, hasEmail)}
+              >
+                <CardContent className="flex items-center px-4 py-2">
+                  <div className="flex flex-1 items-center">
+                    <Checkbox
+                      checked={selectedCustomers.includes(customer.id)}
+                      className="mr-4"
+                      disabled={!hasEmail}
+                      id={`customer-${customer.id}`}
+                      onCheckedChange={() =>
+                        handleCustomerToggle(customer.id, hasEmail)
+                      }
+                    />
+                    <div className="grid">
+                      <h2 className="truncate font-semibold">
+                        {customer.fullName ?? t('general.unknown')}
+                      </h2>
+                      <p className="truncate text-sm text-muted-foreground">
+                        {customer.email ?? t('general.unknown')}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  {customer.email ? (
-                    <Check className="h-6 w-6 text-green-500" />
-                  ) : (
-                    <TriangleAlert className="h-6 w-6 text-yellow-500" />
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div>
+                    {customer.email ? (
+                      <Check className="h-6 w-6 text-green-500" />
+                    ) : (
+                      <TriangleAlert className="h-6 w-6 text-yellow-500" />
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
         <ResponsiveDialogFooter>
           <LoadingButton

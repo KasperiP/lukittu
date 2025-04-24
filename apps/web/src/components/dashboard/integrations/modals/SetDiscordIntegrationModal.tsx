@@ -265,7 +265,7 @@ export default function SetDiscordIntegrationModal({
               onClick={() => handleSubmit(onSubmit)()}
             >
               {Boolean(discordIntegration)
-                ? t('general.edit')
+                ? t('general.save')
                 : t('general.create')}
             </LoadingButton>
           </div>

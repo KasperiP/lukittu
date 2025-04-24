@@ -94,14 +94,22 @@ function createCustomerEmbed(
   const timestamps = createTimestamps(customer);
 
   const embed = new EmbedBuilder()
-    .setTitle(`Customer: ${customer.fullName || 'Unnamed Customer'}`)
-    .setColor(Colors.Blue)
-    .setDescription(`**Email:** ${customer.email}`)
-    .addFields({
-      name: 'ID',
-      value: '```yaml\n' + customer.id + '```',
-      inline: false,
-    });
+    .setTitle(
+      `Customer: ${customer.fullName || customer.username || 'Unnamed Customer'}`,
+    )
+    .setColor(Colors.Blue);
+
+  const identifiers: string[] = [];
+  if (customer.username) identifiers.push(`**Username:** ${customer.username}`);
+  if (customer.email) identifiers.push(`**Email:** ${customer.email}`);
+
+  embed.setDescription(identifiers.join('\n'));
+
+  embed.addFields({
+    name: 'ID',
+    value: '```yaml\n' + customer.id + '```',
+    inline: false,
+  });
 
   embed.addFields(
     {
@@ -244,7 +252,7 @@ export default Command({
       },
       {
         name: 'search',
-        description: 'Search by name or email',
+        description: 'Search by username, name, or email',
         type: ApplicationCommandOptionType.String,
         required: false,
       },
@@ -292,6 +300,7 @@ export default Command({
           ...(search
             ? {
                 OR: [
+                  { username: { contains: search, mode: 'insensitive' } },
                   { email: { contains: search, mode: 'insensitive' } },
                   { fullName: { contains: search, mode: 'insensitive' } },
                 ],
@@ -313,6 +322,7 @@ export default Command({
           ...(search
             ? {
                 OR: [
+                  { username: { contains: search, mode: 'insensitive' } },
                   { email: { contains: search, mode: 'insensitive' } },
                   { fullName: { contains: search, mode: 'insensitive' } },
                 ],
@@ -412,6 +422,7 @@ export default Command({
               ...(search
                 ? {
                     OR: [
+                      { username: { contains: search, mode: 'insensitive' } },
                       { email: { contains: search, mode: 'insensitive' } },
                       { fullName: { contains: search, mode: 'insensitive' } },
                     ],

@@ -1,7 +1,7 @@
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, prisma, Prisma } from '@lukittu/shared';
+import { logger, prisma } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -26,7 +26,7 @@ export async function POST(): Promise<NextResponse<IAuthSignOutResponse>> {
 
   try {
     if (sessionId) {
-      await prisma.session.delete({
+      await prisma.session.deleteMany({
         where: { sessionId },
       });
     }
@@ -35,18 +35,6 @@ export async function POST(): Promise<NextResponse<IAuthSignOutResponse>> {
       success: true,
     });
   } catch (error) {
-    // Prisma throws a known error when the session does not exist when trying to delete it
-    // We can safely ignore this error and return a success response
-    const allowedErrors = ['P2025', 'P2016'];
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      allowedErrors.includes(error.code)
-    ) {
-      return NextResponse.json({
-        success: true,
-      });
-    }
-
     logger.error("Error occurred in 'sign-out' route:", error);
     return NextResponse.json(
       {

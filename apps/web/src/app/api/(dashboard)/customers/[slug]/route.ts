@@ -174,7 +174,7 @@ export async function PUT(
       );
     }
 
-    const { email, fullName, metadata, address } = validated.data;
+    const { email, fullName, metadata, address, username } = validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -198,14 +198,7 @@ export async function PUT(
             include: {
               customers: {
                 where: {
-                  OR: [
-                    {
-                      email,
-                    },
-                    {
-                      id: customerId,
-                    },
-                  ],
+                  id: customerId,
                 },
               },
             },
@@ -234,26 +227,12 @@ export async function PUT(
 
     const team = session.user.teams[0];
 
-    if (
-      !team.customers.length ||
-      !team.customers.find((c) => c.id === customerId)
-    ) {
+    if (!team.customers.length) {
       return NextResponse.json(
         {
           message: t('validation.customer_not_found'),
         },
         { status: HttpStatus.NOT_FOUND },
-      );
-    }
-
-    const emailAlreadyInUse = team.customers.length > 1;
-    if (emailAlreadyInUse) {
-      return NextResponse.json(
-        {
-          message: t('validation.customer_exists'),
-          field: 'email',
-        },
-        { status: HttpStatus.CONFLICT },
       );
     }
 
@@ -264,6 +243,7 @@ export async function PUT(
       data: {
         email,
         fullName,
+        username,
         metadata: {
           deleteMany: {},
           createMany: {

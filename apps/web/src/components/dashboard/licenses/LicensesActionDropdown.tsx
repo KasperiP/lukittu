@@ -40,6 +40,8 @@ export const LicensesActionDropdown = ({
     toast.success(t('general.copied_to_clipboard'));
   };
 
+  const hasCustomerWithEmail = license.customers.some((c) => c.email);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -71,7 +73,7 @@ export const LicensesActionDropdown = ({
         </DropdownMenuItem>
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          disabled={license.customers.filter((c) => c.email).length === 0}
+          disabled={!hasCustomerWithEmail}
           onClick={(e) => {
             e.stopPropagation();
             ctx.setLicenseEmailDelivery(license);

@@ -186,7 +186,7 @@ export default function CustomersPreviewTable({
                           );
                         }}
                       >
-                        {t('general.name')}
+                        {t('general.full_name')}
                         <ArrowDownUp className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
@@ -205,6 +205,9 @@ export default function CustomersPreviewTable({
                         {t('general.email')}
                         <ArrowDownUp className="ml-2 h-4 w-4" />
                       </Button>
+                    </TableHead>
+                    <TableHead className="truncate">
+                      {t('general.username')}
                     </TableHead>
                     <TableHead className="truncate">
                       <Button
@@ -234,7 +237,7 @@ export default function CustomersPreviewTable({
                   </TableRow>
                 </TableHeader>
                 {isLoading ? (
-                  <TableSkeleton columns={3} rows={3} />
+                  <TableSkeleton columns={4} rows={3} />
                 ) : (
                   <TableBody>
                     {customers.map((customer) => (
@@ -253,7 +256,18 @@ export default function CustomersPreviewTable({
                           )}
                         </TableCell>
                         <TableCell className="truncate">
-                          {customer.email}
+                          {customer.email ? (
+                            customer.email
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {customer.username ? (
+                            customer.username
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
                         </TableCell>
                         <TableCell className="truncate">
                           <DateConverter date={customer.createdAt} />

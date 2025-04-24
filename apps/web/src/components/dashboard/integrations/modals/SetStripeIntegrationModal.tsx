@@ -28,7 +28,7 @@ import {
   setStripeIntegrationSchema,
 } from '@/lib/validation/integrations/set-stripe-integration-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
+import { CopyIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -144,6 +144,15 @@ export default function SetStripeIntegrationModal({
     }
   };
 
+  const copyToClipboard = async (text: string, fieldName: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(t('general.copied_to_clipboard', { field: fieldName }));
+    } catch (err) {
+      toast.error(t('general.error_occurred'));
+    }
+  };
+
   return (
     <ResponsiveDialog open={open} onOpenChange={handleOpenChange}>
       <ResponsiveDialogContent className="sm:max-w-[625px]">
@@ -176,19 +185,33 @@ export default function SetStripeIntegrationModal({
                         type={showApiKey ? 'text' : 'password'}
                         {...field}
                       />
-                      <Button
-                        className="absolute bottom-1 right-1 h-7 w-7"
-                        size="icon"
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setShowApiKey(!showApiKey)}
-                      >
-                        {showApiKey ? (
-                          <EyeOffIcon className="bg-background" />
-                        ) : (
-                          <EyeIcon className="bg-background" />
-                        )}
-                      </Button>
+                      <div className="absolute bottom-1 right-1 flex space-x-1 bg-background">
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          title={t('general.click_to_copy')}
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            copyToClipboard(field.value, t('general.api_key'))
+                          }
+                        >
+                          <CopyIcon className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                        >
+                          {showApiKey ? (
+                            <EyeOffIcon className="h-5 w-5" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -211,19 +234,38 @@ export default function SetStripeIntegrationModal({
                         type={showWebhookSecret ? 'text' : 'password'}
                         {...field}
                       />
-                      <Button
-                        className="absolute bottom-1 right-1 h-7 w-7"
-                        size="icon"
-                        type="button"
-                        variant="ghost"
-                        onClick={() => setShowWebhookSecret(!showWebhookSecret)}
-                      >
-                        {showWebhookSecret ? (
-                          <EyeOffIcon className="bg-background" />
-                        ) : (
-                          <EyeIcon className="bg-background" />
-                        )}
-                      </Button>
+                      <div className="absolute bottom-1 right-1 flex space-x-1 bg-background">
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          title={t('general.click_to_copy')}
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            copyToClipboard(
+                              field.value,
+                              t('dashboard.integrations.webhook_secret'),
+                            )
+                          }
+                        >
+                          <CopyIcon className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            setShowWebhookSecret(!showWebhookSecret)
+                          }
+                        >
+                          {showWebhookSecret ? (
+                            <EyeOffIcon className="h-5 w-5" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -281,7 +323,7 @@ export default function SetStripeIntegrationModal({
               onClick={() => handleSubmit(onSubmit)()}
             >
               {Boolean(stripeIntegration)
-                ? t('general.edit')
+                ? t('general.save')
                 : t('general.create')}
             </LoadingButton>
           </div>
