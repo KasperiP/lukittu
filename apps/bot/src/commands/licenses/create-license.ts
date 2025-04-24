@@ -127,8 +127,9 @@ export default Command({
       } else if (focusedOption.name === 'customers') {
         const customers = await prisma.customer.findMany({
           where: {
-            teamId: teamId,
+            teamId,
             OR: [
+              { username: { contains: focusedValue, mode: 'insensitive' } },
               { email: { contains: focusedValue, mode: 'insensitive' } },
               { fullName: { contains: focusedValue, mode: 'insensitive' } },
             ],
@@ -141,12 +142,26 @@ export default Command({
           .map((v) => v.trim())
           .filter((v) => v.match(regex.uuidV4));
 
-        const suggestions = customers.map((customer) => ({
-          name: customer.fullName
-            ? `${customer.fullName} (${customer.email})`
-            : customer.email,
-          value: customer.id,
-        }));
+        const suggestions = customers.map((customer) => {
+          let displayName = 'Unknown Customer';
+
+          if (customer.fullName) {
+            displayName = customer.fullName;
+          } else if (customer.username) {
+            displayName = customer.username;
+          }
+
+          if (customer.email) {
+            displayName = `${displayName} (${customer.email})`;
+          } else if (customer.username && !customer.fullName) {
+            displayName = customer.username;
+          }
+
+          return {
+            name: displayName,
+            value: customer.id,
+          };
+        });
 
         if (selectedCustomerIds.length > 0) {
           await interaction.respond(

@@ -162,7 +162,7 @@ export const handleInvoicePaid = async (
         });
         const lukittuCustomer = await prisma.customer.upsert({
           where: {
-            id: existingLukittuCustomer?.id,
+            id: existingLukittuCustomer?.id || '',
             teamId: team.id,
           },
           create: {
@@ -549,7 +549,7 @@ export const handleCheckoutSessionCompleted = async (
       });
       const lukittuCustomer = await prisma.customer.upsert({
         where: {
-          id: existingLukittuCustomer?.id,
+          id: existingLukittuCustomer?.id || '',
           teamId: team.id,
         },
         create: {

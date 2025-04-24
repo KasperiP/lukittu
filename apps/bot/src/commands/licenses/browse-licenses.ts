@@ -29,7 +29,12 @@ type LicenseStatus =
 
 type ExtendedLicense = Omit<License, 'licenseKeyLookup'> & {
   products: { id: string; name: string; url: string | null }[];
-  customers: { id: string; email: string; fullName: string | null }[];
+  customers: {
+    id: string;
+    username: string | null;
+    email: string | null;
+    fullName: string | null;
+  }[];
   metadata: { key: string; value: string }[];
 };
 
@@ -264,9 +269,21 @@ function createLicenseEmbed(
     const hasMoreCustomers = license.customers.length > 5;
 
     displayCustomers.forEach((customer) => {
+      // Create a display name from available fields
+      const displayName =
+        customer.fullName || customer.username || 'Unnamed Customer';
+
+      // Create customer details with available identifiers
+      const details: string[] = [];
+      if (customer.username) details.push(`**Username:** ${customer.username}`);
+      if (customer.email) details.push(`**Email:** ${customer.email}`);
+
+      const customerDetails =
+        details.length > 0 ? details.join('\n') : 'No identifiers provided';
+
       embed.addFields({
-        name: customer.fullName || 'Unnamed Customer',
-        value: `${'```yaml\n' + customer.id + '```'}\n${customer.email ? `**Email:** ${customer.email}` : 'No email provided'}`,
+        name: displayName,
+        value: `${'```yaml\n' + customer.id + '```'}\n${customerDetails}`,
         inline: false,
       });
     });
@@ -391,6 +408,7 @@ export default Command({
           where: {
             teamId: teamId,
             OR: [
+              { username: { contains: focusedValue, mode: 'insensitive' } },
               { email: { contains: focusedValue, mode: 'insensitive' } },
               { fullName: { contains: focusedValue, mode: 'insensitive' } },
             ],
@@ -399,12 +417,29 @@ export default Command({
         });
 
         await interaction.respond(
-          customers.map((customer) => ({
-            name: customer.fullName
-              ? `${customer.fullName} (${customer.email})`
-              : customer.email,
-            value: customer.id,
-          })),
+          customers.map((customer) => {
+            // Generate a display name based on available fields
+            let displayName = 'Unknown Customer';
+
+            if (customer.fullName) {
+              displayName = customer.fullName;
+            } else if (customer.username) {
+              displayName = customer.username;
+            }
+
+            // Add email in parentheses if available
+            if (customer.email) {
+              displayName = `${displayName} (${customer.email})`;
+            } else if (customer.username && !customer.fullName) {
+              // If we're only showing username, don't add parentheses
+              displayName = customer.username;
+            }
+
+            return {
+              name: displayName,
+              value: customer.id,
+            };
+          }),
         );
       }
     } catch (error) {
