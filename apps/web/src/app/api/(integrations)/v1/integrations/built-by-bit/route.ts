@@ -106,9 +106,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await handleBuiltByBitPurchase(builtByBitData, lukittuData, team);
+    const result = await handleBuiltByBitPurchase(
+      builtByBitData,
+      lukittuData,
+      team,
+    );
 
-    return NextResponse.json({ success: true });
+    // Might be error but we return 200 to prevent BuiltByBit from retrying the request.
+    return NextResponse.json({
+      success: result.success,
+      message: result.message,
+    });
   } catch (error) {
     logger.error(
       "Error occurred in '(integrations)/v1/integrations/built-by-bit' route",

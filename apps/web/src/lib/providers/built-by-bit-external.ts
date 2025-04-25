@@ -24,11 +24,16 @@ type ExtendedTeam = Team & {
   };
 };
 
+type BuiltByBitPurchaseResult = {
+  success: boolean;
+  message: string;
+};
+
 export const handleBuiltByBitPurchase = async (
   builtByBitData: PurchaseBuiltByBitSchema['builtByBitData'],
   lukittuData: PurchaseBuiltByBitSchema['lukittuData'],
   team: ExtendedTeam,
-) => {
+): Promise<BuiltByBitPurchaseResult> => {
   try {
     const { resource: bbbResource, user: bbbUser } = builtByBitData;
     const { productId, seats, expirationStart, expirationDays, ipLimit } =
@@ -57,7 +62,10 @@ export const handleBuiltByBitPurchase = async (
         purchaseId,
         teamId: team.id,
       });
-      return;
+      return {
+        success: true,
+        message: 'Purchase already processed',
+      };
     }
 
     const productExists = await prisma.product.findUnique({
@@ -71,7 +79,10 @@ export const handleBuiltByBitPurchase = async (
       logger.info('Skipping: Product not found in database', {
         productId,
       });
-      return;
+      return {
+        success: false,
+        message: 'Product not found',
+      };
     }
 
     if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
@@ -80,7 +91,10 @@ export const handleBuiltByBitPurchase = async (
         currentLicenses: team._count.licenses,
         maxLicenses: team.limits?.maxLicenses,
       });
-      return;
+      return {
+        success: false,
+        message: 'Team has reached the maximum number of licenses',
+      };
     }
 
     if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
@@ -92,7 +106,10 @@ export const handleBuiltByBitPurchase = async (
           maxCustomers: team.limits?.maxCustomers,
         },
       );
-      return;
+      return {
+        success: false,
+        message: 'Team has reached the maximum number of customers',
+      };
     }
 
     const expirationStartFormatted =
@@ -109,16 +126,24 @@ export const handleBuiltByBitPurchase = async (
       {
         key: 'BBB_USER_ID',
         value: bbbUser.id,
+        locked: true,
       },
       {
         key: 'BBB_RESOURCE_ID',
         value: bbbResource.id,
+        locked: true,
+      },
+      {
+        key: 'PURCHASE_ID',
+        value: purchaseId,
+        locked: true,
       },
       ...(bbbResource.addon.id && bbbResource.addon.id !== '0'
         ? [
             {
               key: 'BBB_ADDON_ID',
               value: bbbResource.addon.id,
+              locked: true,
             },
           ]
         : []),
@@ -163,7 +188,7 @@ export const handleBuiltByBitPurchase = async (
 
       if (!licenseKey) {
         logger.error('Failed to generate a unique license key');
-        return;
+        return null;
       }
 
       const encryptedLicenseKey = encryptLicenseKey(licenseKey);
@@ -208,7 +233,10 @@ export const handleBuiltByBitPurchase = async (
 
     if (!license) {
       logger.error('Failed to create a license');
-      return;
+      return {
+        success: false,
+        message: 'Failed to create a license',
+      };
     }
 
     logger.info('BuiltByBit purchase processed successfully', {
@@ -221,7 +249,10 @@ export const handleBuiltByBitPurchase = async (
       addonTitle: bbbResource.addon.title,
     });
 
-    return license;
+    return {
+      success: true,
+      message: 'Purchase processed successfully',
+    };
   } catch (error) {
     logger.error('Error occurred in handleBuiltByBitPurchase', {
       error,
@@ -229,7 +260,10 @@ export const handleBuiltByBitPurchase = async (
       lukittuData,
       teamId: team.id,
     });
-    throw error;
+    return {
+      success: false,
+      message: 'An error occurred while processing the purchase',
+    };
   }
 };
 
