@@ -5,7 +5,9 @@ import { HttpStatus } from '@/types/http-status';
 import { logger, prisma, regex } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+): Promise<NextResponse | Response> {
   const searchParams = request.nextUrl.searchParams;
   const teamId = searchParams.get('teamId');
 
@@ -104,21 +106,27 @@ export async function POST(request: NextRequest) {
 
     if (secret !== builtByBitIntegration.apiSecret) {
       logger.error('Invalid API secret', { teamId });
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        json: {
+      return NextResponse.json(
+        {
           message: 'Invalid API secret',
         },
-      };
+        { status: HttpStatus.BAD_REQUEST },
+      );
     }
 
     const result = await handleBuiltByBitPlaceholder(validated.data, teamId);
 
     if ('status' in result) {
-      return NextResponse.json(result.json, { status: result.status });
+      return NextResponse.json(result.message, { status: result.status });
     }
 
-    return new Response(result.licenseKey);
+    return new Response(result.licenseKey, {
+      headers: {
+        'Content-Type': 'text/plain',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        Pragma: 'no-cache',
+      },
+    });
   } catch (error) {
     logger.error('Error processing form data', { error });
     return NextResponse.json(

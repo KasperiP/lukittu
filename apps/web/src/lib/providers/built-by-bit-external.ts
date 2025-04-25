@@ -312,9 +312,7 @@ export const handleBuiltByBitPlaceholder = async (
       });
       return {
         status: HttpStatus.NOT_FOUND,
-        json: {
-          message: 'License key not found',
-        },
+        message: 'License key not found',
       };
     }
 
