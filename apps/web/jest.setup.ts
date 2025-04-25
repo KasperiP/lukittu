@@ -13,6 +13,7 @@ jest.mock('@lukittu/shared', () => ({
     info: jest.fn(),
   },
   encryptLicenseKey: jest.fn(),
+  decryptLicenseKey: jest.fn(),
   generateUniqueLicense: jest.fn(),
   generateHMAC: jest.fn(),
 }));
