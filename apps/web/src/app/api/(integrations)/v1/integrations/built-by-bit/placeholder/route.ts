@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
     },
     include: {
       builtByBitIntegration: true,
-      settings: true,
     },
   });
 
@@ -53,7 +52,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!team.builtByBitIntegration?.active) {
+  const builtByBitIntegration = team.builtByBitIntegration;
+
+  if (!builtByBitIntegration) {
+    logger.error('BuiltByBit integration not found', { teamId });
+    return NextResponse.json(
+      {
+        message: 'BuiltByBit integration not found',
+      },
+      { status: HttpStatus.NOT_FOUND },
+    );
+  }
+
+  if (!builtByBitIntegration.active) {
     logger.error('BuiltByBit integration not active', { teamId });
     return NextResponse.json(
       {
@@ -89,11 +100,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await handleBuiltByBitPlaceholder(
-      validated.data,
-      teamId,
-      team,
-    );
+    const { secret } = validated.data;
+
+    if (secret !== builtByBitIntegration.apiSecret) {
+      logger.error('Invalid API secret', { teamId });
+      return {
+        status: HttpStatus.BAD_REQUEST,
+        json: {
+          message: 'Invalid API secret',
+        },
+      };
+    }
+
+    const result = await handleBuiltByBitPlaceholder(validated.data, teamId);
 
     if ('status' in result) {
       return NextResponse.json(result.json, { status: result.status });

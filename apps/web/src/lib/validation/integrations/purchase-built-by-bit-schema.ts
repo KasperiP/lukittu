@@ -40,16 +40,12 @@ export const purchaseBuiltByBitSchema = () =>
           }),
           renewal: z.string(),
           pricing: z.object({
-            listPrice: z
-              .string()
-              .regex(/^\d+(\.\d+)?$/, {
-                message: 'List price must be numeric',
-              }),
-            finalPrice: z
-              .string()
-              .regex(/^\d+(\.\d+)?$/, {
-                message: 'Final price must be numeric',
-              }),
+            listPrice: z.string().regex(/^\d+(\.\d+)?$/, {
+              message: 'List price must be numeric',
+            }),
+            finalPrice: z.string().regex(/^\d+(\.\d+)?$/, {
+              message: 'Final price must be numeric',
+            }),
           }),
           purchaseDate: z.string().regex(/^\d+$/, {
             message: 'Purchase date must be a numeric timestamp',

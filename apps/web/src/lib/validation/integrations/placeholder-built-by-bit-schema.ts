@@ -7,8 +7,8 @@ export type PlaceholderBuiltByBitSchema = z.infer<
 export const placeholderBuiltByBitSchema = () =>
   z
     .object({
-      builtbybit: z.literal('1'),
-      steam_id: z.union([z.literal('null'), z.string().min(1)]),
+      builtbybit: z.string(),
+      steam_id: z.string(),
       user_id: z.string().min(1, {
         message: 'User ID is required',
       }),

@@ -34,8 +34,35 @@ export const handleBuiltByBitPurchase = async (
     const { productId, seats, expirationStart, expirationDays, ipLimit } =
       lukittuData;
 
+    // BuiltByBit doesn't send any unique identifier for the purchase
+    // so we generate a unique ID to ensure that this won't be duplicated.
+    const purchaseId = generateHMAC(
+      `${bbbResource.id}:${bbbUser.id}:${bbbResource.purchaseDate}:${team.id}`,
+    );
+
+    const existingPurchase = await prisma.license.findFirst({
+      where: {
+        teamId: team.id,
+        metadata: {
+          some: {
+            key: 'PURCHASE_ID',
+            value: purchaseId,
+          },
+        },
+      },
+    });
+
+    if (existingPurchase) {
+      logger.info('Skipping: Purchase already processed', {
+        purchaseId,
+        teamId: team.id,
+      });
+      return;
+    }
+
     const productExists = await prisma.product.findUnique({
       where: {
+        teamId: team.id,
         id: productId,
       },
     });
@@ -209,28 +236,14 @@ export const handleBuiltByBitPurchase = async (
 export const handleBuiltByBitPlaceholder = async (
   validatedData: PlaceholderBuiltByBitSchema,
   teamId: string,
-  team: Team & {
-    builtByBitIntegration: BuiltByBitIntegration | null;
-    settings: Settings | null;
-  },
 ) => {
   try {
-    if (validatedData.secret !== team.builtByBitIntegration?.apiSecret) {
-      logger.error('Invalid API secret', { teamId });
-      return {
-        status: HttpStatus.BAD_REQUEST,
-        json: {
-          message: 'Invalid API secret',
-        },
-      };
-    }
-
     logger.info('Received valid placeholder data from BuiltByBit', {
       teamId,
-      steam_id: validatedData.steam_id,
-      user_id: validatedData.user_id,
-      resource_id: validatedData.resource_id,
-      version_id: validatedData.version_id,
+      steamId: validatedData.steam_id,
+      userId: validatedData.user_id,
+      resourceId: validatedData.resource_id,
+      versionId: validatedData.version_id,
     });
 
     const licenseKey = await prisma.license.findFirst({
@@ -255,9 +268,6 @@ export const handleBuiltByBitPlaceholder = async (
           },
         ],
       },
-      select: {
-        licenseKey: true,
-      },
     });
 
     if (!licenseKey) {
@@ -275,6 +285,7 @@ export const handleBuiltByBitPlaceholder = async (
     }
 
     const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
+
     return {
       success: true,
       licenseKey: decryptedKey,
