@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "discord.js": "^14.18.0",
-    "@discordjs/rest": "^2.2.0",
     "@lukittu/shared": "workspace:*"
   },
   "devDependencies": {

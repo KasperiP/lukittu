@@ -1,4 +1,3 @@
-import { REST } from '@discordjs/rest';
 import { logger, Prisma, prisma } from '@lukittu/shared';
 import {
   ActivityType,
@@ -7,6 +6,7 @@ import {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  REST,
   Routes,
 } from 'discord.js';
 import * as fs from 'fs';
