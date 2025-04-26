@@ -298,7 +298,7 @@ jobs:
                 echo "✅ Application is ready!"
                 
                 echo "📝 Running migrations..."
-                cd packages/shared && docker compose -f docker-compose-migrate.yml up -d
+                cd docker && docker compose -f docker-compose-migrate.yml up -d
                 exit 0
               fi
               echo "Attempt $i/12: Application not ready, waiting..."
