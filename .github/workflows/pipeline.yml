@@ -202,7 +202,6 @@ jobs:
           EOF
 
       - name: Login to Docker Registry
-        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
@@ -213,7 +212,6 @@ jobs:
         with:
           context: .
           file: ./apps/web/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}:latest
           cache-from: |
             type=gha
@@ -237,7 +235,6 @@ jobs:
           buildkitd-flags: --debug
 
       - name: Login to Docker Registry
-        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
@@ -248,7 +245,6 @@ jobs:
         with:
           context: .
           file: ./apps/bot/Dockerfile
-          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE_BOT }}:latest
           cache-from: |
             type=gha
