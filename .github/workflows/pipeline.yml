@@ -290,8 +290,8 @@ jobs:
             docker pull ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}
 
             echo "🔄 Restarting containers..."
-            docker compose -f apps/web/docker-compose-prod.yml down
-            docker compose -f apps/web/docker-compose-prod.yml up -d
+            docker compose -f docker/docker-compose-prod.yml down
+            docker compose -f docker/docker-compose-prod.yml up -d
 
             # Wait for application to be ready
             echo "⏳ Waiting for application to start..."
@@ -308,5 +308,5 @@ jobs:
             done
 
             echo "❌ Application failed to start"
-            docker compose -f apps/web/docker-compose-prod.yml logs
+            docker compose -f docker/docker-compose-prod.yml logs
             exit 1

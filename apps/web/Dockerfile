@@ -40,7 +40,7 @@ COPY apps ./apps
 WORKDIR /app/apps/web
 
 # Generate Prisma client
-RUN cd ../../packages/shared && pnpm run generate && pnpm run build
+RUN cd ../../packages/shared && pnpm run build
 
 # Build the Next.js app
 RUN pnpm run build
@@ -60,6 +60,7 @@ COPY --from=builder /app/apps/web/public ./apps/web/public
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/packages/shared/dist/prisma ./packages/shared/prisma
 
 USER nextjs
 

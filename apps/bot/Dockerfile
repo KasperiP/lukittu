@@ -40,7 +40,7 @@ COPY apps ./apps
 WORKDIR /app/apps/bot
 
 # Generate Prisma client
-RUN cd ../../packages/shared && pnpm run generate && pnpm run build
+RUN cd ../../packages/shared && pnpm run build
 
 # Build the bot
 RUN pnpm run build
