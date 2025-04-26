@@ -9,8 +9,8 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "discord.js": "^14.18.0",
-    "@lukittu/shared": "workspace:*"
+    "@lukittu/shared": "workspace:*",
+    "discord.js": "^14.19.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
