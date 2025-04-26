@@ -212,6 +212,7 @@ jobs:
         with:
           context: .
           file: ./apps/web/Dockerfile
+          push: true
           tags: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}:latest
           cache-from: |
             type=gha
@@ -245,6 +246,7 @@ jobs:
         with:
           context: .
           file: ./apps/bot/Dockerfile
+          push: true
           tags: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE_BOT }}:latest
           cache-from: |
             type=gha
