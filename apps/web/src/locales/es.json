@@ -304,7 +304,8 @@
     "sending_email_failed": "El envío del correo electrónico falló",
     "free": "Gratis",
     "api_secret": "Secreto de API",
-    "username": "Nombre de usuario"
+    "username": "Nombre de usuario",
+    "add": "Agregar"
   },
   "auth": {
     "oauth": {
@@ -752,7 +753,17 @@
       "delete_api_key_confirm_description": "Estás a punto de eliminar la clave de API con ID <strong>{id}</strong>! Esto <strong>eliminará permanentemente</strong> esta clave de API. Esta acción no se puede deshacer.",
       "no_api_keys": "No hay claves de API",
       "api_key_created_description": "Clave de API creada con éxito. Mantén esta clave en secreto y no la compartas con nadie. <strong>Esta es la única vez que verás esta clave, así que guárdala ahora!</strong>.",
-      "api_key_expiration_date_description": "No necesitas establecer una fecha de expiración, pero puede ser útil por razones de seguridad. Si estableces una fecha de expiración, la clave de API se eliminará automáticamente después de la fecha."
+      "api_key_expiration_date_description": "No necesitas establecer una fecha de expiración, pero puede ser útil por razones de seguridad. Si estableces una fecha de expiración, la clave de API se eliminará automáticamente después de la fecha.",
+      "add_metadata_key": "Agregar clave de metadatos",
+      "product_metadata_keys": "Claves de metadatos del producto",
+      "license_metadata_keys": "Claves de metadatos de la licencia",
+      "customer_metadata_keys": "Claves de metadatos del cliente",
+      "product_fields": "Campos del producto",
+      "license_fields": "Campos de la licencia",
+      "customer_fields": "Campos del cliente",
+      "returned_fields_updated": "Campos devueltos actualizados",
+      "returned_fields": "Campos devueltos",
+      "returned_fields_description": "Selecciona qué campos deben ser devueltos al cliente en los puntos de verificación."
     },
     "blacklist": {
       "blacklist_updated": "Lista negra actualizada",

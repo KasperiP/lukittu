@@ -188,18 +188,41 @@ model Limits {
 }
 
 model Settings {
-    id              String        @id @default(uuid())
-    teamId          String        @unique
-    team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    deviceTimeout   Int           @default(60)
-    ipLimitPeriod   IpLimitPeriod @default(DAY)
-    strictCustomers Boolean       @default(false)
-    strictProducts  Boolean       @default(false)
-    strictReleases  Boolean       @default(false)
+    id              String          @id @default(uuid())
+    teamId          String          @unique
+    team            Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    deviceTimeout   Int             @default(60)
+    ipLimitPeriod   IpLimitPeriod   @default(DAY)
+    strictCustomers Boolean         @default(false)
+    strictProducts  Boolean         @default(false)
+    strictReleases  Boolean         @default(false)
     emailMessage    String?
     emailImageUrl   String?
-    createdAt       DateTime      @default(now())
-    updatedAt       DateTime      @updatedAt
+    returnedFields  ReturnedFields?
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
+}
+
+model ReturnedFields {
+    id                     String   @id @default(uuid())
+    settingsId             String   @unique
+    settings               Settings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+    licenseIpLimit         Boolean  @default(false)
+    licenseSeats           Boolean  @default(false)
+    licenseExpirationType  Boolean  @default(false)
+    licenseExpirationStart Boolean  @default(false)
+    licenseExpirationDate  Boolean  @default(false)
+    licenseExpirationDays  Boolean  @default(false)
+    licenseMetadataKeys    String[]
+    customerEmail          Boolean  @default(false)
+    customerFullName       Boolean  @default(false)
+    customerUsername       Boolean  @default(false)
+    customerMetadataKeys   String[]
+    productName            Boolean  @default(false)
+    productUrl             Boolean  @default(false)
+    productMetadataKeys    String[]
+    updatedAt              DateTime @updatedAt
+    createdAt              DateTime @default(now())
 }
 
 model WatermarkingSettings {

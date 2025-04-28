@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import useSWR from 'swr';
 import ApiKeysCard from './ApiKeysCard';
 import PublicKeysCard from './PublicKeysCard';
+import ReturnedFieldsCard from './ReturnedFieldsCard';
 import { TeamDetails } from './TeamDetails';
 import TeamEmailSettings from './TeamEmailSettings';
 import TeamGeneralSettings from './TeamGeneralSettings';
@@ -78,6 +79,7 @@ export default function TeamSettingsCard() {
                 <div className="grid grid-cols-1 gap-4">
                   <PublicKeysCard team={team ?? null} />
                   <ApiKeysCard team={team ?? null} />
+                  <ReturnedFieldsCard team={team ?? null} />
                 </div>
               </TabsContent>
               <TabsContent value="limits">

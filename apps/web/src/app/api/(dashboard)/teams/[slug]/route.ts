@@ -15,6 +15,7 @@ import {
   logger,
   prisma,
   regex,
+  ReturnedFields,
   Settings,
   Subscription,
   Team,
@@ -278,7 +279,9 @@ export type ITeamGetSuccessResponse = {
   team: Team & {
     owner: Omit<User, 'passwordHash'>;
     publicKey: string;
-    settings: Settings;
+    settings: Settings & {
+      returnedFields: ReturnedFields | null;
+    };
     limits: Limits;
     subscription: Subscription | null;
     apiKeys: (Omit<ApiKey, 'key'> & {
@@ -330,7 +333,11 @@ export async function GET(
             include: {
               owner: true,
               keyPair: true,
-              settings: true,
+              settings: {
+                include: {
+                  returnedFields: true,
+                },
+              },
               limits: true,
               subscription: true,
               watermarkingSettings: true,

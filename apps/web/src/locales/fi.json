@@ -304,7 +304,8 @@
     "sending_email_failed": "Sähköpostin lähettäminen epäonnistui",
     "free": "Ilmainen",
     "api_secret": "API-salaisuus",
-    "username": "Käyttäjätunnus"
+    "username": "Käyttäjätunnus",
+    "add": "Lisää"
   },
   "auth": {
     "oauth": {
@@ -752,7 +753,17 @@
       "delete_api_key_confirm_description": "Olet poistamassa API-avaimen ID:llä <strong>{id}</strong>! Tämä poistaa <strong>lopullisesti</strong> tämän API-avaimen. Tätä toimintoa ei voi peruuttaa.",
       "no_api_keys": "Ei API-avaimia",
       "api_key_created_description": "API-avain luotiin onnistuneesti. Pidä tämä avain salassa etkä jaa sitä kenellekään. <strong>Tämä on ainoa kerta, kun näet tämän avaimen, joten tallenna se nyt!</strong>.",
-      "api_key_expiration_date_description": "Et tarvitse asettaa vanhentumispäivämäärää, mutta se voi olla hyödyllinen turvallisuussyistä. Jos asetat vanhentumispäivämäärän, API-avain poistetaan automaattisesti tämän päivämäärän jälkeen."
+      "api_key_expiration_date_description": "Et tarvitse asettaa vanhentumispäivämäärää, mutta se voi olla hyödyllinen turvallisuussyistä. Jos asetat vanhentumispäivämäärän, API-avain poistetaan automaattisesti tämän päivämäärän jälkeen.",
+      "add_metadata_key": "Lisää metatietojen avain",
+      "product_metadata_keys": "Tuotteen metatietojen avaimet",
+      "license_metadata_keys": "Lisenssin metatietojen avaimet",
+      "customer_metadata_keys": "Asiakkaan metatietojen avaimet",
+      "product_fields": "Tuotekentät",
+      "license_fields": "Lisenssikentät",
+      "customer_fields": "Asiakaskentät",
+      "returned_fields_updated": "Palautetut kentät päivitetty",
+      "returned_fields": "Palautetut kentät",
+      "returned_fields_description": "Valitse, mitkä kentät palautetaan asiakkaalle lisenssirajapinnasta."
     },
     "blacklist": {
       "blacklist_updated": "Mustan listan päivitys onnistui",

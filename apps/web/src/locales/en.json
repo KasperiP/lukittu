@@ -127,6 +127,7 @@
     "max_releases_reached": "Your team has reached the maximum number of releases allowed for the current plan. Please upgrade to add more releases."
   },
   "general": {
+    "add": "Add",
     "api_secret": "API-secret",
     "username": "Username",
     "select_key": "Select key",
@@ -706,6 +707,16 @@
       "no_latest_release_description": "You have not set a latest release for this product. It is used as a fallback if no specific release is requested."
     },
     "settings": {
+      "add_metadata_key": "Add metadata key",
+      "product_metadata_keys": "Product metadata keys",
+      "license_metadata_keys": "License metadata keys",
+      "customer_metadata_keys": "Customer metadata keys",
+      "product_fields": "Product fields",
+      "license_fields": "License fields",
+      "customer_fields": "Customer fields",
+      "returned_fields_updated": "Returned fields updated",
+      "returned_fields": "Returned fields",
+      "returned_fields_description": "Select which fields should be returned to the client on verification endpoints.",
       "watermarking_description": "Watermarking adds unique identifiers to your software to prevent unauthorized distribution. This feature is available only for Java-applications at the moment.",
       "static_constant_pool_synthesis": "Static constant pool synthesis",
       "dynamic_bytecode_injection": "Dynamic bytecode injection",
