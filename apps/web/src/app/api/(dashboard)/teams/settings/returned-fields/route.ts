@@ -106,6 +106,7 @@ export async function PUT(
       productMetadataKeys: validated.data.productMetadataKeys,
       productName: validated.data.productName,
       productUrl: validated.data.productUrl,
+      productLatestRelease: validated.data.productLatestRelease,
     };
 
     const updatedSettings = await prisma.settings.update({

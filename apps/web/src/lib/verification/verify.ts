@@ -11,6 +11,7 @@ import 'server-only';
 import { CloudflareVisitorData } from '../providers/cloudflare';
 import { isRateLimited } from '../security/rate-limiter';
 import { verifyLicenseSchema } from '../validation/licenses/verify-license-schema';
+import { getReturnedFields } from './shared/shared-returned-fields';
 import { sharedVerificationHandler } from './shared/shared-verification';
 
 interface HandleVerifyProps {
@@ -99,7 +100,11 @@ export const handleVerify = async ({
         },
       },
       blacklist: true,
-      settings: true,
+      settings: {
+        include: {
+          returnedFields: true,
+        },
+      },
     },
   });
 
@@ -152,9 +157,15 @@ export const handleVerify = async ({
       teamId_licenseKeyLookup: { teamId, licenseKeyLookup },
     },
     include: {
-      customers: true,
+      metadata: true,
+      customers: {
+        include: {
+          metadata: true,
+        },
+      },
       products: {
         include: {
+          metadata: true,
           releases: {
             where: {
               status: 'PUBLISHED',
@@ -440,11 +451,16 @@ export const handleVerify = async ({
     ? signChallenge(challenge, keyPair.privateKey)
     : undefined;
 
+  const returnedData = getReturnedFields({
+    returnedFields: settings.returnedFields,
+    license,
+  });
+
   return {
     ...commonBase,
     status: RequestStatus.VALID,
     response: {
-      data: null,
+      data: returnedData,
       result: {
         timestamp: new Date(),
         valid: true,

@@ -11,6 +11,7 @@ import 'server-only';
 import { CloudflareVisitorData } from '../providers/cloudflare';
 import { isRateLimited } from '../security/rate-limiter';
 import { licenseHeartbeatSchema } from '../validation/licenses/license-heartbeat-schema';
+import { getReturnedFields } from './shared/shared-returned-fields';
 import { sharedVerificationHandler } from './shared/shared-verification';
 
 interface HandleHeartbeatProps {
@@ -98,8 +99,12 @@ export const handleHeartbeat = async ({
           privateKey: false,
         },
       },
-      settings: true,
       blacklist: true,
+      settings: {
+        include: {
+          returnedFields: true,
+        },
+      },
     },
   });
 
@@ -152,9 +157,15 @@ export const handleHeartbeat = async ({
       teamId_licenseKeyLookup: { teamId, licenseKeyLookup },
     },
     include: {
-      customers: true,
+      metadata: true,
+      customers: {
+        include: {
+          metadata: true,
+        },
+      },
       products: {
         include: {
+          metadata: true,
           releases: {
             where: {
               status: 'PUBLISHED',
@@ -438,11 +449,16 @@ export const handleHeartbeat = async ({
     ? signChallenge(challenge, keyPair.privateKey)
     : undefined;
 
+  const returnedData = getReturnedFields({
+    returnedFields: settings.returnedFields,
+    license,
+  });
+
   return {
     ...commonBase,
     status: RequestStatus.VALID,
     response: {
-      data: null,
+      data: returnedData,
       result: {
         timestamp: new Date(),
         valid: true,

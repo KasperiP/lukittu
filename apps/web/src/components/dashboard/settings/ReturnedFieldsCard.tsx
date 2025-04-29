@@ -102,6 +102,8 @@ export default function ReturnedFieldsCard({ team }: ReturnedFieldsCardProps) {
         team?.settings?.returnedFields?.customerMetadataKeys || [],
       productName: team?.settings?.returnedFields?.productName || false,
       productUrl: team?.settings?.returnedFields?.productUrl || false,
+      productLatestRelease:
+        team?.settings?.returnedFields?.productLatestRelease || false,
       productMetadataKeys:
         team?.settings?.returnedFields?.productMetadataKeys || [],
     },
@@ -618,6 +620,25 @@ export default function ReturnedFieldsCard({ team }: ReturnedFieldsCardProps) {
                             </FormControl>
                             <FormLabel htmlFor="productUrl">
                               {t('general.url')}
+                            </FormLabel>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={control}
+                        name="productLatestRelease"
+                        render={({ field }) => (
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                id="productLatestRelease"
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormLabel htmlFor="productLatestRelease">
+                              {t('dashboard.releases.latest_release')}
                             </FormLabel>
                           </FormItem>
                         )}

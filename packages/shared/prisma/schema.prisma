@@ -220,6 +220,7 @@ model ReturnedFields {
     customerMetadataKeys   String[]
     productName            Boolean  @default(false)
     productUrl             Boolean  @default(false)
+    productLatestRelease   Boolean  @default(false)
     productMetadataKeys    String[]
     updatedAt              DateTime @updatedAt
     createdAt              DateTime @default(now())

@@ -66,14 +66,154 @@
       },
       "responses": {
         "200": {
-          "description": "",
+          "description": "Successful license verification response",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "data": {
-                    "type": "object"
+                    "type": "object",
+                    "description": "The returned data depends on your ReturnedFields configuration in team settings. Fields will only be included if they are enabled in your settings.",
+                    "properties": {
+                      "license": {
+                        "type": "object",
+                        "description": "License details if enabled in ReturnedFields configuration",
+                        "properties": {
+                          "ipLimit": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Maximum number of different IP addresses that can use this license"
+                          },
+                          "seats": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Maximum number of concurrent devices that can use this license"
+                          },
+                          "expirationType": {
+                            "type": "string",
+                            "enum": ["NEVER", "DATE", "DURATION"],
+                            "description": "Defines how the license expiration is calculated"
+                          },
+                          "expirationStart": {
+                            "type": "string",
+                            "enum": ["CREATION", "ACTIVATION"],
+                            "description": "Defines when the license expiration countdown begins"
+                          },
+                          "expirationDate": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true,
+                            "description": "Date when the license expires, if expirationType is DATE"
+                          },
+                          "expirationDays": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Number of days until license expiration, if expirationType is DURATION"
+                          },
+                          "metadata": {
+                            "type": "array",
+                            "description": "License metadata - only includes keys that are allowed in ReturnedFields",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "customers": {
+                        "type": "array",
+                        "description": "Customer details if enabled in ReturnedFields configuration",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "format": "email",
+                              "description": "Customer email address"
+                            },
+                            "fullName": {
+                              "type": "string",
+                              "description": "Customer full name"
+                            },
+                            "username": {
+                              "type": "string",
+                              "description": "Customer username"
+                            },
+                            "metadata": {
+                              "type": "array",
+                              "description": "Customer metadata - only includes keys that are allowed in ReturnedFields",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "products": {
+                        "type": "array",
+                        "description": "Product details if enabled in ReturnedFields configuration",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Product name"
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "Product URL"
+                            },
+                            "latestRelease": {
+                              "type": "object",
+                              "description": "Information about the latest release for this product",
+                              "properties": {
+                                "version": {
+                                  "type": "string",
+                                  "description": "Latest release version"
+                                },
+                                "createdAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "When the release was created"
+                                }
+                              }
+                            },
+                            "metadata": {
+                              "type": "array",
+                              "description": "Product metadata - only includes keys that are allowed in ReturnedFields",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "nullable": true
                   },
                   "result": {
                     "type": "object",
@@ -204,14 +344,154 @@
       },
       "responses": {
         "200": {
-          "description": "",
+          "description": "Successful heartbeat response",
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
                   "data": {
-                    "type": "object"
+                    "type": "object",
+                    "description": "The returned data depends on your ReturnedFields configuration in team settings. Fields will only be included if they are enabled in your settings.",
+                    "properties": {
+                      "license": {
+                        "type": "object",
+                        "description": "License details if enabled in ReturnedFields configuration",
+                        "properties": {
+                          "ipLimit": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Maximum number of different IP addresses that can use this license"
+                          },
+                          "seats": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Maximum number of concurrent devices that can use this license"
+                          },
+                          "expirationType": {
+                            "type": "string",
+                            "enum": ["NEVER", "DATE", "DURATION"],
+                            "description": "Defines how the license expiration is calculated"
+                          },
+                          "expirationStart": {
+                            "type": "string",
+                            "enum": ["CREATION", "ACTIVATION"],
+                            "description": "Defines when the license expiration countdown begins"
+                          },
+                          "expirationDate": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true,
+                            "description": "Date when the license expires, if expirationType is DATE"
+                          },
+                          "expirationDays": {
+                            "type": "integer",
+                            "nullable": true,
+                            "description": "Number of days until license expiration, if expirationType is DURATION"
+                          },
+                          "metadata": {
+                            "type": "array",
+                            "description": "License metadata - only includes keys that are allowed in ReturnedFields",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "customers": {
+                        "type": "array",
+                        "description": "Customer details if enabled in ReturnedFields configuration",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "email": {
+                              "type": "string",
+                              "format": "email",
+                              "description": "Customer email address"
+                            },
+                            "fullName": {
+                              "type": "string",
+                              "description": "Customer full name"
+                            },
+                            "username": {
+                              "type": "string",
+                              "description": "Customer username"
+                            },
+                            "metadata": {
+                              "type": "array",
+                              "description": "Customer metadata - only includes keys that are allowed in ReturnedFields",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "products": {
+                        "type": "array",
+                        "description": "Product details if enabled in ReturnedFields configuration",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Product name"
+                            },
+                            "url": {
+                              "type": "string",
+                              "description": "Product URL"
+                            },
+                            "latestRelease": {
+                              "type": "object",
+                              "description": "Information about the latest release for this product",
+                              "properties": {
+                                "version": {
+                                  "type": "string",
+                                  "description": "Latest release version"
+                                },
+                                "createdAt": {
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "description": "When the release was created"
+                                }
+                              }
+                            },
+                            "metadata": {
+                              "type": "array",
+                              "description": "Product metadata - only includes keys that are allowed in ReturnedFields",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "key": {
+                                    "type": "string"
+                                  },
+                                  "value": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "nullable": true
                   },
                   "result": {
                     "type": "object",

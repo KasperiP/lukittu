@@ -15,6 +15,7 @@ CREATE TABLE "ReturnedFields" (
     "customerMetadataKeys" TEXT[],
     "productName" BOOLEAN NOT NULL DEFAULT false,
     "productUrl" BOOLEAN NOT NULL DEFAULT false,
+    "productLatestRelease" BOOLEAN NOT NULL DEFAULT false,
     "productMetadataKeys" TEXT[],
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

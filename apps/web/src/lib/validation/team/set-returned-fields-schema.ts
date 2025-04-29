@@ -39,6 +39,7 @@ export const setReturnedFieldsSchema = (t: I18nTranslator) =>
       ),
       productName: z.boolean(),
       productUrl: z.boolean(),
+      productLatestRelease: z.boolean(),
       productMetadataKeys: z.array(
         z
           .string()

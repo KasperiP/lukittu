@@ -54,7 +54,7 @@
     "product_already_exists": "Team already has a product with this name!",
     "product_not_found": "Product not found!",
     "license_key_invalid": "License key must contain 5 groups of 5 characters separated by dashes!",
-    "expiration_days_required": "Days are required!",
+    "expiration_days_required": "Expiration days is required!",
     "expiration_date_required": "Expiration date is required!",
     "metadata_key_min_length": "Metadata key must be at least 1 characters long!",
     "metadata_key_max_length": "Metadata key must be at most 255 characters long!",
@@ -540,7 +540,7 @@
       "expiration_start": "Expiration start",
       "creation": "Creation",
       "activation": "Activation",
-      "expiration_days": "Days",
+      "expiration_days": "Expiration days",
       "expiration_settings": "Expiration settings",
       "add_your_first_license": "Add your first license",
       "license_description": "Licenses are the keys that allow your customers to use your products. You can assign them to customers and track their usage.",
@@ -681,6 +681,7 @@
       "built_by_bit_integration_description": "For automatic license generation and distribution, you can integrate Lukittu with BuiltByBit. When a customer purchases a product, a license will be automatically generated."
     },
     "releases": {
+      "latest_release": "Latest release",
       "license_restricted_tooltip": "Release is restricted to specific licenses",
       "no_license_restrictions": "No license restrictions",
       "drop_file_here": "Drop file here",

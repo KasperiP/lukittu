@@ -45,7 +45,7 @@
     "product_already_exists": "El equipo ya tiene un producto con este nombre!",
     "product_not_found": "Producto no encontrado.",
     "license_key_invalid": "La clave de licencia debe contener 5 grupos de 5 caracteres separados por guiones!",
-    "expiration_days_required": "Días son obligatorios!",
+    "expiration_days_required": "Días de expiración son obligatorios!",
     "expiration_date_required": "Fecha de expiración es obligatoria!",
     "metadata_key_min_length": "La clave de los metadatos debe tener al menos 1 carácter!",
     "metadata_key_max_length": "La clave de los metadatos debe tener como máximo 255 caracteres!",
@@ -540,7 +540,7 @@
       "expiration_start": "Inicio de expiración",
       "creation": "Creación",
       "activation": "Activación",
-      "expiration_days": "Días",
+      "expiration_days": "Días de expiración",
       "expiration_settings": "Configuraciones de expiración",
       "add_your_first_license": "Agrega tu primera licencia",
       "license_description": "Las licencias son las claves que permiten a tus clientes usar tus productos. Puedes asignarlas a clientes y rastrear su uso.",
@@ -704,7 +704,8 @@
       "release_deleted": "Versión eliminada",
       "set_as_latest_description": "Cuando esté marcado, esta versión se establecerá como la última versión para el producto y se usará si no se solicita una versión específica.",
       "no_latest_release": "No hay última versión",
-      "no_latest_release_description": "No has establecido una última versión para este producto. Se usa como respaldo si no se solicita una versión específica."
+      "no_latest_release_description": "No has establecido una última versión para este producto. Se usa como respaldo si no se solicita una versión específica.",
+      "latest_release": "Última versión"
     },
     "settings": {
       "watermarking_description": "El marcado de agua añade identificadores únicos a tu software para prevenir la distribución no autorizada. Esta función está disponible solo para aplicaciones Java en este momento.",

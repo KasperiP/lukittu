@@ -45,7 +45,7 @@
     "product_already_exists": "Tiimillä on jo tuote tällä nimellä!",
     "product_not_found": "Tuotetta ei löydy!",
     "license_key_invalid": "Lisenssiavain tulee sisältää 5 ryhmää, joissa on 5 merkkiä, erotettuna viivoilla!",
-    "expiration_days_required": "Päivät ovat pakollisia!",
+    "expiration_days_required": "Vanhennemispäivät ovat pakollisia!",
     "expiration_date_required": "Erääntymispäivämäärä on pakollinen!",
     "metadata_key_min_length": "Metatiedon avaimen on oltava vähintään 1 merkki pitkä!",
     "metadata_key_max_length": "Metatiedon avaimen on oltava enintään 255 merkkiä pitkä!",
@@ -540,7 +540,7 @@
       "expiration_start": "Vanhentumisen alku",
       "creation": "Luominen",
       "activation": "Aktivointi",
-      "expiration_days": "Päiviä",
+      "expiration_days": "Vanhentumispäivät",
       "expiration_settings": "Vanhentumisasetukset",
       "add_your_first_license": "Lisää ensimmäinen lisenssi",
       "license_description": "Lisenssit ovat avaimia, jotka mahdollistavat asiakkaidesi tuotteiden käytön. Voit liittää ne asiakkaille ja seurata niiden käyttöä.",
@@ -704,7 +704,8 @@
       "release_deleted": "Julkaisu poistettu",
       "set_as_latest_description": "Kun tämä on valittu, tämä julkaisu asetetaan tuotteen uusimmaksi julkaisuksi ja sitä käytetään, jos ei ole pyydetty tiettyä julkaisua.",
       "no_latest_release": "Ei uusinta julkaisua",
-      "no_latest_release_description": "Et ole määrittänyt tälle tuotteelle uusinta julkaisua. Se toimii varalla, jos ei ole pyydetty tiettyä julkaisua."
+      "no_latest_release_description": "Et ole määrittänyt tälle tuotteelle uusinta julkaisua. Se toimii varalla, jos ei ole pyydetty tiettyä julkaisua.",
+      "latest_release": "Uusin julkaisu"
     },
     "settings": {
       "watermarking_description": "Vesileimaus lisää ainutlaatuisia tunnisteita ohjelmistoosi estämään luvattoman jakelun. Tämä ominaisuus on tällä hetkellä saatavilla vain Java-sovelluksille.",
