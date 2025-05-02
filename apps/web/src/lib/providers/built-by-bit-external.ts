@@ -11,6 +11,7 @@ import {
   Settings,
   Team,
 } from '@lukittu/shared';
+import { BuiltByBitMetadataKeys } from '../constants/metadata';
 import { PlaceholderBuiltByBitSchema } from '../validation/integrations/placeholder-built-by-bit-schema';
 import { PurchaseBuiltByBitSchema } from '../validation/integrations/purchase-built-by-bit-schema';
 
@@ -50,7 +51,7 @@ export const handleBuiltByBitPurchase = async (
         teamId: team.id,
         metadata: {
           some: {
-            key: 'PURCHASE_ID',
+            key: BuiltByBitMetadataKeys.BBB_PURCHASE_ID,
             value: purchaseId,
           },
         },
@@ -124,24 +125,24 @@ export const handleBuiltByBitPurchase = async (
 
     const metadata = [
       {
-        key: 'BBB_USER_ID',
+        key: BuiltByBitMetadataKeys.BBB_USER_ID,
         value: bbbUser.id,
         locked: true,
       },
       {
-        key: 'BBB_RESOURCE_ID',
+        key: BuiltByBitMetadataKeys.BBB_RESOURCE_ID,
         value: bbbResource.id,
         locked: true,
       },
       {
-        key: 'PURCHASE_ID',
+        key: BuiltByBitMetadataKeys.BBB_PURCHASE_ID,
         value: purchaseId,
         locked: true,
       },
       ...(bbbResource.addon.id && bbbResource.addon.id !== '0'
         ? [
             {
-              key: 'BBB_ADDON_ID',
+              key: BuiltByBitMetadataKeys.BBB_ADDON_ID,
               value: bbbResource.addon.id,
               locked: true,
             },
@@ -154,7 +155,7 @@ export const handleBuiltByBitPurchase = async (
         where: {
           metadata: {
             some: {
-              key: 'BBB_USER_ID',
+              key: BuiltByBitMetadataKeys.BBB_USER_ID,
               value: bbbUser.id,
             },
           },
@@ -171,7 +172,7 @@ export const handleBuiltByBitPurchase = async (
           teamId: team.id,
           metadata: {
             create: {
-              key: 'BBB_USER_ID',
+              key: BuiltByBitMetadataKeys.BBB_USER_ID,
               value: bbbUser.id,
               locked: true,
               teamId: team.id,
@@ -287,7 +288,7 @@ export const handleBuiltByBitPlaceholder = async (
           {
             metadata: {
               some: {
-                key: 'BBB_USER_ID',
+                key: BuiltByBitMetadataKeys.BBB_USER_ID,
                 value: validatedData.user_id,
               },
             },
@@ -295,7 +296,7 @@ export const handleBuiltByBitPlaceholder = async (
           {
             metadata: {
               some: {
-                key: 'BBB_RESOURCE_ID',
+                key: BuiltByBitMetadataKeys.BBB_RESOURCE_ID,
                 value: validatedData.resource_id,
               },
             },
