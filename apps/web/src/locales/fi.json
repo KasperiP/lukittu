@@ -124,7 +124,12 @@
     "email_or_username_required": "Sähköposti tai käyttäjätunnus on pakollinen!",
     "username_required": "Käyttäjätunnus on pakollinen!",
     "username_min_length": "Käyttäjätunnuksen on oltava vähintään 3 merkkiä pitkä!",
-    "username_max_length": "Käyttäjätunnuksen on oltava enintään 255 merkkiä pitkä!"
+    "username_max_length": "Käyttäjätunnuksen on oltava enintään 255 merkkiä pitkä!",
+    "branch_not_found": "Haaraa ei löytynyt!",
+    "branch_name_required": "Haaran nimi on pakollinen!",
+    "branch_name_min_length": "Haaran nimen on oltava vähintään 2 merkkiä pitkä!",
+    "branch_name_max_length": "Haaran nimen on oltava enintään 255 merkkiä pitkä!",
+    "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _"
   },
   "general": {
     "select_key": "Valitse avain",

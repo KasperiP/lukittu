@@ -1,6 +1,6 @@
+import { I18nTranslator } from '@/types/i18n-types';
 import { z } from 'zod';
 import { metadataSchema } from '../shared/metadata-schema';
-import { I18nTranslator } from '@/types/i18n-types';
 
 export type SetReleaseSchema = z.infer<ReturnType<typeof setReleaseSchema>>;
 
@@ -29,6 +29,7 @@ export const setReleaseSchema = (t: I18nTranslator) =>
         }),
       setAsLatest: z.boolean(),
       keepExistingFile: z.boolean(),
+      branchId: z.string().uuid().nullable(),
       status: z.enum(['PUBLISHED', 'DRAFT', 'DEPRECATED', 'ARCHIVED']),
       metadata: metadataSchema(t),
       licenseIds: z.array(z.string().uuid()),

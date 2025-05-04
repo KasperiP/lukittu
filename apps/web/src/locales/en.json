@@ -4,6 +4,11 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "branch_not_found": "Branch not found!",
+    "branch_name_required": "Branch name is required!",
+    "branch_name_min_length": "Branch name must be at least 2 characters long!",
+    "branch_name_max_length": "Branch name must be at most 255 characters long!",
+    "branch_name_invalid": "Branch name can only contain letters, numbers, and the following characters: - _",
     "built_by_bit_integration_not_found": "BuiltByBit integration not found!",
     "built_by_bit_secret_required": "BuiltByBit API-secret is required!",
     "built_by_bit_secret_invalid": "BuiltByBit API-secret is invalid!",

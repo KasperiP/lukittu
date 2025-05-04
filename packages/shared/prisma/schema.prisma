@@ -274,43 +274,58 @@ model Invitation {
 }
 
 model Product {
-    id              String       @id @default(uuid())
+    id              String          @id @default(uuid())
     name            String
     url             String?
     metadata        Metadata[]
     teamId          String
-    team            Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    team            Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
     createdByUserId String?
-    createdBy       User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdBy       User?           @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
     licenses        License[]
     releases        Release[]
+    branches        ReleaseBranch[]
     requestLogs     RequestLog[]
-    createdAt       DateTime     @default(now())
-    updatedAt       DateTime     @updatedAt
+    createdAt       DateTime        @default(now())
+    updatedAt       DateTime        @updatedAt
 
     @@index([teamId])
 }
 
+model ReleaseBranch {
+    id        String    @id @default(uuid())
+    name      String
+    productId String
+    product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+    releases  Release[]
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+
+    @@unique([productId, name])
+}
+
 model Release {
-    id              String        @id @default(uuid())
+    id              String         @id @default(uuid())
     version         String
     metadata        Metadata[]
-    status          ReleaseStatus @default(DRAFT)
-    latest          Boolean       @default(false)
+    status          ReleaseStatus  @default(DRAFT)
+    latest          Boolean        @default(false)
+    branchId        String?
+    branch          ReleaseBranch? @relation(fields: [branchId], references: [id], onDelete: SetNull)
     teamId          String
-    team            Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    team            Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
     createdByUserId String?
-    createdBy       User?         @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-    createdAt       DateTime      @default(now())
-    updatedAt       DateTime      @updatedAt
+    createdBy       User?          @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdAt       DateTime       @default(now())
+    updatedAt       DateTime       @updatedAt
     lastSeenAt      DateTime?
-    product         Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+    product         Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
     productId       String
     allowedLicenses License[]
     file            ReleaseFile?
     requestLogs     RequestLog[]
 
-    @@unique([productId, version])
+    @@unique([productId, version, branchId])
     @@index([teamId])
 }
 
@@ -542,6 +557,9 @@ enum AuditLogAction {
     DELETE_EMAIL_PICTURE
     SET_BUILD_BY_BIT_INTEGRATION
     DELETE_BUILD_BY_BIT_INTEGRATION
+    CREATE_BRANCH
+    UPDATE_BRANCH
+    DELETE_BRANCH
 }
 
 enum ReleaseStatus {
