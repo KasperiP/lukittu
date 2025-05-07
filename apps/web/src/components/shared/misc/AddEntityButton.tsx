@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { BlacklistModalContext } from '@/providers/BlacklistModalProvider';
+import { BranchModalContext } from '@/providers/BranchModalProvider';
 import { CustomerModalContext } from '@/providers/CustomerModalProvider';
 import { LicenseModalContext } from '@/providers/LicenseModalProvider';
 import { MemberModalContext } from '@/providers/MemberModalProvider';
@@ -25,7 +26,8 @@ interface AddEntityButtonProps {
     | 'member'
     | 'license'
     | 'blacklist'
-    | 'release';
+    | 'release'
+    | 'branch';
   displayText?: boolean;
   isTeamOwner?: boolean;
   variant?: VariantProps<typeof buttonVariants>['variant'];
@@ -46,6 +48,7 @@ export default function AddEntityButton({
   const licenseModalCtx = useContext(LicenseModalContext);
   const blacklistModalCtx = useContext(BlacklistModalContext);
   const releaseModalCtx = useContext(ReleaseModalContext);
+  const branchModalCtx = useContext(BranchModalContext);
 
   const translationKey = (() => {
     switch (entityType) {
@@ -61,6 +64,8 @@ export default function AddEntityButton({
         return 'dashboard.blacklist.add_blacklist';
       case 'release':
         return 'dashboard.releases.create_release';
+      case 'branch':
+        return 'dashboard.releases.create_branch';
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
     }
@@ -83,6 +88,8 @@ export default function AddEntityButton({
         return blacklistModalCtx.setBlacklistModalOpen(true);
       case 'release':
         return releaseModalCtx.setReleaseModalOpen(true);
+      case 'branch':
+        return branchModalCtx.setBranchModalOpen(true);
     }
   };
 

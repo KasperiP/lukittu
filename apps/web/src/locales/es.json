@@ -129,7 +129,9 @@
     "branch_name_required": "El nombre de la sucursal es obligatorio!",
     "branch_name_min_length": "El nombre de la sucursal debe tener al menos 2 caracteres!",
     "branch_name_max_length": "El nombre de la sucursal debe tener como máximo 255 caracteres!",
-    "branch_name_invalid": "El nombre de la sucursal solo puede contener letras, números y los siguientes caracteres: - _"
+    "branch_name_invalid": "El nombre de la sucursal solo puede contener letras, números y los siguientes caracteres: - _",
+    "branch_limit_reached": "",
+    "branch_name_exists": ""
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -310,7 +312,11 @@
     "free": "Gratis",
     "api_secret": "Secreto de API",
     "username": "Nombre de usuario",
-    "add": "Agregar"
+    "add": "Agregar",
+    "branches": "",
+    "select_branch": "",
+    "releases_count": "",
+    "branch": ""
   },
   "auth": {
     "oauth": {
@@ -710,7 +716,18 @@
       "set_as_latest_description": "Cuando esté marcado, esta versión se establecerá como la última versión para el producto y se usará si no se solicita una versión específica.",
       "no_latest_release": "No hay última versión",
       "no_latest_release_description": "No has establecido una última versión para este producto. Se usa como respaldo si no se solicita una versión específica.",
-      "latest_release": "Última versión"
+      "latest_release": "Última versión",
+      "update_branch": "",
+      "delete_branch": "",
+      "no_branches_assigned": "",
+      "branch_created": "",
+      "branch_updated": "",
+      "create_branch": "",
+      "search_branch": "",
+      "branch_description": "",
+      "branch_deleted": "",
+      "delete_branch_confirm_title": "",
+      "delete_branch_confirm_description": ""
     },
     "settings": {
       "watermarking_description": "El marcado de agua añade identificadores únicos a tu software para prevenir la distribución no autorizada. Esta función está disponible solo para aplicaciones Java en este momento.",

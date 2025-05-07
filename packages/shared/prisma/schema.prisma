@@ -179,6 +179,7 @@ model Limits {
     maxStorage            Int      @default(0) // in MB
     maxApiKeys            Int      @default(10)
     maxReleasesPerProduct Int      @default(100)
+    maxBranchesPerProduct Int      @default(10)
     maxInvitations        Int      @default(10)
     allowClassloader      Boolean  @default(false)
     allowCustomEmails     Boolean  @default(false)
@@ -576,6 +577,7 @@ enum AuditLogTargetType {
     TEAM
     BLACKLIST
     RELEASE
+    BRANCH
 }
 
 enum BlacklistType {

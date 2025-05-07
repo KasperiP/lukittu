@@ -1,5 +1,6 @@
 'use client';
 import { IProductsReleasesCreateResponse } from '@/app/api/(dashboard)/products/releases/route';
+import { BranchSelector } from '@/components/shared/form/BranchSelector'; // Added import
 import { LicensesMultiselect } from '@/components/shared/form/LicensesMultiselect';
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import { ProductSelector } from '@/components/shared/form/ProductSelector';
@@ -72,6 +73,7 @@ export default function SetReleaseModal() {
       setAsLatest: false,
       keepExistingFile: false,
       licenseIds: [],
+      branchId: null,
     },
   });
 
@@ -98,6 +100,7 @@ export default function SetReleaseModal() {
       setValue('status', ctx.releaseToEdit.status);
       setValue('productId', ctx.releaseToEdit.productId);
       setValue('setAsLatest', ctx.releaseToEdit.latest || false);
+      setValue('branchId', ctx.releaseToEdit.branchId);
       setValue(
         'licenseIds',
         ctx.releaseToEdit.allowedLicenses.map((l) => l.id),
@@ -123,6 +126,7 @@ export default function SetReleaseModal() {
   const releaseStatus = watch('status');
   const selectedLicenses = watch('licenseIds');
   const hasLicenseRestrictions = selectedLicenses.length > 0;
+  const selectedProductId = watch('productId'); // Watch selected product ID
 
   const handleReleaseCreate = async (payload: SetReleaseSchema) => {
     const formData = new FormData();
@@ -472,6 +476,30 @@ export default function SetReleaseModal() {
                   </div>
                 )}
               </FormItem>
+              <FormField
+                control={control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('general.branch')}</FormLabel>
+                    <FormControl>
+                      <BranchSelector
+                        initialValue={field.value}
+                        productId={selectedProductId}
+                        onChange={(branchId) =>
+                          setValue('branchId', branchId, {
+                            shouldValidate: true,
+                          })
+                        }
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {t('dashboard.releases.branch_description')}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={control}
                 name="licenseIds"

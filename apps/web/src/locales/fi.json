@@ -129,7 +129,9 @@
     "branch_name_required": "Haaran nimi on pakollinen!",
     "branch_name_min_length": "Haaran nimen on oltava vähintään 2 merkkiä pitkä!",
     "branch_name_max_length": "Haaran nimen on oltava enintään 255 merkkiä pitkä!",
-    "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _"
+    "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _",
+    "branch_limit_reached": "",
+    "branch_name_exists": ""
   },
   "general": {
     "select_key": "Valitse avain",
@@ -310,7 +312,11 @@
     "free": "Ilmainen",
     "api_secret": "API-salaisuus",
     "username": "Käyttäjätunnus",
-    "add": "Lisää"
+    "add": "Lisää",
+    "branches": "",
+    "select_branch": "",
+    "releases_count": "",
+    "branch": ""
   },
   "auth": {
     "oauth": {
@@ -710,7 +716,18 @@
       "set_as_latest_description": "Kun tämä on valittu, tämä julkaisu asetetaan tuotteen uusimmaksi julkaisuksi ja sitä käytetään, jos ei ole pyydetty tiettyä julkaisua.",
       "no_latest_release": "Ei uusinta julkaisua",
       "no_latest_release_description": "Et ole määrittänyt tälle tuotteelle uusinta julkaisua. Se toimii varalla, jos ei ole pyydetty tiettyä julkaisua.",
-      "latest_release": "Uusin julkaisu"
+      "latest_release": "Uusin julkaisu",
+      "update_branch": "",
+      "delete_branch": "",
+      "no_branches_assigned": "",
+      "branch_created": "",
+      "branch_updated": "",
+      "create_branch": "",
+      "search_branch": "",
+      "branch_description": "",
+      "branch_deleted": "",
+      "delete_branch_confirm_title": "",
+      "delete_branch_confirm_description": ""
     },
     "settings": {
       "watermarking_description": "Vesileimaus lisää ainutlaatuisia tunnisteita ohjelmistoosi estämään luvattoman jakelun. Tämä ominaisuus on tällä hetkellä saatavilla vain Java-sovelluksille.",

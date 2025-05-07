@@ -4,6 +4,8 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "branch_limit_reached": "Your team has reached the maximum number of branches allowed for the current plan. Please upgrade to add more branches.",
+    "branch_name_exists": "Branch name already exists!",
     "branch_not_found": "Branch not found!",
     "branch_name_required": "Branch name is required!",
     "branch_name_min_length": "Branch name must be at least 2 characters long!",
@@ -132,6 +134,10 @@
     "max_releases_reached": "Your team has reached the maximum number of releases allowed for the current plan. Please upgrade to add more releases."
   },
   "general": {
+    "branches": "Branches",
+    "select_branch": "Select branch",
+    "releases_count": "Releases count",
+    "branch": "Branch",
     "add": "Add",
     "api_secret": "API-secret",
     "username": "Username",
@@ -686,6 +692,14 @@
       "built_by_bit_integration_description": "For automatic license generation and distribution, you can integrate Lukittu with BuiltByBit. When a customer purchases a product, a license will be automatically generated."
     },
     "releases": {
+      "update_branch": "Update branch",
+      "delete_branch": "Delete branch",
+      "no_branches_assigned": "No branches assigned",
+      "branch_created": "Branch created",
+      "branch_updated": "Branch updated",
+      "create_branch": "Create branch",
+      "search_branch": "Search branch...",
+      "branch_description": "Select the branch of the product you want to release. This is used to identify the version of the product.",
       "latest_release": "Latest release",
       "license_restricted_tooltip": "Release is restricted to specific licenses",
       "no_license_restrictions": "No license restrictions",
@@ -700,11 +714,14 @@
       "delete_release": "Delete release",
       "release_updated": "Release updated",
       "release_created": "Release created",
+      "branch_deleted": "Branch deleted",
       "click_here_to_upload": "Click here to browse and upload a file",
       "supported_file_types": "Any file type (max {size})",
       "no_releases_assigned": "No releases assigned",
       "set_as_latest": "Set as latest",
       "latest_release_updated": "Latest release updated",
+      "delete_branch_confirm_title": "Delete branch",
+      "delete_branch_confirm_description": "You are about to delete branch <strong>{name}</strong>! This will <strong>permanently delete</strong> this branch and all its releases. This action cannot be undone.",
       "delete_release_confirm_title": "Delete release",
       "delete_release_confirm_description": "You are about to delete release <strong>{version}</strong>! This will <strong>permanently delete</strong> this release and it's files. This action cannot be undone.",
       "release_deleted": "Release deleted",

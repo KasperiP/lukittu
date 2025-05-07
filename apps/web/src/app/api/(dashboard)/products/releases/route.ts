@@ -28,6 +28,7 @@ import {
   Product,
   regex,
   Release,
+  ReleaseBranch,
   ReleaseFile,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
@@ -73,8 +74,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { metadata, productId, status, version, setAsLatest, licenseIds } =
-      body;
+    const {
+      metadata,
+      productId,
+      status,
+      version,
+      setAsLatest,
+      licenseIds,
+      branchId,
+    } = body;
 
     if (file && !(file instanceof File)) {
       return NextResponse.json(
@@ -133,12 +141,21 @@ export async function POST(request: NextRequest) {
             include: {
               releases: {
                 where: {
-                  productId: validated.data.productId,
+                  productId,
                 },
               },
               products: {
                 where: {
-                  id: validated.data.productId,
+                  id: productId,
+                },
+                include: {
+                  branches: branchId
+                    ? {
+                        where: {
+                          id: branchId,
+                        },
+                      }
+                    : undefined,
                 },
               },
               limits: true,
@@ -231,6 +248,20 @@ export async function POST(request: NextRequest) {
             message: t('validation.latest_release_not_allowed_with_licenses'),
           },
           { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+    }
+
+    if (branchId) {
+      const product = team.products[0];
+      const branch = product.branches.find((branch) => branch.id === branchId);
+
+      if (!branch) {
+        return NextResponse.json(
+          {
+            message: t('validation.branch_not_found'),
+          },
+          { status: HttpStatus.NOT_FOUND },
         );
       }
     }
@@ -361,6 +392,7 @@ export async function POST(request: NextRequest) {
           teamId: team.id,
           createdByUserId: session.user.id,
           latest: Boolean(setAsLatest && isPublished),
+          branchId,
           allowedLicenses: licenseIds.length
             ? {
                 connect: licenseIds.map((id) => ({
@@ -399,14 +431,9 @@ export async function POST(request: NextRequest) {
       requestBody: body,
     });
 
-    return NextResponse.json(
-      {
-        release,
-      },
-      { status: HttpStatus.CREATED },
-    );
+    return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {
-    logger.error("Error occurred in '/api/products/releases' route", error);
+    logger.error("Error occurred in '/products/releases' route", error);
     return NextResponse.json(
       {
         message: t('general.server_error'),
@@ -422,6 +449,7 @@ export type IProductsReleasesGetSuccessResponse = {
     product: Product;
     allowedLicenses: Omit<License, 'licenseKeyLookup'>[];
     metadata: Metadata[];
+    branch: ReleaseBranch | null;
   })[];
   totalResults: number;
   hasLatestRelease: boolean;
@@ -517,6 +545,7 @@ export async function GET(
                   file: true,
                   allowedLicenses: true,
                   metadata: true,
+                  branch: true,
                 },
                 skip,
                 take,
@@ -595,7 +624,7 @@ export async function GET(
       hasResults: Boolean(hasResults),
     });
   } catch (error) {
-    logger.error("Error occurred in 'products' route", error);
+    logger.error("Error occurred in 'products/releases' route", error);
     return NextResponse.json(
       {
         message: t('general.server_error'),

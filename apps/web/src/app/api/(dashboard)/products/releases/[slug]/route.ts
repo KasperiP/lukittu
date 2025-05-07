@@ -91,6 +91,7 @@ export async function PUT(
       keepExistingFile,
       setAsLatest,
       licenseIds,
+      branchId,
     } = validated.data;
 
     if (file) {
@@ -144,7 +145,18 @@ export async function PUT(
             include: {
               releases: true,
               products: {
-                where: { id: validated.data.productId },
+                where: {
+                  id: productId,
+                },
+                include: {
+                  branches: branchId
+                    ? {
+                        where: {
+                          id: branchId,
+                        },
+                      }
+                    : undefined,
+                },
               },
               limits: true,
             },
@@ -225,6 +237,20 @@ export async function PUT(
         },
         { status: HttpStatus.CONFLICT },
       );
+    }
+
+    if (branchId) {
+      const product = team.products[0];
+      const branch = product.branches.find((branch) => branch.id === branchId);
+
+      if (!branch) {
+        return NextResponse.json(
+          {
+            message: t('validation.branch_not_found'),
+          },
+          { status: HttpStatus.NOT_FOUND },
+        );
+      }
     }
 
     if (licenseIds.length) {
@@ -387,6 +413,7 @@ export async function PUT(
           version,
           teamId: team.id,
           latest: Boolean(setAsLatest && isPublished),
+          branchId,
           allowedLicenses: {
             set: licenseIds.map((id) => ({ id })),
           },
@@ -423,10 +450,7 @@ export async function PUT(
 
     return NextResponse.json(response);
   } catch (error) {
-    logger.error(
-      "Error occurred in PUT '/api/products/releases/[slug]' route",
-      error,
-    );
+    logger.error("Error occurred in 'products/releases/[slug]' route", error);
     return NextResponse.json(
       { message: t('general.server_error') },
       { status: HttpStatus.INTERNAL_SERVER_ERROR },
