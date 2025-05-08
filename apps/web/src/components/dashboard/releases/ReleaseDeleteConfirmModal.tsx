@@ -49,7 +49,9 @@ export function DeleteDeleteConfirmModal() {
       }
 
       mutate(
-        (key) => Array.isArray(key) && key[0] === '/api/products/releases',
+        (key) =>
+          Array.isArray(key) &&
+          ['/api/products/releases', '/api/products/branches'].includes(key[0]),
       );
       ctx.setReleaseToDelete(null);
       handleOpenChange(false);

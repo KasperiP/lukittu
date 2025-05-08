@@ -8,7 +8,7 @@ import {
   IProductsReleasesGetSuccessResponse,
 } from '@/app/api/(dashboard)/products/releases/route';
 import { DateConverter } from '@/components/shared/DateConverter';
-import AddEntityButton from '@/components/shared/misc/AddEntityButton';
+import AddEntityDropdown from '@/components/shared/misc/AddEntityDropdown';
 import TablePagination from '@/components/shared/table/TablePagination';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
 import { Badge } from '@/components/ui/badge';
@@ -162,9 +162,18 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
           <CardHeader>
             <CardTitle className="flex items-center text-xl font-bold">
               {t('dashboard.navigation.releases')}
-              <div className="ml-auto flex items-center gap-2">
-                <AddEntityButton entityType="branch" variant="outline" />
-                <AddEntityButton entityType="release" variant="outline" />
+              <div className="ml-auto">
+                <AddEntityDropdown
+                  buttonText={t('general.create')}
+                  entities={[
+                    { type: 'branch', translationKey: 'general.branches' },
+                    {
+                      type: 'release',
+                      translationKey: 'dashboard.navigation.releases',
+                    },
+                  ]}
+                  variant="outline"
+                />
               </div>
             </CardTitle>
           </CardHeader>

@@ -85,7 +85,7 @@ export default function ThirdPartyConnectionsCard() {
         <div className="space-y-6">
           <div className="flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:gap-4">
             <div className="flex items-center space-x-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#5865F2] text-white">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#5865F2] text-white">
                 <DiscordIcon className="h-5 w-5" />
               </div>
               <div>

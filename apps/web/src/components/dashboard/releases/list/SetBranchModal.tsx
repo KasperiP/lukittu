@@ -105,7 +105,9 @@ export default function SetBranchModal() {
       }
 
       mutate(
-        (key) => Array.isArray(key) && key[0] === '/api/products/branches',
+        (key) =>
+          Array.isArray(key) &&
+          ['/api/products/releases', '/api/products/branches'].includes(key[0]),
       );
 
       handleOpenChange(false);
