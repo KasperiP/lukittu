@@ -49,7 +49,9 @@ export function BranchDeleteConfirmModal() {
       }
 
       mutate(
-        (key) => Array.isArray(key) && key[0] === '/api/products/branches',
+        (key) =>
+          Array.isArray(key) &&
+          ['/api/products/releases', '/api/products/branches'].includes(key[0]),
       );
       ctx.setBranchToDelete(null);
       handleOpenChange(false);

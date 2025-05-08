@@ -4,6 +4,7 @@
     "description": "Sign in to the Lukittu dashboard to manage and distribute your software licenses. Create products, assign licenses, monitor customer usage, and streamline license management all in one place."
   },
   "validation": {
+    "branch_has_releases": "Branch has releases and cannot be deleted! Please delete all releases from this branch before deleting it.",
     "branch_limit_reached": "Your team has reached the maximum number of branches allowed for the current plan. Please upgrade to add more branches.",
     "branch_name_exists": "Branch name already exists!",
     "branch_not_found": "Branch not found!",

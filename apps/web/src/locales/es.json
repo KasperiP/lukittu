@@ -131,7 +131,8 @@
     "branch_name_max_length": "El nombre de la sucursal debe tener como máximo 255 caracteres!",
     "branch_name_invalid": "El nombre de la sucursal solo puede contener letras, números y los siguientes caracteres: - _",
     "branch_limit_reached": "",
-    "branch_name_exists": ""
+    "branch_name_exists": "",
+    "branch_has_releases": ""
   },
   "general": {
     "select_key": "Seleccionar clave",

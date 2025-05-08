@@ -131,7 +131,8 @@
     "branch_name_max_length": "Haaran nimen on oltava enintään 255 merkkiä pitkä!",
     "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _",
     "branch_limit_reached": "",
-    "branch_name_exists": ""
+    "branch_name_exists": "",
+    "branch_has_releases": ""
   },
   "general": {
     "select_key": "Valitse avain",
