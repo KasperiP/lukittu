@@ -130,6 +130,7 @@ export async function POST(
       prisma.release.updateMany({
         where: {
           productId: release.productId,
+          branchId: release.branchId, // Only clear "latest" flag for releases in the same branch
         },
         data: {
           latest: false,

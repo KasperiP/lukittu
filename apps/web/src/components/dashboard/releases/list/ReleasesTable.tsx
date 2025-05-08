@@ -155,6 +155,9 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
 
   const branches = branchesData?.branches ?? [];
 
+  const truncateBranchName = (name: string, maxLength = 20) =>
+    name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+
   return (
     <BranchModalProvider productId={productId}>
       <ReleaseModalProvider productId={productId}>
@@ -290,6 +293,16 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                                   <Badge className="text-xs">
                                     <Rss className="mr-1 h-3 w-3" />
                                     {t('general.latest')}
+                                    {release.branch && (
+                                      <span className="ml-1">
+                                        (
+                                        {truncateBranchName(
+                                          release.branch.name,
+                                          10,
+                                        )}
+                                        )
+                                      </span>
+                                    )}
                                   </Badge>
                                 )}
                                 {release.allowedLicenses.length > 0 && (
@@ -332,7 +345,9 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                             </TableCell>
                             <TableCell className="truncate">
                               {release.branch ? (
-                                <span>{release.branch.name}</span>
+                                <span title={release.branch.name}>
+                                  {truncateBranchName(release.branch.name)}
+                                </span>
                               ) : (
                                 <span className="text-muted-foreground">
                                   N/A
@@ -397,7 +412,7 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                 </div>
               )
             ) : // Branches Tab Content
-            teamCtx.selectedTeam ? (
+            teamCtx.selectedTeam && branches.length > 0 ? (
               <>
                 <Table
                   className="relative"
@@ -431,7 +446,9 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                       {branches.map((branch) => (
                         <TableRow key={branch.id}>
                           <TableCell className="truncate">
-                            {branch.name}
+                            <span title={branch.name}>
+                              {truncateBranchName(branch.name)}
+                            </span>
                           </TableCell>
                           <TableCell className="truncate">
                             {branch.releaseCount}
