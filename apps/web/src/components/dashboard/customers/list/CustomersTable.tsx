@@ -239,16 +239,37 @@ export function CustomersTable() {
                         tabIndex={0}
                       >
                         <div className="absolute inset-0 -mx-2 rounded-lg transition-colors group-hover:bg-secondary/80" />
-                        <div className="z-10">
-                          <p className="line-clamp-2 break-all font-medium">
+                        <div className="z-10 overflow-hidden">
+                          <p className="truncate font-medium">
                             {customer.email}
                           </p>
-                          <div className="mb-1 line-clamp-1 break-all text-sm font-semibold text-muted-foreground">
-                            {customer.fullName ?? t('general.unknown')}
+                          <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                            {customer.fullName && (
+                              <span className="truncate">
+                                {customer.fullName}
+                              </span>
+                            )}
+                            {customer.username && (
+                              <>
+                                {customer.fullName && (
+                                  <span className="shrink-0 text-xs text-muted-foreground">
+                                    -
+                                  </span>
+                                )}
+                                <span className="truncate text-sm text-muted-foreground/80">
+                                  {customer.username}
+                                </span>
+                              </>
+                            )}
+                            {!customer.fullName && !customer.username && (
+                              <span className="truncate">
+                                {t('general.unknown')}
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                            <div className="text-sm font-semibold text-muted-foreground">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <div className="truncate text-sm font-semibold text-muted-foreground">
                               {new Date(customer.createdAt).toLocaleString(
                                 locale,
                                 {
