@@ -15,7 +15,7 @@ import { ProductModalContext } from '@/providers/ProductModalProvider';
 import { ReleaseModalContext } from '@/providers/ReleasesModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
 import { VariantProps } from 'class-variance-authority';
-import { Plus } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
 
@@ -107,8 +107,8 @@ export default function AddEntityDropdown({
           size="sm"
           variant={variant}
         >
-          <Plus className="h-4 w-4" />
           <span className="max-md:hidden">{displayText}</span>
+          <ChevronDown className="h-4 w-4 opacity-70" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
