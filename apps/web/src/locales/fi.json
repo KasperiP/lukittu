@@ -87,7 +87,7 @@
     "release_version_min_length": "Versionumero on oltava vähintään 3 merkkiä pitkä!",
     "release_version_max_length": "Versionumero on oltava enintään 255 merkkiä pitkä!",
     "release_product_required": "Tuote on pakollinen!",
-    "release_exists": "Tällä versiolla oleva julkaisu on jo olemassa!",
+    "release_exists_this_branch": "Tällä versiolla oleva julkaisu on jo olemassa tässä haarassa!",
     "invalid_release_version": "Virheellinen versio!",
     "main_class_not_found": "Ladattu tiedosto on JAR, mutta pääluokan purkaminen epäonnistui! Ota yhteyttä tukeen.",
     "city_required": "Kaupunki on pakollinen!",
@@ -124,7 +124,15 @@
     "email_or_username_required": "Sähköposti tai käyttäjätunnus on pakollinen!",
     "username_required": "Käyttäjätunnus on pakollinen!",
     "username_min_length": "Käyttäjätunnuksen on oltava vähintään 3 merkkiä pitkä!",
-    "username_max_length": "Käyttäjätunnuksen on oltava enintään 255 merkkiä pitkä!"
+    "username_max_length": "Käyttäjätunnuksen on oltava enintään 255 merkkiä pitkä!",
+    "branch_not_found": "Haaraa ei löytynyt!",
+    "branch_name_required": "Haaran nimi on pakollinen!",
+    "branch_name_min_length": "Haaran nimen on oltava vähintään 2 merkkiä pitkä!",
+    "branch_name_max_length": "Haaran nimen on oltava enintään 255 merkkiä pitkä!",
+    "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _",
+    "branch_limit_reached": "",
+    "branch_name_exists": "",
+    "branch_has_releases": ""
   },
   "general": {
     "select_key": "Valitse avain",
@@ -180,7 +188,6 @@
     "density": "Tiheys",
     "avatar": "Avatar",
     "code": "Koodi",
-    "origin": "Alkuperä",
     "load_more": "Lataa lisää",
     "draft": "Käsikirjoitus",
     "published": "Julkaistu",
@@ -305,7 +312,11 @@
     "free": "Ilmainen",
     "api_secret": "API-salaisuus",
     "username": "Käyttäjätunnus",
-    "add": "Lisää"
+    "add": "Lisää",
+    "branches": "",
+    "select_branch": "",
+    "releases_count": "",
+    "branch": ""
   },
   "auth": {
     "oauth": {
@@ -705,7 +716,18 @@
       "set_as_latest_description": "Kun tämä on valittu, tämä julkaisu asetetaan tuotteen uusimmaksi julkaisuksi ja sitä käytetään, jos ei ole pyydetty tiettyä julkaisua.",
       "no_latest_release": "Ei uusinta julkaisua",
       "no_latest_release_description": "Et ole määrittänyt tälle tuotteelle uusinta julkaisua. Se toimii varalla, jos ei ole pyydetty tiettyä julkaisua.",
-      "latest_release": "Uusin julkaisu"
+      "latest_release": "Uusin julkaisu",
+      "update_branch": "",
+      "delete_branch": "",
+      "no_branches_assigned": "",
+      "branch_created": "",
+      "branch_updated": "",
+      "create_branch": "",
+      "search_branch": "",
+      "branch_description": "",
+      "branch_deleted": "",
+      "delete_branch_confirm_title": "",
+      "delete_branch_confirm_description": ""
     },
     "settings": {
       "watermarking_description": "Vesileimaus lisää ainutlaatuisia tunnisteita ohjelmistoosi estämään luvattoman jakelun. Tämä ominaisuus on tällä hetkellä saatavilla vain Java-sovelluksille.",

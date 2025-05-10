@@ -12,6 +12,7 @@ import {
 } from '@lukittu/shared';
 import 'server-only';
 import Stripe from 'stripe';
+import { StripeMetadataKeys } from '../constants/metadata';
 import { sendLicenseDistributionEmail } from '../emails/templates/send-license-distribution-email';
 
 type ExtendedTeam = Team & {
@@ -132,17 +133,17 @@ export const handleInvoicePaid = async (
 
       const metadata = [
         {
-          key: 'STRIPE_SUB',
+          key: StripeMetadataKeys.STRIPE_SUB,
           value: subscription.id,
           locked: true,
         },
         {
-          key: 'STRIPE_CS',
+          key: StripeMetadataKeys.STRIPE_CUS,
           value: stripeCustomerId,
           locked: true,
         },
         {
-          key: 'STRIPE_PROD',
+          key: StripeMetadataKeys.STRIPE_PROD,
           value: product.id,
           locked: true,
         },
@@ -514,17 +515,17 @@ export const handleCheckoutSessionCompleted = async (
 
     const metadata = [
       {
-        key: 'STRIPE_CS',
+        key: StripeMetadataKeys.STRIPE_CS,
         value: session.id,
         locked: true,
       },
       {
-        key: 'STRIPE_PI',
+        key: StripeMetadataKeys.STRIPE_PI,
         value: item.price!.id,
         locked: true,
       },
       {
-        key: 'STRIPE_PROD',
+        key: StripeMetadataKeys.STRIPE_PROD,
         value: product.id,
         locked: true,
       },

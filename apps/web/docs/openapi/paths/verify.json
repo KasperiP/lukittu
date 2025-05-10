@@ -252,23 +252,73 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "field": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ],
+                  "data": {
+                    "type": "object",
+                    "description": "Additional data related to the error",
                     "nullable": true
                   },
-                  "message": {
-                    "type": "string"
+                  "result": {
+                    "type": "object",
+                    "properties": {
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Time when the error occurred"
+                      },
+                      "valid": {
+                        "type": "boolean",
+                        "description": "Always false for error responses"
+                      },
+                      "details": {
+                        "type": "string",
+                        "description": "Detailed error message"
+                      },
+                      "code": {
+                        "type": "string",
+                        "description": "Error code indicating the specific issue",
+                        "enum": [
+                          "BAD_REQUEST",
+                          "RATE_LIMIT",
+                          "TEAM_NOT_FOUND",
+                          "FORBIDDEN",
+                          "LICENSE_NOT_FOUND",
+                          "PRODUCT_NOT_FOUND",
+                          "RELEASE_NOT_FOUND",
+                          "CUSTOMER_NOT_FOUND",
+                          "LICENSE_SUSPENDED",
+                          "IP_LIMIT_REACHED",
+                          "INTERNAL_SERVER_ERROR"
+                        ]
+                      }
+                    },
+                    "required": ["timestamp", "valid", "details", "code"]
                   }
                 },
-                "required": ["message"],
-                "additionalProperties": true
+                "required": ["result"]
+              },
+              "examples": {
+                "bad-request": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "The request was malformed or missing required parameters.",
+                      "code": "BAD_REQUEST"
+                    }
+                  }
+                },
+                "license-not-found": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "License not found",
+                      "code": "LICENSE_NOT_FOUND"
+                    }
+                  }
+                }
               }
             }
           }
@@ -530,23 +580,84 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "field": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ],
+                  "data": {
+                    "type": "object",
+                    "description": "Additional data related to the error",
                     "nullable": true
                   },
-                  "message": {
-                    "type": "string"
+                  "result": {
+                    "type": "object",
+                    "properties": {
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Time when the error occurred"
+                      },
+                      "valid": {
+                        "type": "boolean",
+                        "description": "Always false for error responses"
+                      },
+                      "details": {
+                        "type": "string",
+                        "description": "Detailed error message"
+                      },
+                      "code": {
+                        "type": "string",
+                        "description": "Error code indicating the specific issue",
+                        "enum": [
+                          "BAD_REQUEST",
+                          "RATE_LIMIT",
+                          "TEAM_NOT_FOUND",
+                          "FORBIDDEN",
+                          "LICENSE_NOT_FOUND",
+                          "PRODUCT_NOT_FOUND",
+                          "RELEASE_NOT_FOUND",
+                          "CUSTOMER_NOT_FOUND",
+                          "LICENSE_SUSPENDED",
+                          "IP_LIMIT_REACHED",
+                          "INTERNAL_SERVER_ERROR"
+                        ]
+                      }
+                    },
+                    "required": ["timestamp", "valid", "details", "code"]
                   }
                 },
-                "required": ["message"],
-                "additionalProperties": true
+                "required": ["result"]
+              },
+              "examples": {
+                "bad-request": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "The request was malformed or missing required parameters.",
+                      "code": "BAD_REQUEST"
+                    }
+                  }
+                },
+                "license-not-found": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "License not found",
+                      "code": "LICENSE_NOT_FOUND"
+                    }
+                  }
+                },
+                "rate-limit": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "Rate limited",
+                      "code": "RATE_LIMIT"
+                    }
+                  }
+                }
               }
             }
           }
@@ -716,23 +827,77 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "field": {
-                    "oneOf": [
-                      {
-                        "type": "string"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ],
+                  "data": {
+                    "type": "object",
+                    "description": "Additional data related to the error",
                     "nullable": true
                   },
-                  "message": {
-                    "type": "string"
+                  "result": {
+                    "type": "object",
+                    "properties": {
+                      "timestamp": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Time when the error occurred"
+                      },
+                      "valid": {
+                        "type": "boolean",
+                        "description": "Always false for error responses"
+                      },
+                      "details": {
+                        "type": "string",
+                        "description": "Detailed error message"
+                      },
+                      "code": {
+                        "type": "string",
+                        "description": "Error code indicating the specific issue",
+                        "enum": [
+                          "BAD_REQUEST",
+                          "RATE_LIMIT",
+                          "TEAM_NOT_FOUND",
+                          "FORBIDDEN",
+                          "INVALID_SESSION_KEY",
+                          "LICENSE_NOT_FOUND",
+                          "PRODUCT_NOT_FOUND",
+                          "RELEASE_NOT_FOUND",
+                          "RELEASE_ARCHIVED",
+                          "RELEASE_DRAFT",
+                          "NO_ACCESS_TO_RELEASE",
+                          "CUSTOMER_NOT_FOUND",
+                          "LICENSE_SUSPENDED",
+                          "IP_LIMIT_REACHED",
+                          "INTERNAL_SERVER_ERROR"
+                        ]
+                      }
+                    },
+                    "required": ["timestamp", "valid", "details", "code"]
                   }
                 },
-                "required": ["message"],
-                "additionalProperties": true
+                "required": ["result"]
+              },
+              "examples": {
+                "bad-request": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "The request was malformed or missing required parameters.",
+                      "code": "BAD_REQUEST"
+                    }
+                  }
+                },
+                "license-not-found": {
+                  "value": {
+                    "data": null,
+                    "result": {
+                      "timestamp": "2023-09-15T14:30:00Z",
+                      "valid": false,
+                      "details": "No valid license found for the requested product.",
+                      "code": "LICENSE_NOT_FOUND"
+                    }
+                  }
+                }
               }
             }
           }

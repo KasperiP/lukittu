@@ -14,6 +14,20 @@ export const licenseHeartbeatSchema = () =>
           message:
             'License key must be in the format of XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
         }),
+      deviceIdentifier: z
+        .string({
+          message: 'Device identifier must be a string',
+          required_error: 'Device identifier is required',
+        })
+        .min(10, {
+          message: 'Device identifier must be at least 10 characters',
+        })
+        .max(1000, {
+          message: 'Device identifier must be less than 1000 characters',
+        })
+        .regex(/^[^\s]+$/, {
+          message: 'Device identifier must not contain spaces',
+        }),
       customerId: z
         .string({ message: 'Customer UUID must be a string' })
         .uuid({
@@ -28,13 +42,18 @@ export const licenseHeartbeatSchema = () =>
         .optional(),
       challenge: z
         .string({ message: 'Challenge must be a string' })
-        .max(1000, { message: 'Challenge must be less than 1000 characters' })
-        .regex(/^[^\s]+$/, { message: 'Challenge must not contain spaces' })
+        .min(10, {
+          message: 'Challenge must be at least 10 characters',
+        })
+        .max(1000, {
+          message: 'Challenge must be less than 1000 characters',
+        })
+        .regex(/^[^\s]+$/, {
+          message: 'Challenge must not contain spaces',
+        })
         .optional(),
       version: z
-        .string({
-          message: 'Version must be a string',
-        })
+        .string({ message: 'Version must be a string' })
         .min(3, {
           message: 'Version must be at least 3 characters',
         })
@@ -45,18 +64,20 @@ export const licenseHeartbeatSchema = () =>
           message: 'Version must not contain spaces',
         })
         .optional(),
-      deviceIdentifier: z
+      branch: z
         .string({
-          message: 'Device identifier must be a string',
+          message: 'Branch name must be a string',
         })
-        .min(10, {
-          message: 'Device identifier must be at least 10 characters',
+        .min(2, {
+          message: 'Branch name must be at least 2 characters',
         })
-        .max(1000, {
-          message: 'Device identifier must be less than 1000 characters',
+        .max(255, {
+          message: 'Branch name must be less than 255 characters',
         })
-        .regex(/^[^\s]+$/, {
-          message: 'Device identifier must not contain spaces',
-        }),
+        .regex(/^[a-zA-Z0-9_-]+$/, {
+          message:
+            'Branch name must contain only letters, numbers, dashes, and underscores',
+        })
+        .optional(),
     })
     .strict({ message: 'Invalid payload' });
