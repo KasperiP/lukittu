@@ -227,12 +227,13 @@ export async function PUT(
         (release) =>
           release.version === version &&
           release.productId === productId &&
+          release.branchId === branchId &&
           release.id !== releaseId,
       )
     ) {
       return NextResponse.json(
         {
-          message: t('validation.release_exists'),
+          message: t('validation.release_exists_this_branch'),
           field: 'version',
         },
         { status: HttpStatus.CONFLICT },

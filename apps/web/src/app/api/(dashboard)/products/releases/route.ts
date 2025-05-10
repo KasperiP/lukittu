@@ -269,12 +269,14 @@ export async function POST(request: NextRequest) {
     if (
       previousProductReleases.find(
         (release) =>
-          release.version === version && release.productId === productId,
+          release.version === version &&
+          release.productId === productId &&
+          release.branchId === branchId,
       )
     ) {
       return NextResponse.json(
         {
-          message: t('validation.release_exists'),
+          message: t('validation.release_exists_this_branch'),
           field: 'version',
         },
         { status: HttpStatus.CONFLICT },

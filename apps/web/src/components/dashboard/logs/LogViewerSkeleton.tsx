@@ -75,12 +75,6 @@ export function LogViewerRightSkeleton() {
           </div>
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">{t('general.origin')}</p>
-          <div className="text-sm">
-            <Skeleton className="h-4 w-24" />
-          </div>
-        </div>
-        <div>
           <p className="text-sm text-muted-foreground">
             {t('dashboard.licenses.status')}
           </p>

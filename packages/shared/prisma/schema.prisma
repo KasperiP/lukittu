@@ -479,7 +479,6 @@ model RequestLog {
     statusCode       Int
     version          String
     userAgent        String?
-    origin           String?
     deviceIdentifier String?
     path             String
     method           RequestMethod

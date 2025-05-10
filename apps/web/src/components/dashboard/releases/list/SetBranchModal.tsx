@@ -1,4 +1,5 @@
 'use client';
+import { IProductsBranchesUpdateResponse } from '@/app/api/(dashboard)/products/branches/[slug]/route';
 import { IProductsBranchesCreateResponse } from '@/app/api/(dashboard)/products/branches/route';
 import LoadingButton from '@/components/shared/LoadingButton';
 import {
@@ -68,10 +69,8 @@ export default function SetBranchModal() {
   };
 
   const handleBranchUpdate = async (payload: SetBranchSchema) => {
-    if (!ctx.branchToEdit) return;
-
     const response = await fetch(
-      `/api/products/branches/${ctx.branchToEdit.id}`,
+      `/api/products/branches/${ctx.branchToEdit?.id}`,
       {
         method: 'PUT',
         headers: {

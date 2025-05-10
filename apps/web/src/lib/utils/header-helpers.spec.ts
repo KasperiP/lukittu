@@ -2,7 +2,6 @@ import { cookies, headers } from 'next/headers';
 import {
   getIp,
   getLanguage,
-  getOrigin,
   getSelectedTeam,
   getUserAgent,
 } from './header-helpers';
@@ -62,26 +61,6 @@ describe('Header Helpers', () => {
       });
 
       const result = await getIp();
-      expect(result).toBeNull();
-    });
-  });
-
-  describe('getOrigin', () => {
-    it('should return origin header value', async () => {
-      mockHeaders({
-        origin: 'https://example.com',
-      });
-
-      const result = await getOrigin();
-      expect(result).toBe('https://example.com');
-    });
-
-    it('should return null when origin header is not present', async () => {
-      mockHeaders({
-        origin: null,
-      });
-
-      const result = await getOrigin();
       expect(result).toBeNull();
     });
   });

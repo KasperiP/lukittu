@@ -20,14 +20,6 @@ export const getIp = async () => {
 };
 
 /**
- * Get origin from the headers
- */
-export const getOrigin = async () => {
-  const headersList = await headers();
-  return headersList.get('origin');
-};
-
-/**
  * Get the user agent from the headers
  */
 export const getUserAgent = async () => {

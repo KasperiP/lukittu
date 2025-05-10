@@ -28,6 +28,9 @@ export const verifyLicenseSchema = () =>
         .optional(),
       challenge: z
         .string({ message: 'Challenge must be a string' })
+        .min(10, {
+          message: 'Challenge must be at least 10 characters',
+        })
         .max(1000, { message: 'Challenge must be less than 1000 characters' })
         .regex(/^[^\s]+$/, { message: 'Challenge must not contain spaces' })
         .optional(),
@@ -43,6 +46,21 @@ export const verifyLicenseSchema = () =>
         })
         .regex(/^[^\s]+$/, {
           message: 'Version must not contain spaces',
+        })
+        .optional(),
+      branch: z
+        .string({
+          message: 'Branch name must be a string',
+        })
+        .min(2, {
+          message: 'Branch name must be at least 2 characters',
+        })
+        .max(255, {
+          message: 'Branch name must be less than 255 characters',
+        })
+        .regex(/^[a-zA-Z0-9_-]+$/, {
+          message:
+            'Branch name must contain only letters, numbers, dashes, and underscores',
         })
         .optional(),
       deviceIdentifier: z

@@ -31,6 +31,7 @@ export async function GET(
       version: searchParams.get('version') || undefined,
       sessionKey: searchParams.get('sessionKey') || undefined,
       deviceIdentifier: searchParams.get('deviceIdentifier') || undefined,
+      branch: searchParams.get('branch') || undefined,
     };
 
     const ipAddress = await getIp();

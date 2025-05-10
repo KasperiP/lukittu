@@ -60,6 +60,21 @@ export const downloadReleaseSchema = () =>
           message: 'Version must not contain spaces',
         })
         .optional(),
+      branch: z
+        .string({
+          message: 'Branch name must be a string',
+        })
+        .min(2, {
+          message: 'Branch name must be at least 2 characters',
+        })
+        .max(255, {
+          message: 'Branch name must be less than 255 characters',
+        })
+        .regex(/^[a-zA-Z0-9_-]+$/, {
+          message:
+            'Branch name must contain only letters, numbers, dashes, and underscores',
+        })
+        .optional(),
       customerId: z
         .string({ message: 'Customer UUID must be a string' })
         .uuid({
