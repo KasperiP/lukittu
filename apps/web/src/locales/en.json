@@ -105,7 +105,7 @@
     "release_version_min_length": "Version number must be at least 3 characters long!",
     "release_version_max_length": "Version number must be at most 255 characters long!",
     "release_product_required": "Product is required!",
-    "release_exists": "Release with this version already exists!",
+    "release_exists_this_branch": "Release with this version already exists in this branch!",
     "invalid_release_version": "Invalid version!",
     "main_class_not_found": "Uploaded file is JAR but extracting the main class failed! Please contact support.",
     "city_required": "City is required!",
@@ -195,7 +195,6 @@
     "density": "Density",
     "avatar": "Avatar",
     "code": "Code",
-    "origin": "Origin",
     "load_more": "Load more",
     "draft": "Draft",
     "published": "Published",
@@ -646,7 +645,10 @@
         "create_api_key": "created API key",
         "delete_api_key": "deleted API key",
         "set_build_by_bit_integration": "set BuiltByBit integration",
-        "delete_build_by_bit_integration": "deleted BuiltByBit integration"
+        "delete_build_by_bit_integration": "deleted BuiltByBit integration",
+        "update_branch": "updated branch",
+        "delete_branch": "deleted branch",
+        "create_branch": "created branch"
       }
     },
     "members": {

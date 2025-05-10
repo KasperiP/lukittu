@@ -1,6 +1,7 @@
 /*
   Warnings:
 
+  - You are about to drop the column `origin` on the `RequestLog` table. All the data in the column will be lost.
   - A unique constraint covering the columns `[productId,version,branchId]` on the table `Release` will be added. If there are existing duplicate values, this will fail.
 
 */
@@ -16,11 +17,20 @@ ALTER TYPE "AuditLogAction" ADD VALUE 'CREATE_BRANCH';
 ALTER TYPE "AuditLogAction" ADD VALUE 'UPDATE_BRANCH';
 ALTER TYPE "AuditLogAction" ADD VALUE 'DELETE_BRANCH';
 
+-- AlterEnum
+ALTER TYPE "AuditLogTargetType" ADD VALUE 'BRANCH';
+
 -- DropIndex
 DROP INDEX "Release_productId_version_key";
 
 -- AlterTable
+ALTER TABLE "Limits" ADD COLUMN     "maxBranchesPerProduct" INTEGER NOT NULL DEFAULT 10;
+
+-- AlterTable
 ALTER TABLE "Release" ADD COLUMN     "branchId" TEXT;
+
+-- AlterTable
+ALTER TABLE "RequestLog" DROP COLUMN "origin";
 
 -- CreateTable
 CREATE TABLE "ReleaseBranch" (

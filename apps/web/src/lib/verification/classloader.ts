@@ -26,6 +26,7 @@ interface HandleClassloaderProps {
     customerId: string | undefined;
     productId: string | undefined;
     version: string | undefined;
+    branch: string | undefined;
     sessionKey: string | undefined;
     deviceIdentifier: string | undefined;
   };
@@ -76,6 +77,7 @@ export const handleClassloader = async ({
     productId,
     version,
     sessionKey,
+    branch,
   } = validated.data;
 
   const validatedQuery = {
@@ -356,9 +358,61 @@ export const handleClassloader = async ({
     };
   }
 
-  const versionMatchRelease = matchingProduct.releases.find(
+  let filteredReleases = matchingProduct.releases;
+  if (branch) {
+    const branchEntity = await prisma.releaseBranch.findUnique({
+      where: {
+        productId_name: {
+          name: branch,
+          productId,
+        },
+        product: {
+          teamId,
+        },
+      },
+    });
+
+    if (!branchEntity) {
+      return {
+        ...commonBase,
+        status: RequestStatus.RELEASE_NOT_FOUND,
+        response: {
+          data: null,
+          result: {
+            timestamp: new Date(),
+            valid: false,
+            details: 'Branch not found',
+          },
+        },
+        httpStatus: HttpStatus.NOT_FOUND,
+      };
+    }
+
+    filteredReleases = filteredReleases.filter(
+      (release) => release.branchId === branchEntity.id,
+    );
+
+    if (filteredReleases.length === 0) {
+      return {
+        ...commonBase,
+        status: RequestStatus.RELEASE_NOT_FOUND,
+        response: {
+          data: null,
+          result: {
+            timestamp: new Date(),
+            valid: false,
+            details: 'No releases found for this branch',
+          },
+        },
+        httpStatus: HttpStatus.NOT_FOUND,
+      };
+    }
+  }
+
+  const versionMatchRelease = filteredReleases.find(
     (v) => v.version === version,
   );
+
   if (version) {
     if (!versionMatchRelease) {
       return {
@@ -377,9 +431,7 @@ export const handleClassloader = async ({
     }
   }
 
-  const latestRelease = matchingProduct.releases.find(
-    (release) => release.latest,
-  );
+  const latestRelease = filteredReleases.find((release) => release.latest);
 
   if (!latestRelease && !versionMatchRelease) {
     return {

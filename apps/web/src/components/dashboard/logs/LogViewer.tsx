@@ -583,14 +583,6 @@ export default function LogViewer() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          {t('general.origin')}
-                        </p>
-                        <p className="text-sm">
-                          {selectedLog.origin ?? t('general.unknown')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
                           {t('dashboard.licenses.status')}
                         </p>
                         <p className="text-sm">{selectedLog.statusCode}</p>
