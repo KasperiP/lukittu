@@ -645,7 +645,10 @@
         "set_discord_integration": "asetti Discord-integraation",
         "delete_discord_integration": "poisti Discord-integraation",
         "set_build_by_bit_integration": "asetti BuiltByBit-integraation",
-        "delete_build_by_bit_integration": "poisti BuiltByBit-integraation"
+        "delete_build_by_bit_integration": "poisti BuiltByBit-integraation",
+        "update_branch": "päivitti haaran",
+        "delete_branch": "poisti haaran",
+        "create_branch": "loi haaran"
       }
     },
     "members": {
