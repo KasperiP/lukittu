@@ -130,9 +130,9 @@
     "branch_name_min_length": "Haaran nimen on oltava vähintään 2 merkkiä pitkä!",
     "branch_name_max_length": "Haaran nimen on oltava enintään 255 merkkiä pitkä!",
     "branch_name_invalid": "Haaran nimessä saa olla vain kirjaimia, numeroita ja seuraavat merkit: - _",
-    "branch_limit_reached": "",
-    "branch_name_exists": "",
-    "branch_has_releases": ""
+    "branch_limit_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman haarojen määrän. Päivitä suunnitelma lisätäksesi haaroja.",
+    "branch_name_exists": "Tämä haara on jo olemassa!",
+    "branch_has_releases": "Tällä haaralla on julkaisuja, eikä sitä voi poistaa!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -313,10 +313,10 @@
     "api_secret": "API-salaisuus",
     "username": "Käyttäjätunnus",
     "add": "Lisää",
-    "branches": "",
-    "select_branch": "",
-    "releases_count": "",
-    "branch": ""
+    "branches": "Haarat",
+    "select_branch": "Valitse haara",
+    "releases_count": "Julkaisujen määrä",
+    "branch": "Haara"
   },
   "auth": {
     "oauth": {
@@ -720,17 +720,17 @@
       "no_latest_release": "Ei uusinta julkaisua",
       "no_latest_release_description": "Et ole määrittänyt tälle tuotteelle uusinta julkaisua. Se toimii varalla, jos ei ole pyydetty tiettyä julkaisua.",
       "latest_release": "Uusin julkaisu",
-      "update_branch": "",
-      "delete_branch": "",
-      "no_branches_assigned": "",
-      "branch_created": "",
-      "branch_updated": "",
-      "create_branch": "",
-      "search_branch": "",
-      "branch_description": "",
-      "branch_deleted": "",
-      "delete_branch_confirm_title": "",
-      "delete_branch_confirm_description": ""
+      "update_branch": "Päivitä haara",
+      "delete_branch": "Poista haara",
+      "no_branches_assigned": "Ei määritettyjä haaroja",
+      "branch_created": "Haara luotu",
+      "branch_updated": "Haara päivitetty",
+      "create_branch": "Luo haara",
+      "search_branch": "Etsi haaraa...",
+      "branch_description": "Valitse tuotteen haara, jolle haluat julkaista tämän version. Haaroja käytetään tuotteen eri versioiden erottamiseen.",
+      "branch_deleted": "Haara poistettu",
+      "delete_branch_confirm_title": "Poista haara",
+      "delete_branch_confirm_description": "Olet poistamassa haaraa <strong>{name}</strong>! Tämä <strong>poistaa pysyvästi</strong> kyseisen haaran ja kaikki sen julkaisut. Tätä toimintoa ei voi peruuttaa."
     },
     "settings": {
       "watermarking_description": "Vesileimaus lisää ainutlaatuisia tunnisteita ohjelmistoosi estämään luvattoman jakelun. Tämä ominaisuus on tällä hetkellä saatavilla vain Java-sovelluksille.",

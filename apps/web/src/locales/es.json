@@ -130,9 +130,9 @@
     "branch_name_min_length": "El nombre de la sucursal debe tener al menos 2 caracteres!",
     "branch_name_max_length": "El nombre de la sucursal debe tener como máximo 255 caracteres!",
     "branch_name_invalid": "El nombre de la sucursal solo puede contener letras, números y los siguientes caracteres: - _",
-    "branch_limit_reached": "",
-    "branch_name_exists": "",
-    "branch_has_releases": ""
+    "branch_limit_reached": "Tu equipo ha alcanzado el número máximo de sucursales permitidas para el plan actual. Por favor, actualiza para agregar más sucursales.",
+    "branch_name_exists": "El nombre de la sucursal ya existe!",
+    "branch_has_releases": "La sucursal tiene versiones y no se puede eliminar."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -313,10 +313,10 @@
     "api_secret": "Secreto de API",
     "username": "Nombre de usuario",
     "add": "Agregar",
-    "branches": "",
-    "select_branch": "",
-    "releases_count": "",
-    "branch": ""
+    "branches": "Sucursales",
+    "select_branch": "Seleccionar sucursal",
+    "releases_count": "Conteo de versiones",
+    "branch": "Sucursal"
   },
   "auth": {
     "oauth": {
@@ -720,17 +720,17 @@
       "no_latest_release": "No hay última versión",
       "no_latest_release_description": "No has establecido una última versión para este producto. Se usa como respaldo si no se solicita una versión específica.",
       "latest_release": "Última versión",
-      "update_branch": "",
-      "delete_branch": "",
-      "no_branches_assigned": "",
-      "branch_created": "",
-      "branch_updated": "",
-      "create_branch": "",
-      "search_branch": "",
-      "branch_description": "",
-      "branch_deleted": "",
-      "delete_branch_confirm_title": "",
-      "delete_branch_confirm_description": ""
+      "update_branch": "Actualizar rama",
+      "delete_branch": "Eliminar rama",
+      "no_branches_assigned": "No hay ramas asignadas",
+      "branch_created": "Rama creada",
+      "branch_updated": "Rama actualizada",
+      "create_branch": "Crear rama",
+      "search_branch": "Buscar rama...",
+      "branch_description": "Selecciona la rama del producto para la que deseas lanzar esta versión. Las ramas se utilizan para separar diferentes versiones de tu producto.",
+      "branch_deleted": "Rama eliminada",
+      "delete_branch_confirm_title": "Eliminar rama",
+      "delete_branch_confirm_description": "Estás a punto de eliminar la rama <strong>{name}</strong>. Esto <strong>eliminará permanentemente</strong> esta rama y todas sus versiones publicadas. Esta acción no se puede deshacer."
     },
     "settings": {
       "watermarking_description": "El marcado de agua añade identificadores únicos a tu software para prevenir la distribución no autorizada. Esta función está disponible solo para aplicaciones Java en este momento.",

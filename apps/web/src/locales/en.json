@@ -702,7 +702,7 @@
       "branch_updated": "Branch updated",
       "create_branch": "Create branch",
       "search_branch": "Search branch...",
-      "branch_description": "Select the branch of the product you want to release. This is used to identify the version of the product.",
+      "branch_description": "Select the branch of the product you want to release this version for. Branches are used to separate different versions of your product.",
       "latest_release": "Latest release",
       "license_restricted_tooltip": "Release is restricted to specific licenses",
       "no_license_restrictions": "No license restrictions",

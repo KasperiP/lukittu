@@ -97,7 +97,6 @@
     "release_version_min_length": "Numer wersji musi mieć co najmniej 3 znaki!",
     "release_version_max_length": "Numer wersji może mieć maksymalnie 255 znaków!",
     "release_product_required": "Wymagany jest produkt!",
-    "release_exists": "Wydanie o tej wersji już istnieje!",
     "invalid_release_version": "Nieprawidłowa wersja!",
     "main_class_not_found": "Przesłany plik jest JAR, ale ekstrakcja głównej klasy nie powiodła się! Skontaktuj się z pomocą techniczną.",
     "city_required": "Wymagane jest miasto!",
@@ -124,7 +123,16 @@
     "api_key_limit_reached": "Twój zespół osiągnął maksymalną liczbę kluczy API dozwoloną w ramach obecnego planu. Aby dodać więcej kluczy API, ulepsz plan.",
     "api_key_not_found": "Klucz API nie znaleziony!",
     "max_invitations_reached": "Twój zespół osiągnął maksymalną liczbę zaproszeń dozwoloną w ramach obecnego planu. Aby dodać więcej zaproszeń, ulepsz plan.",
-    "max_releases_reached": "Twój zespół osiągnął maksymalną liczbę wydań dozwoloną w ramach obecnego planu. Aby dodać więcej wydań, ulepsz plan."
+    "max_releases_reached": "Twój zespół osiągnął maksymalną liczbę wydań dozwoloną w ramach obecnego planu. Aby dodać więcej wydań, ulepsz plan.",
+    "branch_has_releases": "Gałąź zawiera wydania i nie może zostać usunięta! Usuń wszystkie wydania z tej gałęzi przed jej usunięciem.",
+    "branch_limit_reached": "Twój zespół osiągnął maksymalną liczbę gałęzi dozwoloną w obecnym planie. Zaktualizuj plan, aby dodać więcej gałęzi.",
+    "branch_name_exists": "Nazwa gałęzi już istnieje!",
+    "branch_not_found": "Nie znaleziono gałęzi!",
+    "branch_name_required": "Nazwa gałęzi jest wymagana!",
+    "branch_name_min_length": "Nazwa gałęzi musi mieć co najmniej 2 znaki!",
+    "branch_name_max_length": "Nazwa gałęzi może mieć maksymalnie 255 znaków!",
+    "branch_name_invalid": "Nazwa gałęzi może zawierać tylko litery, cyfry oraz następujące znaki: - _",
+    "release_exists_this_branch": "Wydanie z tą wersją już istnieje w tej gałęzi!"
   },
   "general": {
     "add": "Dodaj",
@@ -183,7 +191,6 @@
     "density": "Gęstość",
     "avatar": "Awatar",
     "code": "Kod",
-    "origin": "Pochodzenie",
     "load_more": "Załaduj więcej",
     "draft": "Szkic",
     "published": "Opublikowany",
@@ -305,7 +312,11 @@
     "unlock_metadata": "Odblokuj metadane",
     "locked_metadata_warning": "To pole metadanych jest zablokowane. Pola te są zazwyczaj blokowane, ponieważ są generowane przez system. Modyfikacja tego pola może powodować problemy z integracjami, które zależą od tych danych.",
     "confirm": "Potwierdź",
-    "sending_email_failed": "Wysłanie wiadomości email nie powiodło się"
+    "sending_email_failed": "Wysłanie wiadomości email nie powiodło się",
+    "branches": "Gałęzie",
+    "select_branch": "Wybierz gałąź",
+    "releases_count": "Liczba wydań",
+    "branch": "Gałąź"
   },
   "auth": {
     "oauth": {
@@ -634,7 +645,10 @@
         "create_api_key": "utworzył klucz API",
         "delete_api_key": "usunął klucz API",
         "set_build_by_bit_integration": "ustawił integrację BuiltByBit",
-        "delete_build_by_bit_integration": "usunął integrację BuiltByBit"
+        "delete_build_by_bit_integration": "usunął integrację BuiltByBit",
+        "update_branch": "zaktualizował gałąź",
+        "delete_branch": "usunął gałąź",
+        "create_branch": "utworzył gałąź"
       }
     },
     "members": {
@@ -705,7 +719,18 @@
       "release_deleted": "Wydanie usunięte",
       "set_as_latest_description": "Po zaznaczeniu, to wydanie zostanie ustawione jako najnowsze wydanie dla produktu i będzie używane, jeśli nie zostanie żądane konkretne wydanie.",
       "no_latest_release": "Brak najnowszego wydania",
-      "no_latest_release_description": "Nie ustawiłeś najnowszego wydania dla tego produktu. Jest ono używane jako rezerwa, jeśli nie zostanie żądane konkretne wydanie."
+      "no_latest_release_description": "Nie ustawiłeś najnowszego wydania dla tego produktu. Jest ono używane jako rezerwa, jeśli nie zostanie żądane konkretne wydanie.",
+      "update_branch": "Zaktualizuj gałąź",
+      "delete_branch": "Usuń gałąź",
+      "no_branches_assigned": "Brak przypisanych gałęzi",
+      "branch_created": "Utworzono gałąź",
+      "branch_updated": "Zaktualizowano gałąź",
+      "create_branch": "Utwórz gałąź",
+      "search_branch": "Szukaj gałęzi...",
+      "branch_description": "Wybierz gałąź produktu, dla której chcesz wydać tę wersję. Gałęzie służą do oddzielania różnych wersji Twojego produktu.",
+      "branch_deleted": "Gałąź usunięta",
+      "delete_branch_confirm_title": "Usuń gałąź",
+      "delete_branch_confirm_description": "Zamierzasz usunąć gałąź <strong>{name}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tej gałęzi oraz wszystkich jej wydań. Tej operacji nie można cofnąć."
     },
     "settings": {
       "add_metadata_key": "Dodaj klucz metadanych",
