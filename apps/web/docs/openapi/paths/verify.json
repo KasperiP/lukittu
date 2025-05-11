@@ -57,6 +57,13 @@
                   "minLength": 10,
                   "maxLength": 1000,
                   "pattern": "^[A-Za-z0-9]+$"
+                },
+                "branch": {
+                  "type": "string",
+                  "description": "The branch name of your product. This allows targeting specific release branches. Branch name must contain only letters, numbers, dashes, and underscores.",
+                  "minLength": 2,
+                  "maxLength": 255,
+                  "pattern": "^[a-zA-Z0-9_-]+$"
                 }
               },
               "required": ["licenseKey"]
@@ -385,6 +392,13 @@
                   "minLength": 10,
                   "maxLength": 1000,
                   "pattern": "^[A-Za-z0-9]+$"
+                },
+                "branch": {
+                  "type": "string",
+                  "description": "The branch name of your product. This allows targeting specific release branches. Branch name must contain only letters, numbers, dashes, and underscores.",
+                  "minLength": 2,
+                  "maxLength": 255,
+                  "pattern": "^[a-zA-Z0-9_-]+$"
                 }
               },
               "required": ["licenseKey", "deviceIdentifier"]
@@ -747,6 +761,18 @@
           "schema": {
             "type": "string",
             "format": "uuid"
+          }
+        },
+        {
+          "name": "branch",
+          "in": "query",
+          "description": "The branch name of your product. This allows targeting specific release branches. Branch name must contain only letters, numbers, dashes, and underscores.",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 255,
+            "pattern": "^[a-zA-Z0-9_-]+$"
           }
         }
       ],
