@@ -155,6 +155,9 @@ export async function PUT(
     const branch = await prisma.releaseBranch.update({
       where: {
         id: branchId,
+        product: {
+          teamId: selectedTeam,
+        },
       },
       data: {
         name,
@@ -298,6 +301,9 @@ export async function DELETE(
     await prisma.releaseBranch.delete({
       where: {
         id: branchId,
+        product: {
+          teamId: selectedTeam,
+        },
       },
     });
 
