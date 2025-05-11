@@ -504,6 +504,7 @@ export const handleVerify = async ({
     : undefined;
 
   const returnedData = getReturnedFields({
+    requestedBranch: branch || null,
     returnedFields: settings.returnedFields,
     license,
   });

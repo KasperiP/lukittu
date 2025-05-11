@@ -12,6 +12,7 @@ import {
 type MetadataField = { key: string; value: string };
 
 interface GetReturnedFields {
+  requestedBranch: string | null;
   returnedFields: ReturnedFields | null;
   license: Omit<License & { metadata: Metadata[] }, 'licenseKeyLookup'> & {
     customers: Array<Customer & { metadata: Metadata[] }>;
@@ -51,6 +52,7 @@ interface ProductReturnedData {
 }
 
 export const getReturnedFields = ({
+  requestedBranch,
   returnedFields,
   license,
 }: GetReturnedFields): ReturnedFieldsData | null => {
@@ -158,7 +160,9 @@ export const getReturnedFields = ({
 
       // Add latest release if allowed
       if (returnedFields.productLatestRelease) {
-        const latestRelease = product.releases?.find((r) => r.latest);
+        const latestRelease = product.releases?.find(
+          (r) => r.latest && r.branchId === requestedBranch,
+        );
         if (latestRelease) {
           productData.latestRelease = {
             version: latestRelease.version,

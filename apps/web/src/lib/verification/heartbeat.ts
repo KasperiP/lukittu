@@ -502,6 +502,7 @@ export const handleHeartbeat = async ({
     : undefined;
 
   const returnedData = getReturnedFields({
+    requestedBranch: branch || null,
     returnedFields: settings.returnedFields,
     license,
   });

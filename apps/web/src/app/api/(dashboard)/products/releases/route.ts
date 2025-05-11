@@ -580,8 +580,8 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults, latestRelease] = await prisma.$transaction(
-      [
+    const [hasResults, totalResults, hasLatestReleasesData] =
+      await prisma.$transaction([
         prisma.release.findFirst({
           where: {
             teamId: selectedTeam,
@@ -594,17 +594,32 @@ export async function GET(
         prisma.release.count({
           where,
         }),
-        prisma.release.findFirst({
-          where: {
-            teamId: selectedTeam,
-            productId,
-            latest: true,
-          },
-          select: {
-            id: true,
-          },
-        }),
-      ],
+        prisma.$queryRaw`
+          WITH UniqueBranches AS (
+            SELECT DISTINCT "branchId"
+            FROM "Release"
+            WHERE "teamId" = ${selectedTeam}
+            AND "productId" = ${productId}
+          )
+          SELECT ub."branchId", 
+                CASE WHEN COUNT(r.id) > 0 THEN true ELSE false END AS "hasLatestRelease"
+          FROM UniqueBranches ub
+          LEFT JOIN "Release" r ON ((ub."branchId" IS NULL AND r."branchId" IS NULL) 
+                                OR (ub."branchId" IS NOT NULL AND r."branchId" = ub."branchId"))
+            AND r."teamId" = ${selectedTeam}
+            AND r."productId" = ${productId}
+            AND r.latest = true
+          GROUP BY ub."branchId"
+        `,
+      ]);
+
+    const hasLatestReleases = hasLatestReleasesData as {
+      branchId: string | null;
+      hasLatestRelease: boolean;
+    }[];
+
+    const hasLatestForAll = hasLatestReleases.every(
+      (release) => release.hasLatestRelease,
     );
 
     const team = session.user.teams[0];
@@ -618,12 +633,10 @@ export async function GET(
       })),
     }));
 
-    const hasLatestRelease = Boolean(latestRelease);
-
     return NextResponse.json({
       releases,
       totalResults,
-      hasLatestRelease,
+      hasLatestRelease: hasLatestForAll,
       hasResults: Boolean(hasResults),
     });
   } catch (error) {

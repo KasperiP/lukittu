@@ -247,6 +247,7 @@ export default Command({
           releases: {
             where: {
               latest: true,
+              branchId: null,
             },
             take: 1,
           },
@@ -347,6 +348,7 @@ export default Command({
               releases: {
                 where: {
                   latest: true,
+                  branchId: null,
                 },
                 select: {
                   version: true,

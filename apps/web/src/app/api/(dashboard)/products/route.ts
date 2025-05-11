@@ -224,7 +224,9 @@ export async function GET(
         ...product,
         releases: undefined,
         latestRelease:
-          product.releases.find((release) => release.latest)?.version || null,
+          product.releases.find(
+            (release) => release.latest && !release.branchId,
+          )?.version || null,
         totalReleases: product.releases.length || 0,
       })),
       totalResults,
