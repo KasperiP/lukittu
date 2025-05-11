@@ -1,7 +1,7 @@
 'use client';
 import { IProductsReleasesSetLatestResponse } from '@/app/api/(dashboard)/products/releases/set-latest/route';
 import SetReleaseModal from '@/components/dashboard/releases/list/SetReleaseModal';
-import { DeleteDeleteConfirmModal } from '@/components/dashboard/releases/ReleaseDeleteConfirmModal';
+import { ReleaseDeleteConfirmModal } from '@/components/dashboard/releases/ReleaseDeleteConfirmModal';
 import { License, Metadata, Release, ReleaseFile } from '@lukittu/shared';
 import { createContext, useState } from 'react';
 
@@ -69,7 +69,7 @@ export const ReleaseModalProvider = ({
         productId,
       }}
     >
-      <DeleteDeleteConfirmModal />
+      <ReleaseDeleteConfirmModal />
       <SetReleaseModal />
       {children}
     </ReleaseModalContext.Provider>

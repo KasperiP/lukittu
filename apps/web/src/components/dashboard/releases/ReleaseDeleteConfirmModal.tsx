@@ -14,7 +14,7 @@ import { useContext, useState } from 'react';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 
-export function DeleteDeleteConfirmModal() {
+export function ReleaseDeleteConfirmModal() {
   const t = useTranslations();
   const ctx = useContext(ReleaseModalContext);
   const [loading, setLoading] = useState(false);
