@@ -6,6 +6,7 @@ import {
   BuiltByBitIntegration,
   DiscordIntegration,
   logger,
+  PolymartIntegration,
   StripeIntegration,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
@@ -16,6 +17,7 @@ export type ITeamsIntegrationsGetSuccessResponse = {
     stripeIntegration: StripeIntegration | null;
     discordIntegration: DiscordIntegration | null;
     builtByBitIntegration: BuiltByBitIntegration | null;
+    polymartIntegration: PolymartIntegration | null;
   };
 };
 
@@ -52,6 +54,7 @@ export async function GET(
               stripeIntegration: true,
               discordIntegration: true,
               builtByBitIntegration: true,
+              polymartIntegration: true,
             },
           },
         },
@@ -76,6 +79,7 @@ export async function GET(
     const stripeIntegration = team.stripeIntegration;
     const discordIntegration = team.discordIntegration;
     const builtByBitIntegration = team.builtByBitIntegration;
+    const polymartIntegration = team.polymartIntegration;
 
     return NextResponse.json(
       {
@@ -83,6 +87,7 @@ export async function GET(
           stripeIntegration: stripeIntegration ?? null,
           discordIntegration: discordIntegration ?? null,
           builtByBitIntegration: builtByBitIntegration ?? null,
+          polymartIntegration: polymartIntegration ?? null,
         },
       },
       { status: HttpStatus.OK },

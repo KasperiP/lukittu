@@ -132,7 +132,10 @@
     "branch_name_min_length": "Nazwa gałęzi musi mieć co najmniej 2 znaki!",
     "branch_name_max_length": "Nazwa gałęzi może mieć maksymalnie 255 znaków!",
     "branch_name_invalid": "Nazwa gałęzi może zawierać tylko litery, cyfry oraz następujące znaki: - _",
-    "release_exists_this_branch": "Wydanie z tą wersją już istnieje w tej gałęzi!"
+    "release_exists_this_branch": "Wydanie z tą wersją już istnieje w tej gałęzi!",
+    "polymart_secret_required": "",
+    "polymart_secret_invalid": "",
+    "polymart_integration_not_found": ""
   },
   "general": {
     "add": "Dodaj",
@@ -648,7 +651,9 @@
         "delete_build_by_bit_integration": "usunął integrację BuiltByBit",
         "update_branch": "zaktualizował gałąź",
         "delete_branch": "usunął gałąź",
-        "create_branch": "utworzył gałąź"
+        "create_branch": "utworzył gałąź",
+        "set_polymart_integration": "",
+        "delete_polymart_integration": ""
       }
     },
     "members": {
@@ -692,7 +697,12 @@
       "built_by_bit_integration_deleted": "Integracja BuiltByBit usunięta",
       "built_by_bit_integration_created": "Integracja BuiltByBit utworzona",
       "built_by_bit_integration_updated": "Integracja BuiltByBit zaktualizowana",
-      "built_by_bit_integration_description": "Aby automatycznie generować i dystrybuować licencje, możesz zintegrować Lukittu z BuiltByBit. Gdy klient zakupi produkt, licencja zostanie automatycznie wygenerowana."
+      "built_by_bit_integration_description": "Aby automatycznie generować i dystrybuować licencje, możesz zintegrować Lukittu z BuiltByBit. Gdy klient zakupi produkt, licencja zostanie automatycznie wygenerowana.",
+      "polymart_integration_deleted": "",
+      "polymart_integration_created": "",
+      "polymart_integration_updated": "",
+      "polymart_integration_description": "",
+      "polymart_api_secret_placeholder": ""
     },
     "releases": {
       "latest_release": "Najnowsze wydanie",

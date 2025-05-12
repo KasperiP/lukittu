@@ -36,6 +36,7 @@ model User {
     createdStripeIntegrations     StripeIntegration[]
     createdDiscordIntegrations    DiscordIntegration[]
     createdBuiltByBitIntegrations BuiltByBitIntegration[]
+    createdPolymartIntegrations   PolymartIntegration[]
     createdInvitations            Invitation[]
     blacklist                     Blacklist[]
     releases                      Release[]
@@ -89,6 +90,7 @@ model Team {
     stripeIntegration     StripeIntegration?
     discordIntegration    DiscordIntegration?
     builtByBitIntegration BuiltByBitIntegration?
+    polymartIntegration   PolymartIntegration?
     settings              Settings?
     keyPair               KeyPair?
     activeDiscordAccounts DiscordAccount[]
@@ -139,6 +141,18 @@ model DiscordIntegration {
 }
 
 model BuiltByBitIntegration {
+    id              String   @id @default(uuid())
+    teamId          String   @unique
+    team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    apiSecret       String
+    active          Boolean  @default(true)
+    createdByUserId String?
+    createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+}
+
+model PolymartIntegration {
     id              String   @id @default(uuid())
     teamId          String   @unique
     team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -557,6 +571,8 @@ enum AuditLogAction {
     DELETE_EMAIL_PICTURE
     SET_BUILD_BY_BIT_INTEGRATION
     DELETE_BUILD_BY_BIT_INTEGRATION
+    SET_POLYMART_INTEGRATION
+    DELETE_POLYMART_INTEGRATION
     CREATE_BRANCH
     UPDATE_BRANCH
     DELETE_BRANCH

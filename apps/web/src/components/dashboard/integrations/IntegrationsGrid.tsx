@@ -1,6 +1,7 @@
 'use client';
 import builtByBitSvg from '@/../public/integrations/built-by-bit.svg';
 import discordSvg from '@/../public/integrations/discord.svg';
+import polymartPng from '@/../public/integrations/polymart.png';
 import stripeSvg from '@/../public/integrations/stripe.svg';
 import {
   ITeamsIntegrationsGetResponse,
@@ -26,6 +27,7 @@ import { toast } from 'sonner';
 import useSWR from 'swr';
 import SetBuiltByBitIntegrationModal from './modals/SetBuiltByBitIntegrationModal';
 import SetDiscordIntegrationModal from './modals/SetDiscordIntegrationModal';
+import SetPolymartIntegrationModal from './modals/SetPolymartIntegrationModal';
 import SetStripeIntegrationModal from './modals/SetStripeIntegrationModal';
 
 interface InitialIntegration {
@@ -56,6 +58,13 @@ const initialIntegrations: InitialIntegration[] = [
       'The largest independent marketplace for buying and selling gaming-related goods and services.',
     logo: builtByBitSvg,
     key: 'builtByBitIntegration',
+  },
+  {
+    name: 'Polymart',
+    description:
+      'Polymart is a unique Minecraft marketplace that puts you first.',
+    logo: polymartPng,
+    key: 'polymartIntegration',
   },
 ];
 
@@ -115,6 +124,11 @@ export default function IntegrationsGrid() {
       <SetBuiltByBitIntegrationModal
         builtByBitIntegration={integrations?.builtByBitIntegration ?? null}
         open={openSetupModal === 'builtByBitIntegration'}
+        onOpenChange={handleIntegrationModalClose}
+      />
+      <SetPolymartIntegrationModal
+        open={openSetupModal === 'polymartIntegration'}
+        polymartIntegration={integrations?.polymartIntegration ?? null}
         onOpenChange={handleIntegrationModalClose}
       />
       <div className="grid grid-cols-3 gap-6 max-xl:grid-cols-2 max-md:grid-cols-1">
