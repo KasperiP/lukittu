@@ -13,7 +13,8 @@ ALTER TYPE "AuditLogAction" ADD VALUE 'DELETE_POLYMART_INTEGRATION';
 CREATE TABLE "PolymartIntegration" (
     "id" TEXT NOT NULL,
     "teamId" TEXT NOT NULL,
-    "apiSecret" TEXT NOT NULL,
+    "webhookSecret" TEXT NOT NULL,
+    "signingSecret" TEXT NOT NULL,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "createdByUserId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

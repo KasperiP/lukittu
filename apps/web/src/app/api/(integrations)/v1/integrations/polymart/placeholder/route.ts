@@ -99,7 +99,7 @@ export async function POST(
       !verifyPolymartSignature(
         rawBody,
         polymartSignature,
-        polymartIntegration.apiSecret,
+        polymartIntegration.signingSecret,
       )
     ) {
       logger.error('Invalid Polymart signature', { teamId });

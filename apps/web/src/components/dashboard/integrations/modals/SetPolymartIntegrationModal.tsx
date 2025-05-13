@@ -46,13 +46,15 @@ export default function SetPolymartIntegrationModal({
 
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showApiSecret, setShowApiSecret] = useState(false);
+  const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [showSigningSecret, setShowSigningSecret] = useState(false);
 
   const form = useForm<SetPolymartIntegrationSchema>({
     resolver: zodResolver(setPolymartIntegrationSchema(t)),
     defaultValues: {
       active: true,
-      apiSecret: '',
+      webhookSecret: '',
+      signingSecret: '',
     },
   });
 
@@ -61,7 +63,8 @@ export default function SetPolymartIntegrationModal({
   useEffect(() => {
     if (polymartIntegration) {
       setValue('active', polymartIntegration.active);
-      setValue('apiSecret', polymartIntegration.apiSecret);
+      setValue('webhookSecret', polymartIntegration.webhookSecret);
+      setValue('signingSecret', polymartIntegration.signingSecret);
     }
   }, [polymartIntegration, setValue]);
 
@@ -69,7 +72,8 @@ export default function SetPolymartIntegrationModal({
     onOpenChange(open);
     reset();
     if (!open) {
-      setShowApiSecret(false);
+      setShowWebhookSecret(false);
+      setShowSigningSecret(false);
     }
   };
 
@@ -165,18 +169,18 @@ export default function SetPolymartIntegrationModal({
           >
             <FormField
               control={control}
-              name="apiSecret"
+              name="webhookSecret"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('general.api_secret')}</FormLabel>
+                  <FormLabel>
+                    {t('dashboard.integrations.webhook_secret')}
+                  </FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
                         autoComplete="off"
-                        placeholder={t(
-                          'dashboard.integrations.polymart_api_secret_placeholder',
-                        )}
-                        type={showApiSecret ? 'text' : 'password'}
+                        placeholder={t('dashboard.integrations.webhook_secret')}
+                        type={showWebhookSecret ? 'text' : 'password'}
                         {...field}
                       />
                       <div className="absolute bottom-1 right-1 flex space-x-1 bg-background">
@@ -190,7 +194,7 @@ export default function SetPolymartIntegrationModal({
                             field.value &&
                             copyToClipboard(
                               field.value,
-                              t('general.api_secret'),
+                              t('dashboard.integrations.webhook_secret'),
                             )
                           }
                         >
@@ -201,9 +205,66 @@ export default function SetPolymartIntegrationModal({
                           size="icon"
                           type="button"
                           variant="ghost"
-                          onClick={() => setShowApiSecret(!showApiSecret)}
+                          onClick={() =>
+                            setShowWebhookSecret(!showWebhookSecret)
+                          }
                         >
-                          {showApiSecret ? (
+                          {showWebhookSecret ? (
+                            <EyeOffIcon className="h-5 w-5 bg-background" />
+                          ) : (
+                            <EyeIcon className="h-5 w-5 bg-background" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name="signingSecret"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {t('dashboard.integrations.signing_secret')}
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        autoComplete="off"
+                        placeholder={t('dashboard.integrations.signing_secret')}
+                        type={showSigningSecret ? 'text' : 'password'}
+                        {...field}
+                      />
+                      <div className="absolute bottom-1 right-1 flex space-x-1 bg-background">
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          title={t('general.click_to_copy')}
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            field.value &&
+                            copyToClipboard(
+                              field.value,
+                              t('dashboard.integrations.signing_secret'),
+                            )
+                          }
+                        >
+                          <CopyIcon className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          className="h-7 w-7"
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                          onClick={() =>
+                            setShowSigningSecret(!showSigningSecret)
+                          }
+                        >
+                          {showSigningSecret ? (
                             <EyeOffIcon className="h-5 w-5 bg-background" />
                           ) : (
                             <EyeIcon className="h-5 w-5 bg-background" />

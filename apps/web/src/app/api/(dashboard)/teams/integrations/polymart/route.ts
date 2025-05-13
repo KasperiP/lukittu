@@ -44,7 +44,7 @@ export async function POST(
       );
     }
 
-    const { active, apiSecret } = validated.data;
+    const { active, webhookSecret, signingSecret } = validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -102,7 +102,8 @@ export async function POST(
           },
         },
         active,
-        apiSecret,
+        webhookSecret,
+        signingSecret,
         createdBy: {
           connect: {
             id: session.user.id,
@@ -111,7 +112,8 @@ export async function POST(
       },
       update: {
         active,
-        apiSecret,
+        webhookSecret,
+        signingSecret,
       },
     });
 

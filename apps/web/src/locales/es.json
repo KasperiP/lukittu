@@ -133,9 +133,11 @@
     "branch_limit_reached": "Tu equipo ha alcanzado el número máximo de sucursales permitidas para el plan actual. Por favor, actualiza para agregar más sucursales.",
     "branch_name_exists": "El nombre de la sucursal ya existe!",
     "branch_has_releases": "La sucursal tiene versiones y no se puede eliminar.",
-    "polymart_secret_required": "Se requiere la clave secreta de Polymart!",
-    "polymart_secret_invalid": "La clave secreta de Polymart no es válida!",
-    "polymart_integration_not_found": "Integración de Polymart no encontrada."
+    "polymart_integration_not_found": "Integración de Polymart no encontrada.",
+    "polymart_webhook_secret_required": "¡Se requiere el secreto del webhook de Polymart!",
+    "polymart_webhook_secret_invalid": "¡El secreto del webhook de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
+    "polymart_signing_secret_required": "¡Se requiere el secreto de firma de Polymart!",
+    "polymart_signing_secret_invalid": "¡El secreto de firma de Polymart no es válido! Debe tener entre 20 y 255 caracteres."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -702,7 +704,7 @@
       "polymart_integration_created": "Integración de Polymart creada",
       "polymart_integration_updated": "Integración de Polymart actualizada",
       "polymart_integration_description": "Para la generación y distribución automática de licencias, puedes integrar Lukittu con Polymart. Cuando un cliente compre un producto, se generará una licencia automáticamente.",
-      "polymart_api_secret_placeholder": "Secreto de API de Polymart"
+      "signing_secret": "Secreto de firma"
     },
     "releases": {
       "license_restricted_tooltip": "La versión está restringida a licencias específicas",

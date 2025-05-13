@@ -9,12 +9,25 @@ export const setPolymartIntegrationSchema = (t: I18nTranslator) =>
   z
     .object({
       active: z.boolean(),
-      apiSecret: z
+      webhookSecret: z
         .string({
-          required_error: t('validation.polymart_secret_required'),
+          required_error: t('validation.polymart_webhook_secret_required'),
         })
-        .length(48, {
-          message: t('validation.polymart_secret_invalid'),
+        .min(20, {
+          message: t('validation.polymart_webhook_secret_invalid'),
+        })
+        .max(255, {
+          message: t('validation.polymart_webhook_secret_invalid'),
+        }),
+      signingSecret: z
+        .string({
+          required_error: t('validation.polymart_signing_secret_required'),
+        })
+        .min(20, {
+          message: t('validation.polymart_signing_secret_invalid'),
+        })
+        .max(255, {
+          message: t('validation.polymart_signing_secret_invalid'),
         }),
     })
     .strict();

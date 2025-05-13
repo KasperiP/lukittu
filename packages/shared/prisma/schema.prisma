@@ -156,7 +156,8 @@ model PolymartIntegration {
     id              String   @id @default(uuid())
     teamId          String   @unique
     team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    apiSecret       String
+    webhookSecret   String // Polymart webhook secret
+    signingSecret   String // Placeholder signing secret
     active          Boolean  @default(true)
     createdByUserId String?
     createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)

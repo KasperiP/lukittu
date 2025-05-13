@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
       !verifyPolymartSignature(
         rawBody,
         polymartSignature,
-        integration.apiSecret,
+        integration.webhookSecret,
       )
     ) {
       logger.error('Invalid Polymart signature', { teamId });
