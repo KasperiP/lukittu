@@ -190,8 +190,8 @@ describe('BuiltByBit Integration', () => {
       });
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
       expect(prismaMock.license.create).not.toHaveBeenCalled();
-      expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Product not found in database',
+      expect(logger.error).toHaveBeenCalledWith(
+        'Product not found in database',
         expect.any(Object),
       );
     });
@@ -227,8 +227,8 @@ describe('BuiltByBit Integration', () => {
         success: false,
         message: 'Team has reached the maximum number of licenses',
       });
-      expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Team has reached the maximum number of licenses',
+      expect(logger.error).toHaveBeenCalledWith(
+        'Team has reached the maximum number of licenses',
         expect.any(Object),
       );
     });
@@ -264,8 +264,8 @@ describe('BuiltByBit Integration', () => {
         success: false,
         message: 'Team has reached the maximum number of customers',
       });
-      expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Team has reached the maximum number of customers',
+      expect(logger.error).toHaveBeenCalledWith(
+        'Team has reached the maximum number of customers',
         expect.any(Object),
       );
     });
@@ -350,8 +350,13 @@ describe('BuiltByBit Integration', () => {
         success: true,
         licenseKey: 'decrypted-license-key',
       });
+
       expect(logger.info).toHaveBeenCalledWith(
-        'Received valid placeholder data from BuiltByBit',
+        'Processing BuiltByBit placeholder request',
+        expect.any(Object),
+      );
+      expect(logger.info).toHaveBeenCalledWith(
+        'License key found for BuiltByBit placeholder',
         expect.any(Object),
       );
     });
@@ -369,7 +374,7 @@ describe('BuiltByBit Integration', () => {
         message: 'License key not found',
       });
       expect(logger.error).toHaveBeenCalledWith(
-        'License key not found',
+        'License key not found for BuiltByBit user',
         expect.any(Object),
       );
     });
@@ -387,7 +392,11 @@ describe('BuiltByBit Integration', () => {
 
       expect(logger.error).toHaveBeenCalledWith(
         'Error handling BuiltByBit placeholder',
-        expect.objectContaining({ error }),
+        expect.objectContaining({
+          error: 'Unexpected error',
+          stack: expect.any(String),
+          teamId: mockTeam.id,
+        }),
       );
     });
   });
