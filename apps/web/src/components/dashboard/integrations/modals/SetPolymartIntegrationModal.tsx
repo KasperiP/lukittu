@@ -28,7 +28,7 @@ import { Switch } from '@/components/ui/switch';
 import {
   setPolymartIntegrationSchema,
   SetPolymartIntegrationSchema,
-} from '@/lib/validation/integrations/set-polymart-ingration-schema';
+} from '@/lib/validation/integrations/set-polymart-integration-schema';
 import { CopyIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 
 interface SetPolymartIntegrationModalProps {

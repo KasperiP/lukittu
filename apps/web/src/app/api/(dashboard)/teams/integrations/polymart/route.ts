@@ -4,7 +4,7 @@ import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
   setPolymartIntegrationSchema,
   SetPolymartIntegrationSchema,
-} from '@/lib/validation/integrations/set-polymart-ingration-schema';
+} from '@/lib/validation/integrations/set-polymart-integration-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
