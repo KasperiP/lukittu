@@ -133,9 +133,9 @@
     "branch_name_max_length": "Nazwa gałęzi może mieć maksymalnie 255 znaków!",
     "branch_name_invalid": "Nazwa gałęzi może zawierać tylko litery, cyfry oraz następujące znaki: - _",
     "release_exists_this_branch": "Wydanie z tą wersją już istnieje w tej gałęzi!",
-    "polymart_secret_required": "",
-    "polymart_secret_invalid": "",
-    "polymart_integration_not_found": ""
+    "polymart_secret_required": "Wymagany jest Polymart API-secret!",
+    "polymart_secret_invalid": "Polymart API-secret jest nieprawidłowy!",
+    "polymart_integration_not_found": "Integracja Polymart nie znaleziona!"
   },
   "general": {
     "add": "Dodaj",
@@ -652,8 +652,8 @@
         "update_branch": "zaktualizował gałąź",
         "delete_branch": "usunął gałąź",
         "create_branch": "utworzył gałąź",
-        "set_polymart_integration": "",
-        "delete_polymart_integration": ""
+        "set_polymart_integration": "ustawił integrację Polymart",
+        "delete_polymart_integration": "usunął integrację Polymart"
       }
     },
     "members": {
@@ -698,11 +698,11 @@
       "built_by_bit_integration_created": "Integracja BuiltByBit utworzona",
       "built_by_bit_integration_updated": "Integracja BuiltByBit zaktualizowana",
       "built_by_bit_integration_description": "Aby automatycznie generować i dystrybuować licencje, możesz zintegrować Lukittu z BuiltByBit. Gdy klient zakupi produkt, licencja zostanie automatycznie wygenerowana.",
-      "polymart_integration_deleted": "",
-      "polymart_integration_created": "",
-      "polymart_integration_updated": "",
-      "polymart_integration_description": "",
-      "polymart_api_secret_placeholder": ""
+      "polymart_integration_deleted": "Integracja Polymart usunięta",
+      "polymart_integration_created": "Integracja Polymart utworzona",
+      "polymart_integration_updated": "Integracja Polymart zaktualizowana",
+      "polymart_integration_description": "Aby automatycznie generować i dystrybuować licencje, możesz zintegrować Lukittu z Polymart. Gdy klient zakupi produkt, licencja zostanie automatycznie wygenerowana.",
+      "polymart_api_secret_placeholder": "Wprowadź tajny klucz API Polymart"
     },
     "releases": {
       "latest_release": "Najnowsze wydanie",

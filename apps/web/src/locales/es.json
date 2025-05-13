@@ -133,9 +133,9 @@
     "branch_limit_reached": "Tu equipo ha alcanzado el número máximo de sucursales permitidas para el plan actual. Por favor, actualiza para agregar más sucursales.",
     "branch_name_exists": "El nombre de la sucursal ya existe!",
     "branch_has_releases": "La sucursal tiene versiones y no se puede eliminar.",
-    "polymart_secret_required": "",
-    "polymart_secret_invalid": "",
-    "polymart_integration_not_found": ""
+    "polymart_secret_required": "Se requiere la clave secreta de Polymart!",
+    "polymart_secret_invalid": "La clave secreta de Polymart no es válida!",
+    "polymart_integration_not_found": "Integración de Polymart no encontrada."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -652,8 +652,8 @@
         "update_branch": "actualizó rama",
         "delete_branch": "eliminó rama",
         "create_branch": "creó rama",
-        "set_polymart_integration": "",
-        "delete_polymart_integration": ""
+        "set_polymart_integration": "estableció integración de Polymart",
+        "delete_polymart_integration": "eliminó integración de Polymart"
       }
     },
     "members": {
@@ -698,11 +698,11 @@
       "built_by_bit_integration_updated": "Integración con BuiltByBit actualizada",
       "built_by_bit_integration_description": "Para la generación y distribución automática de licencias, puedes integrar Lukittu con BuiltByBit. Cuando un cliente compre un producto, se generará automáticamente una licencia.",
       "bot_install_description": "Para instalar el bot de Discord Lukittu, haz clic en el botón de abajo. Serás redirigido a Discord donde podrás autorizar al bot para unirse a tu servidor.",
-      "polymart_integration_deleted": "",
-      "polymart_integration_created": "",
-      "polymart_integration_updated": "",
-      "polymart_integration_description": "",
-      "polymart_api_secret_placeholder": ""
+      "polymart_integration_deleted": "Integración de Polymart eliminada",
+      "polymart_integration_created": "Integración de Polymart creada",
+      "polymart_integration_updated": "Integración de Polymart actualizada",
+      "polymart_integration_description": "Para la generación y distribución automática de licencias, puedes integrar Lukittu con Polymart. Cuando un cliente compre un producto, se generará una licencia automáticamente.",
+      "polymart_api_secret_placeholder": "Secreto de API de Polymart"
     },
     "releases": {
       "license_restricted_tooltip": "La versión está restringida a licencias específicas",

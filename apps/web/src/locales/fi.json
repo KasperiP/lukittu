@@ -133,9 +133,9 @@
     "branch_limit_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman haarojen määrän. Päivitä suunnitelma lisätäksesi haaroja.",
     "branch_name_exists": "Tämä haara on jo olemassa!",
     "branch_has_releases": "Tällä haaralla on julkaisuja, eikä sitä voi poistaa!",
-    "polymart_secret_required": "",
-    "polymart_secret_invalid": "",
-    "polymart_integration_not_found": ""
+    "polymart_secret_required": "Polymart-salaisuus on pakollinen!",
+    "polymart_secret_invalid": "Polymart-salaisuus on virheellinen!",
+    "polymart_integration_not_found": "Polymart-integraatiota ei löydy!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -652,8 +652,8 @@
         "update_branch": "päivitti haaran",
         "delete_branch": "poisti haaran",
         "create_branch": "loi haaran",
-        "set_polymart_integration": "",
-        "delete_polymart_integration": ""
+        "set_polymart_integration": "asetti Polymart-integraation",
+        "delete_polymart_integration": "poisti Polymart-integraation"
       }
     },
     "members": {
@@ -698,11 +698,11 @@
       "built_by_bit_integration_updated": "BuiltByBit-integraatio päivitetty",
       "built_by_bit_integration_description": "BuiltByBit-integraatio mahdollistaa ohjelmistosi automaattisen jakelun BuiltByBit-alustalla. Kun asiakas ostaa tuotteen, lisenssi luodaan automaattisesti.",
       "bot_install_description": "Asentaaksesi Lukittu Discord-botin, klikkaa alla olevaa painiketta. Sinut ohjataan Discordiin, jossa voit valtuuttaa botin liittymään palvelimellesi.",
-      "polymart_integration_deleted": "",
-      "polymart_integration_created": "",
-      "polymart_integration_updated": "",
-      "polymart_integration_description": "",
-      "polymart_api_secret_placeholder": ""
+      "polymart_integration_deleted": "Polymart-integraatio poistettu",
+      "polymart_integration_created": "Polymart-integraatio luotu",
+      "polymart_integration_updated": "Polymart-integraatio päivitetty",
+      "polymart_integration_description": "Lisenssien automaattista luontia ja jakelua varten voit integroida Lukittun Polymartin kanssa. Kun asiakas ostaa tuotteen, lisenssi luodaan automaattisesti.",
+      "polymart_api_secret_placeholder": "Syötä Polymart API-salaisuus"
     },
     "releases": {
       "license_restricted_tooltip": "Julkaisu on rajoitettu tietyille lisensseille",
