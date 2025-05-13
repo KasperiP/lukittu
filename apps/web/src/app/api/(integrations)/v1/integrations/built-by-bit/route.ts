@@ -13,8 +13,10 @@ export async function POST(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const teamId = searchParams.get('teamId');
 
+    logger.info('Received BuiltByBit webhook request', { teamId });
+
     if (!teamId || !regex.uuidV4.test(teamId)) {
-      logger.error('Invalid teamId', { teamId });
+      logger.error('Invalid teamId in BuiltByBit webhook', { teamId });
       return NextResponse.json(
         {
           message: 'Invalid teamId',
@@ -27,7 +29,7 @@ export async function POST(request: NextRequest) {
     const isLimited = await isRateLimited(key, 60, 10); // 60 requests per 10 seconds
 
     if (isLimited) {
-      logger.error('Rate limited', { key });
+      logger.error('Rate limited BuiltByBit webhook request', { key, teamId });
       return NextResponse.json(
         {
           message: 'Too many requests. Please try again later.',
@@ -75,7 +77,16 @@ export async function POST(request: NextRequest) {
       !team.limits ||
       !team.settings
     ) {
-      logger.error('Team not found or missing required fields', { teamId });
+      logger.error(
+        'Team not found or missing required configuration for BuiltByBit integration',
+        {
+          teamId,
+          teamFound: !!team,
+          builtByBitIntegrationExists: !!team?.builtByBitIntegration,
+          limitsExist: !!team?.limits,
+          settingsExist: !!team?.settings,
+        },
+      );
       return NextResponse.json(
         {
           message: 'Team not found',
@@ -87,7 +98,7 @@ export async function POST(request: NextRequest) {
     const integration = team.builtByBitIntegration;
 
     if (apiSecret !== integration.apiSecret) {
-      logger.error('Invalid API secret', { teamId });
+      logger.error('Invalid API secret for BuiltByBit webhook', { teamId });
       return NextResponse.json(
         {
           message: 'Invalid API secret',
@@ -118,10 +129,10 @@ export async function POST(request: NextRequest) {
       message: result.message,
     });
   } catch (error) {
-    logger.error(
-      "Error occurred in '(integrations)/v1/integrations/built-by-bit' route",
-      error,
-    );
+    logger.error('Error processing BuiltByBit webhook', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
 
     return NextResponse.json(
       {

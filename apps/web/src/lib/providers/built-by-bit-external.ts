@@ -40,6 +40,15 @@ export const handleBuiltByBitPurchase = async (
     const { productId, seats, expirationStart, expirationDays, ipLimit } =
       lukittuData;
 
+    logger.info('Processing BuiltByBit purchase', {
+      teamId: team.id,
+      bbbResourceId: bbbResource.id,
+      bbbResourceTitle: bbbResource.title,
+      bbbUserId: bbbUser.id,
+      bbbUsername: bbbUser.username,
+      lukittuProductId: productId,
+    });
+
     // BuiltByBit doesn't send any unique identifier for the purchase
     // so we generate a unique ID to ensure that this won't be duplicated.
     const purchaseId = generateHMAC(
@@ -62,6 +71,8 @@ export const handleBuiltByBitPurchase = async (
       logger.info('Skipping: Purchase already processed', {
         purchaseId,
         teamId: team.id,
+        bbbResourceId: bbbResource.id,
+        bbbUserId: bbbUser.id,
       });
       return {
         success: true,
@@ -77,8 +88,10 @@ export const handleBuiltByBitPurchase = async (
     });
 
     if (!productExists) {
-      logger.info('Skipping: Product not found in database', {
+      logger.error('Product not found in database', {
+        teamId: team.id,
         productId,
+        bbbResourceId: bbbResource.id,
       });
       return {
         success: false,
@@ -87,7 +100,7 @@ export const handleBuiltByBitPurchase = async (
     }
 
     if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
-      logger.info('Skipping: Team has reached the maximum number of licenses', {
+      logger.error('Team has reached the maximum number of licenses', {
         teamId: team.id,
         currentLicenses: team._count.licenses,
         maxLicenses: team.limits?.maxLicenses,
@@ -99,14 +112,11 @@ export const handleBuiltByBitPurchase = async (
     }
 
     if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
-      logger.info(
-        'Skipping: Team has reached the maximum number of customers',
-        {
-          teamId: team.id,
-          currentCustomers: team._count.customers,
-          maxCustomers: team.limits?.maxCustomers,
-        },
-      );
+      logger.error('Team has reached the maximum number of customers', {
+        teamId: team.id,
+        currentCustomers: team._count.customers,
+        maxCustomers: team.limits?.maxCustomers,
+      });
       return {
         success: false,
         message: 'Team has reached the maximum number of customers',
@@ -233,7 +243,11 @@ export const handleBuiltByBitPurchase = async (
     });
 
     if (!license) {
-      logger.error('Failed to create a license');
+      logger.error('Failed to create a license', {
+        teamId: team.id,
+        bbbResourceId: bbbResource.id,
+        bbbUserId: bbbUser.id,
+      });
       return {
         success: false,
         message: 'Failed to create a license',
@@ -244,10 +258,16 @@ export const handleBuiltByBitPurchase = async (
       licenseId: license.id,
       teamId: team.id,
       productId,
-      resourceId: bbbResource.id,
-      resourceTitle: bbbResource.title,
-      addonId: bbbResource.addon.id,
-      addonTitle: bbbResource.addon.title,
+      bbbResourceId: bbbResource.id,
+      bbbResourceTitle: bbbResource.title,
+      bbbUserId: bbbUser.id,
+      bbbUsername: bbbUser.username,
+      seats: seats || null,
+      ipLimit: ipLimit || null,
+      expirationDays: expirationDays || null,
+      expirationStart: expirationStartFormatted,
+      addonId: bbbResource.addon?.id,
+      addonTitle: bbbResource.addon?.title,
     });
 
     return {
@@ -273,7 +293,7 @@ export const handleBuiltByBitPlaceholder = async (
   teamId: string,
 ) => {
   try {
-    logger.info('Received valid placeholder data from BuiltByBit', {
+    logger.info('Processing BuiltByBit placeholder request', {
       teamId,
       steamId: validatedData.steam_id,
       userId: validatedData.user_id,
@@ -306,16 +326,23 @@ export const handleBuiltByBitPlaceholder = async (
     });
 
     if (!licenseKey) {
-      logger.error('License key not found', {
+      logger.error('License key not found for BuiltByBit user', {
         teamId,
-        user_id: validatedData.user_id,
-        resource_id: validatedData.resource_id,
+        userId: validatedData.user_id,
+        resourceId: validatedData.resource_id,
       });
       return {
         status: HttpStatus.NOT_FOUND,
         message: 'License key not found',
       };
     }
+
+    logger.info('License key found for BuiltByBit placeholder', {
+      teamId,
+      userId: validatedData.user_id,
+      resourceId: validatedData.resource_id,
+      licenseId: licenseKey.id,
+    });
 
     const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
 
@@ -324,7 +351,11 @@ export const handleBuiltByBitPlaceholder = async (
       licenseKey: decryptedKey,
     };
   } catch (error) {
-    logger.error('Error handling BuiltByBit placeholder', { error, teamId });
+    logger.error('Error handling BuiltByBit placeholder', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      teamId,
+    });
     throw error;
   }
 };

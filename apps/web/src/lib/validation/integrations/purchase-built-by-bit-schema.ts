@@ -5,59 +5,153 @@ export type PurchaseBuiltByBitSchema = z.infer<
 >;
 
 export const purchaseBuiltByBitSchema = () =>
-  z
-    .object({
-      apiSecret: z
-        .string({
-          required_error: 'API Secret is required',
-        })
-        .regex(/^bbb_[A-Za-z0-9]{64}$/, {
-          message: 'Invalid API Secret format',
+  z.object({
+    apiSecret: z
+      .string({
+        required_error: 'API Secret is required',
+      })
+      .regex(/^bbb_[A-Za-z0-9]{64}$/, {
+        message: 'Invalid API Secret format',
+      }),
+    builtByBitData: z.object({
+      user: z.object({
+        id: z.string().regex(/^\d+$/, {
+          message: 'User ID must be numeric',
         }),
-      builtByBitData: z.object({
-        user: z.object({
-          id: z.string().regex(/^\d+$/, { message: 'User ID must be numeric' }),
-          username: z.string(),
-          userUrl: z.string().url(),
+        username: z.string({
+          required_error: 'Username is required',
         }),
-        resource: z.object({
-          title: z.string(),
+        userUrl: z
+          .string({
+            required_error: 'User URL is required',
+          })
+          .url({
+            message: 'Invalid user URL format',
+          }),
+      }),
+      resource: z.object({
+        title: z.string({
+          required_error: 'Resource title is required',
+        }),
+        id: z
+          .string({
+            required_error: 'Resource ID is required',
+          })
+          .regex(/^\d+$/, {
+            message: 'Resource ID must be numeric',
+          }),
+        url: z
+          .string({
+            required_error: 'Resource URL is required',
+          })
+          .url({
+            message: 'Invalid resource URL format',
+          }),
+        addon: z.object({
           id: z
-            .string()
-            .regex(/^\d+$/, { message: 'Resource ID must be numeric' }),
-          url: z.string().url(),
-          addon: z.object({
-            id: z
-              .string()
-              .regex(/^\d+$/, { message: 'Addon ID must be numeric' }),
-            title: z.string(),
+            .string({
+              required_error: 'Addon ID is required',
+            })
+            .regex(/^\d+$/, {
+              message: 'Addon ID must be numeric',
+            }),
+          title: z.string({
+            required_error: 'Addon title is required',
           }),
-          bundle: z.object({
-            id: z
-              .string()
-              .regex(/^\d+$/, { message: 'Bundle ID must be numeric' }),
-            title: z.string(),
+        }),
+        bundle: z.object({
+          id: z
+            .string({
+              required_error: 'Bundle ID is required',
+            })
+            .regex(/^\d+$/, {
+              message: 'Bundle ID must be numeric',
+            }),
+          title: z.string({
+            required_error: 'Bundle title is required',
           }),
-          renewal: z.string(),
-          pricing: z.object({
-            listPrice: z.string().regex(/^\d+(\.\d+)?$/, {
+        }),
+        renewal: z.string({
+          required_error: 'Renewal information is required',
+        }),
+        pricing: z.object({
+          listPrice: z
+            .string({
+              required_error: 'List price is required',
+            })
+            .regex(/^\d+(\.\d+)?$/, {
               message: 'List price must be numeric',
             }),
-            finalPrice: z.string().regex(/^\d+(\.\d+)?$/, {
+          finalPrice: z
+            .string({
+              required_error: 'Final price is required',
+            })
+            .regex(/^\d+(\.\d+)?$/, {
               message: 'Final price must be numeric',
             }),
-          }),
-          purchaseDate: z.string().regex(/^\d+$/, {
+        }),
+        purchaseDate: z
+          .string({
+            required_error: 'Purchase date is required',
+          })
+          .regex(/^\d+$/, {
             message: 'Purchase date must be a numeric timestamp',
           }),
+      }),
+    }),
+    lukittuData: z.object({
+      productId: z
+        .string({
+          required_error: 'Product ID is required',
+        })
+        .uuid({
+          message: 'Product ID must be a valid UUID',
         }),
-      }),
-      lukittuData: z.object({
-        productId: z.string().uuid(),
-        ipLimit: z.number().positive().int().nullable(),
-        seats: z.number().min(1).positive().int().nullable(),
-        expirationDays: z.number().positive().min(1).int().nullable(),
-        expirationStart: z.enum(['CREATION', 'ACTIVATION']).nullable(),
-      }),
-    })
-    .strict();
+      ipLimit: z
+        .number({
+          required_error: 'IP Limit is required',
+        })
+        .positive({
+          message: 'IP Limit must be positive',
+        })
+        .int({
+          message: 'IP Limit must be an integer',
+        })
+        .nullable(),
+      seats: z
+        .number({
+          required_error: 'Seats are required',
+        })
+        .min(1, {
+          message: 'Seats must be at least 1',
+        })
+        .positive({
+          message: 'Seats must be positive',
+        })
+        .int({
+          message: 'Seats must be an integer',
+        })
+        .nullable(),
+      expirationDays: z
+        .number({
+          required_error: 'Expiration days are required',
+        })
+        .positive({
+          message: 'Expiration days must be positive',
+        })
+        .min(1, {
+          message: 'Expiration days must be at least 1',
+        })
+        .int({
+          message: 'Expiration days must be an integer',
+        })
+        .nullable(),
+      expirationStart: z
+        .enum(['CREATION', 'ACTIVATION'], {
+          errorMap: () => ({
+            message: 'Expiration start must be either CREATION or ACTIVATION',
+          }),
+        })
+        .nullable(),
+    }),
+  });

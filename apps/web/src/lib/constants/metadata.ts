@@ -12,3 +12,9 @@ export enum StripeMetadataKeys {
   STRIPE_PROD = 'STRIPE_PROD', // Stripe product identifier
   STRIPE_PI = 'STRIPE_PI', // Stripe payment intent identifier
 }
+
+export enum PolymartMetadataKeys {
+  POLYMART_USER_ID = 'POLYMART_USER_ID', // Unique identifier for the user on Polymart
+  POLYMART_PRODUCT_ID = 'POLYMART_PRODUCT_ID', // Unique identifier for the product on Polymart
+  POLYMART_PURCHASE_ID = 'POLYMART_PURCHASE_ID', // Unique identifier for the purchase transaction on Polymart
+}
