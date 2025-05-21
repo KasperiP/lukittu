@@ -17,6 +17,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   decryptLicenseKey,
   generateMD5Hash,
@@ -432,6 +433,7 @@ export async function POST(request: NextRequest) {
       targetType: AuditLogTargetType.RELEASE,
       responseBody: response,
       requestBody: body,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

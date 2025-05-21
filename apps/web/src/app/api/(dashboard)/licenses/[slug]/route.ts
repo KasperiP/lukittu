@@ -9,6 +9,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   Customer,
   decryptLicenseKey,
@@ -372,6 +373,7 @@ export async function PUT(
       targetType: AuditLogTargetType.LICENSE,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -489,6 +491,7 @@ export async function DELETE(
       targetType: AuditLogTargetType.LICENSE,
       requestBody: null,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

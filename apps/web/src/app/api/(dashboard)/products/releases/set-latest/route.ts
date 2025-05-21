@@ -9,6 +9,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   logger,
   prisma,
@@ -158,6 +159,7 @@ export async function POST(
       targetType: AuditLogTargetType.RELEASE,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

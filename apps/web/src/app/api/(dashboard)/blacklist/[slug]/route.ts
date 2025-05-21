@@ -9,6 +9,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   Blacklist,
   logger,
@@ -120,6 +121,7 @@ export async function DELETE(
       targetId: blacklist.id,
       targetType: AuditLogTargetType.BLACKLIST,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -280,6 +282,7 @@ export async function PUT(
       targetType: AuditLogTargetType.BLACKLIST,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

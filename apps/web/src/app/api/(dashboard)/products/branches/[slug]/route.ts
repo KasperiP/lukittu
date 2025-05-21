@@ -9,6 +9,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   logger,
   prisma,
@@ -176,6 +177,7 @@ export async function PUT(
       targetType: AuditLogTargetType.BRANCH,
       responseBody: response,
       requestBody: body,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -319,6 +321,7 @@ export async function DELETE(
       targetType: AuditLogTargetType.BRANCH,
       requestBody: null,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

@@ -9,6 +9,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   logger,
   prisma,
@@ -122,11 +123,12 @@ export async function POST(
     createAuditLog({
       userId: session.user.id,
       teamId: selectedTeam,
-      action: AuditLogAction.SET_BUILD_BY_BIT_INTEGRATION,
+      action: AuditLogAction.SET_BUILT_BY_BIT_INTEGRATION,
       targetId: selectedTeam,
       targetType: AuditLogTargetType.TEAM,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -228,11 +230,12 @@ export async function DELETE(): Promise<
     createAuditLog({
       userId: session.user.id,
       teamId: selectedTeam,
-      action: AuditLogAction.DELETE_BUILD_BY_BIT_INTEGRATION,
+      action: AuditLogAction.DELETE_BUILT_BY_BIT_INTEGRATION,
       targetId: selectedTeam,
       targetType: AuditLogTargetType.TEAM,
       requestBody: null,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

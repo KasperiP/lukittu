@@ -1,4 +1,7 @@
 import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
@@ -14,6 +17,7 @@ import 'server-only';
 import Stripe from 'stripe';
 import { StripeMetadataKeys } from '../constants/metadata';
 import { sendLicenseDistributionEmail } from '../emails/templates/send-license-distribution-email';
+import { createAuditLog } from '../logging/audit-log';
 
 type ExtendedTeam = Team & {
   settings: Settings | null;
@@ -157,6 +161,7 @@ export const handleInvoicePaid = async (
             teamId: team.id,
           },
         });
+
         const lukittuCustomer = await prisma.customer.upsert({
           where: {
             id: existingLukittuCustomer?.id || '',
@@ -176,6 +181,18 @@ export const handleInvoicePaid = async (
             },
           },
           update: {},
+        });
+
+        createAuditLog({
+          teamId: team.id,
+          action: existingLukittuCustomer?.id
+            ? AuditLogAction.UPDATE_CUSTOMER
+            : AuditLogAction.CREATE_CUSTOMER,
+          targetId: lukittuCustomer.id,
+          targetType: AuditLogTargetType.CUSTOMER,
+          requestBody: null,
+          responseBody: null,
+          source: AuditLogSource.STRIPE_INTEGRATION,
         });
 
         const licenseKey = await generateUniqueLicense(team.id);
@@ -219,6 +236,16 @@ export const handleInvoicePaid = async (
           include: {
             products: true,
           },
+        });
+
+        createAuditLog({
+          teamId: team.id,
+          action: AuditLogAction.CREATE_LICENSE,
+          targetId: license.id,
+          targetType: AuditLogTargetType.LICENSE,
+          requestBody: null,
+          responseBody: null,
+          source: AuditLogSource.STRIPE_INTEGRATION,
         });
 
         const success = await sendLicenseDistributionEmail({
@@ -539,6 +566,7 @@ export const handleCheckoutSessionCompleted = async (
           teamId: team.id,
         },
       });
+
       const lukittuCustomer = await prisma.customer.upsert({
         where: {
           id: existingLukittuCustomer?.id || '',
@@ -570,6 +598,18 @@ export const handleCheckoutSessionCompleted = async (
           },
         },
         update: {},
+      });
+
+      createAuditLog({
+        teamId: team.id,
+        action: existingLukittuCustomer?.id
+          ? AuditLogAction.UPDATE_CUSTOMER
+          : AuditLogAction.CREATE_CUSTOMER,
+        targetId: lukittuCustomer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.STRIPE_INTEGRATION,
       });
 
       const licenseKey = await generateUniqueLicense(team.id);
@@ -615,6 +655,16 @@ export const handleCheckoutSessionCompleted = async (
         include: {
           products: true,
         },
+      });
+
+      createAuditLog({
+        teamId: team.id,
+        action: AuditLogAction.CREATE_LICENSE,
+        targetId: license.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.STRIPE_INTEGRATION,
       });
 
       const success = await sendLicenseDistributionEmail({

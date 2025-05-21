@@ -1,11 +1,20 @@
+import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { generateHMAC, logger, prisma, regex } from '@lukittu/shared';
+import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
+  generateHMAC,
+  logger,
+  prisma,
+  regex,
+} from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   props: { params: Promise<{ teamId: string; licenseKey: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
@@ -232,22 +241,31 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json(
-      {
-        data: {
-          licenseKey,
-          deleted: true,
-        },
-        result: {
-          details: 'License deleted successfully',
-          timestamp: new Date(),
-          valid: true,
-        },
+    const response = {
+      data: {
+        licenseKey,
+        deleted: true,
       },
-      {
-        status: HttpStatus.OK,
+      result: {
+        details: 'License deleted successfully',
+        timestamp: new Date(),
+        valid: true,
       },
-    );
+    };
+
+    createAuditLog({
+      teamId: team.id,
+      action: AuditLogAction.DELETE_LICENSE,
+      targetId: license.id,
+      targetType: AuditLogTargetType.LICENSE,
+      requestBody: null,
+      responseBody: response,
+      source: AuditLogSource.API_KEY,
+    });
+
+    return NextResponse.json(response, {
+      status: HttpStatus.OK,
+    });
   } catch (error) {
     logger.error(
       "Error in DELETE '(external)/v1/dev/teams/[teamId]/licenses/[licenseKey]' route",

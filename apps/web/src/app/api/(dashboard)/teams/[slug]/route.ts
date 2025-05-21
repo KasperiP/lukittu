@@ -10,6 +10,7 @@ import { HttpStatus } from '@/types/http-status';
 import {
   ApiKey,
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   Limits,
   logger,
@@ -152,6 +153,7 @@ export async function DELETE(
       targetId: team.id,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json({
@@ -261,6 +263,7 @@ export async function PUT(
       targetId: teamId,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

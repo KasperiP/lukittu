@@ -10,6 +10,7 @@ import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   decryptLicenseKey,
   encryptLicenseKey,
@@ -298,13 +299,13 @@ export async function POST(
     };
 
     createAuditLog({
-      system: true,
       teamId: team.id,
       action: AuditLogAction.CREATE_LICENSE,
       targetId: license.id,
       targetType: AuditLogTargetType.LICENSE,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.API_KEY,
     });
 
     return NextResponse.json(response);

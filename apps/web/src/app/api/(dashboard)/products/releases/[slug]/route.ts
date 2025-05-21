@@ -20,6 +20,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   generateMD5Hash,
   logger,
@@ -448,6 +449,7 @@ export async function PUT(
       targetType: AuditLogTargetType.RELEASE,
       responseBody: response,
       requestBody: body,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -577,6 +579,7 @@ export async function DELETE(
       targetType: AuditLogTargetType.RELEASE,
       requestBody: null,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });

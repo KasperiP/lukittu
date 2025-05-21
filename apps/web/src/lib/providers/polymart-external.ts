@@ -1,5 +1,8 @@
 import { HttpStatus } from '@/types/http-status';
 import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
   decryptLicenseKey,
   encryptLicenseKey,
   generateHMAC,
@@ -13,6 +16,7 @@ import {
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { PolymartMetadataKeys } from '../constants/metadata';
+import { createAuditLog } from '../logging/audit-log';
 import { PlaceholderPolymartSchema } from '../validation/integrations/placeholder-polymart-schema';
 import {
   PolymartPurchaseParams,
@@ -293,6 +297,18 @@ export const handlePolymartPurchase = async (
         },
       });
 
+      createAuditLog({
+        teamId: team.id,
+        action: existingLukittuCustomer?.id
+          ? AuditLogAction.UPDATE_CUSTOMER
+          : AuditLogAction.CREATE_CUSTOMER,
+        targetId: lukittuCustomer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.POLYMART_INTEGRATION,
+      });
+
       const licenseKey = await generateUniqueLicense(team.id);
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
@@ -336,6 +352,16 @@ export const handlePolymartPurchase = async (
         include: {
           products: true,
         },
+      });
+
+      createAuditLog({
+        teamId: team.id,
+        action: AuditLogAction.CREATE_LICENSE,
+        targetId: license.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.POLYMART_INTEGRATION,
       });
 
       return license;
@@ -457,6 +483,16 @@ export const handlePolymartPlaceholder = async (
       userId: validatedData.user,
       productId: validatedData.product,
       licenseId: licenseKey.id,
+    });
+
+    createAuditLog({
+      teamId,
+      action: AuditLogAction.SET_POLYMART_PLACEHOLDER,
+      targetId: licenseKey.id,
+      targetType: AuditLogTargetType.LICENSE,
+      requestBody: null,
+      responseBody: null,
+      source: AuditLogSource.POLYMART_INTEGRATION,
     });
 
     const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);

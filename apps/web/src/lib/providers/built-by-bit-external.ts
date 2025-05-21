@@ -1,5 +1,8 @@
 import { HttpStatus } from '@/types/http-status';
 import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
   BuiltByBitIntegration,
   decryptLicenseKey,
   encryptLicenseKey,
@@ -12,6 +15,7 @@ import {
   Team,
 } from '@lukittu/shared';
 import { BuiltByBitMetadataKeys } from '../constants/metadata';
+import { createAuditLog } from '../logging/audit-log';
 import { PlaceholderBuiltByBitSchema } from '../validation/integrations/placeholder-built-by-bit-schema';
 import { PurchaseBuiltByBitSchema } from '../validation/integrations/purchase-built-by-bit-schema';
 
@@ -172,6 +176,7 @@ export const handleBuiltByBitPurchase = async (
           teamId: team.id,
         },
       });
+
       const lukittuCustomer = await prisma.customer.upsert({
         where: {
           id: existingLukittuCustomer?.id || '',
@@ -192,6 +197,18 @@ export const handleBuiltByBitPurchase = async (
         update: {
           username: bbbUser.username,
         },
+      });
+
+      createAuditLog({
+        teamId: team.id,
+        action: existingLukittuCustomer?.id
+          ? AuditLogAction.UPDATE_CUSTOMER
+          : AuditLogAction.CREATE_CUSTOMER,
+        targetId: lukittuCustomer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
       });
 
       const licenseKey = await generateUniqueLicense(team.id);
@@ -237,6 +254,16 @@ export const handleBuiltByBitPurchase = async (
         include: {
           products: true,
         },
+      });
+
+      createAuditLog({
+        teamId: team.id,
+        action: AuditLogAction.CREATE_LICENSE,
+        targetId: license.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: null,
+        responseBody: null,
+        source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
       });
 
       return license;
@@ -342,6 +369,16 @@ export const handleBuiltByBitPlaceholder = async (
       userId: validatedData.user_id,
       resourceId: validatedData.resource_id,
       licenseId: licenseKey.id,
+    });
+
+    createAuditLog({
+      teamId,
+      action: AuditLogAction.SET_BUILT_BY_BIT_PLACEHOLDER,
+      targetId: licenseKey.id,
+      targetType: AuditLogTargetType.LICENSE,
+      requestBody: null,
+      responseBody: null,
+      source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
     });
 
     const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);

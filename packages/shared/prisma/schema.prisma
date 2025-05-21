@@ -468,15 +468,15 @@ model AuditLog {
     country      String?
     requestBody  Json?
     responseBody Json?
-    userId       String?
     version      String
+    userId       String?
     user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
     targetId     String
     targetType   AuditLogTargetType
     teamId       String
     team         Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
     action       AuditLogAction
-    system       Boolean            @default(false)
+    source       AuditLogSource
     createdAt    DateTime           @default(now())
 
     @@index([teamId, createdAt])
@@ -532,6 +532,15 @@ enum RequestMethod {
     DELETE
 }
 
+enum AuditLogSource {
+    DASHBOARD /// Logged-in user via the dashboard
+    API_KEY /// Through developer API using API key
+    STRIPE_INTEGRATION
+    DISCORD_INTEGRATION
+    BUILT_BY_BIT_INTEGRATION
+    POLYMART_INTEGRATION
+}
+
 enum AuditLogAction {
     LEAVE_TEAM
     CREATE_TEAM
@@ -570,13 +579,15 @@ enum AuditLogAction {
     SET_LATEST_RELEASE
     UPDATE_EMAIL_PICTURE
     DELETE_EMAIL_PICTURE
-    SET_BUILD_BY_BIT_INTEGRATION
-    DELETE_BUILD_BY_BIT_INTEGRATION
+    SET_BUILT_BY_BIT_INTEGRATION
+    DELETE_BUILT_BY_BIT_INTEGRATION
     SET_POLYMART_INTEGRATION
     DELETE_POLYMART_INTEGRATION
     CREATE_BRANCH
     UPDATE_BRANCH
     DELETE_BRANCH
+    SET_BUILT_BY_BIT_PLACEHOLDER
+    SET_POLYMART_PLACEHOLDER
 }
 
 enum ReleaseStatus {

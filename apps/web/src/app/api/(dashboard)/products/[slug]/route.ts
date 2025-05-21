@@ -10,6 +10,7 @@ import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   logger,
   Metadata,
@@ -280,6 +281,7 @@ export async function DELETE(
       targetId: product.id,
       targetType: AuditLogTargetType.PRODUCT,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);
@@ -437,6 +439,7 @@ export async function PUT(
       targetType: AuditLogTargetType.PRODUCT,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response);

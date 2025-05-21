@@ -10,6 +10,7 @@ import { HttpStatus } from '@/types/http-status';
 import {
   Address,
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   Customer,
   logger,
@@ -281,6 +282,7 @@ export async function PUT(
       targetType: AuditLogTargetType.CUSTOMER,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
@@ -400,6 +402,7 @@ export async function DELETE(
       targetType: AuditLogTargetType.CUSTOMER,
       requestBody: null,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });

@@ -10,6 +10,7 @@ import { HttpStatus } from '@/types/http-status';
 import {
   Address,
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   Customer,
   logger,
@@ -427,6 +428,7 @@ export async function POST(
       targetType: AuditLogTargetType.CUSTOMER,
       requestBody: body,
       responseBody: response,
+      source: AuditLogSource.DASHBOARD,
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

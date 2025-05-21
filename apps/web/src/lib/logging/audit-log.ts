@@ -1,5 +1,6 @@
 import {
   AuditLogAction,
+  AuditLogSource,
   AuditLogTargetType,
   logger,
   prisma,
@@ -18,35 +19,29 @@ interface BaseAuditLogProps {
   responseBody?: any;
 }
 
-interface SystemAuditLogProps extends BaseAuditLogProps {
-  system: true;
-  userId?: never;
-}
+type SystemAuditLogProps = BaseAuditLogProps & {
+  source: Exclude<AuditLogSource, 'DASHBOARD'>;
+};
 
-interface UserAuditLogProps extends BaseAuditLogProps {
+type UserAuditLogProps = BaseAuditLogProps & {
+  source: 'DASHBOARD';
   userId: string;
-  system?: never;
-}
+};
 
 type CreateAuditLogProps = SystemAuditLogProps | UserAuditLogProps;
 
 export const createAuditLog = async ({
-  userId,
-  system,
   teamId,
   action,
   targetId,
   targetType,
+  source,
   requestBody,
   responseBody,
+  ...rest
 }: CreateAuditLogProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (userId && system) {
-    throw new Error('Cannot specify both userId and system');
-  }
-  if (!userId && !system) {
-    throw new Error('Must specify either userId or system');
-  }
+  const userId =
+    source === 'DASHBOARD' ? (rest as UserAuditLogProps).userId : undefined;
 
   const ipAddress = await getIp();
   const userAgent = await getUserAgent();
@@ -73,7 +68,7 @@ export const createAuditLog = async ({
         requestBody,
         responseBody,
         userId: userId || null,
-        system: system || false,
+        source: source || AuditLogSource.DASHBOARD,
         country: countryAlpha3,
       },
     });
