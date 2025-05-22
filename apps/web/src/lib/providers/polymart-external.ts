@@ -297,7 +297,7 @@ export const handlePolymartPurchase = async (
         },
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: existingLukittuCustomer?.id
           ? AuditLogAction.UPDATE_CUSTOMER
@@ -307,6 +307,7 @@ export const handlePolymartPurchase = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.POLYMART_INTEGRATION,
+        tx: prisma,
       });
 
       const licenseKey = await generateUniqueLicense(team.id);
@@ -354,7 +355,7 @@ export const handlePolymartPurchase = async (
         },
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: AuditLogAction.CREATE_LICENSE,
         targetId: license.id,
@@ -362,6 +363,7 @@ export const handlePolymartPurchase = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.POLYMART_INTEGRATION,
+        tx: prisma,
       });
 
       return license;
@@ -485,7 +487,7 @@ export const handlePolymartPlaceholder = async (
       licenseId: licenseKey.id,
     });
 
-    createAuditLog({
+    await createAuditLog({
       teamId,
       action: AuditLogAction.SET_POLYMART_PLACEHOLDER,
       targetId: licenseKey.id,

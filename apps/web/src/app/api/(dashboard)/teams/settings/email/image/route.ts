@@ -196,28 +196,33 @@ export async function POST(
 
     const imageUrl = `${process.env.PUBLIC_OBJECT_STORAGE_BASE_URL}/${fileKey}`;
 
-    await prisma.settings.update({
-      where: {
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.settings.update({
+        where: {
+          teamId: team.id,
+        },
+        data: {
+          emailImageUrl: imageUrl,
+        },
+      });
+
+      const response = {
+        url: imageUrl,
+      };
+
+      await createAuditLog({
+        userId: session.user.id,
         teamId: team.id,
-      },
-      data: {
-        emailImageUrl: imageUrl,
-      },
-    });
+        action: AuditLogAction.UPDATE_EMAIL_PICTURE,
+        targetId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    const response = {
-      url: imageUrl,
-    };
-
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.UPDATE_EMAIL_PICTURE,
-      targetId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
@@ -290,8 +295,9 @@ export async function DELETE() {
     }
 
     const team = session.user.teams[0];
+    const settings = team.settings;
 
-    if (!team.settings?.emailImageUrl) {
+    if (!settings || !settings?.emailImageUrl) {
       return NextResponse.json(
         {
           message: t('validation.bad_request'),
@@ -300,35 +306,40 @@ export async function DELETE() {
       );
     }
 
-    const imageUrlParts = team.settings.emailImageUrl.split('/');
+    const imageUrlParts = settings.emailImageUrl.split('/');
     const fileKey = `team-emails/${imageUrlParts[imageUrlParts.length - 1]}`;
     await deleteFileFromPublicS3(
       process.env.PUBLIC_OBJECT_STORAGE_BUCKET_NAME!,
       fileKey,
     );
 
-    await prisma.settings.update({
-      where: {
-        id: team.settings.id,
-      },
-      data: {
-        emailImageUrl: null,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.settings.update({
+        where: {
+          id: settings.id,
+        },
+        data: {
+          emailImageUrl: null,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.DELETE_EMAIL_PICTURE,
-      targetId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.DELETE_EMAIL_PICTURE,
+        targetId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

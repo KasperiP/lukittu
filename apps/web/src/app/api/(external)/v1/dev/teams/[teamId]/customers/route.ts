@@ -80,50 +80,55 @@ export async function POST(
       );
     }
 
-    const customer = await prisma.customer.create({
-      data: {
-        email,
-        fullName,
-        username,
-        metadata: {
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const customer = await prisma.customer.create({
+        data: {
+          email,
+          fullName,
+          username,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
+          address: {
+            create: address,
+          },
+          team: {
+            connect: {
+              id: team.id,
+            },
           },
         },
-        address: {
-          create: address,
+        include: {
+          metadata: true,
         },
-        team: {
-          connect: {
-            id: team.id,
-          },
+      });
+
+      const response: IExternalDevResponse = {
+        data: customer,
+        result: {
+          details: 'Customer created',
+          timestamp: new Date(),
+          valid: true,
         },
-      },
-      include: {
-        metadata: true,
-      },
-    });
+      };
 
-    const response: IExternalDevResponse = {
-      data: customer,
-      result: {
-        details: 'Customer created',
-        timestamp: new Date(),
-        valid: true,
-      },
-    };
+      await createAuditLog({
+        teamId: team.id,
+        action: AuditLogAction.CREATE_CUSTOMER,
+        targetId: customer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.API_KEY,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      teamId: team.id,
-      action: AuditLogAction.CREATE_CUSTOMER,
-      targetId: customer.id,
-      targetType: AuditLogTargetType.CUSTOMER,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.API_KEY,
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

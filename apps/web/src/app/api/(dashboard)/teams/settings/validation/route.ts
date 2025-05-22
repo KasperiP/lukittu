@@ -97,31 +97,37 @@ export async function PUT(
       strictReleases,
     } = validated.data;
 
-    const updatedSettings = await prisma.settings.update({
-      where: {
-        teamId: selectedTeam,
-      },
-      data: {
-        strictCustomers,
-        strictProducts,
-        strictReleases,
-        deviceTimeout,
-        ipLimitPeriod,
-      },
-    });
-    const response = {
-      settings: updatedSettings,
-    };
+    const response = await prisma.$transaction(async (prisma) => {
+      const updatedSettings = await prisma.settings.update({
+        where: {
+          teamId: selectedTeam,
+        },
+        data: {
+          strictCustomers,
+          strictProducts,
+          strictReleases,
+          deviceTimeout,
+          ipLimitPeriod,
+        },
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.UPDATE_TEAM_SETTINGS,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      const response = {
+        settings: updatedSettings,
+      };
+
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.UPDATE_TEAM_SETTINGS,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

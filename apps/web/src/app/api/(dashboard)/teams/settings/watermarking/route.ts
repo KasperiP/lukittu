@@ -102,34 +102,39 @@ export async function PUT(
       );
     }
 
-    const updatedSettings = await prisma.watermarkingSettings.upsert({
-      where: {
-        teamId: selectedTeam,
-      },
-      create: {
-        ...validated.data,
-        team: {
-          connect: {
-            id: selectedTeam,
+    const response = await prisma.$transaction(async (prisma) => {
+      const updatedSettings = await prisma.watermarkingSettings.upsert({
+        where: {
+          teamId: selectedTeam,
+        },
+        create: {
+          ...validated.data,
+          team: {
+            connect: {
+              id: selectedTeam,
+            },
           },
         },
-      },
-      update: validated.data,
-    });
+        update: validated.data,
+      });
 
-    const response = {
-      settings: updatedSettings,
-    };
+      const response = {
+        settings: updatedSettings,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.UPDATE_TEAM_SETTINGS,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.UPDATE_TEAM_SETTINGS,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

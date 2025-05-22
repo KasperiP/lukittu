@@ -92,45 +92,50 @@ export async function POST(
 
     const team = session.user.teams[0];
 
-    await prisma.polymartIntegration.upsert({
-      where: {
-        teamId: team.id,
-      },
-      create: {
-        team: {
-          connect: {
-            id: team.id,
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.polymartIntegration.upsert({
+        where: {
+          teamId: team.id,
+        },
+        create: {
+          team: {
+            connect: {
+              id: team.id,
+            },
+          },
+          active,
+          webhookSecret,
+          signingSecret,
+          createdBy: {
+            connect: {
+              id: session.user.id,
+            },
           },
         },
-        active,
-        webhookSecret,
-        signingSecret,
-        createdBy: {
-          connect: {
-            id: session.user.id,
-          },
+        update: {
+          active,
+          webhookSecret,
+          signingSecret,
         },
-      },
-      update: {
-        active,
-        webhookSecret,
-        signingSecret,
-      },
-    });
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.SET_POLYMART_INTEGRATION,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.SET_POLYMART_INTEGRATION,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);
@@ -219,24 +224,29 @@ export async function DELETE(): Promise<
       );
     }
 
-    await prisma.polymartIntegration.delete({
-      where: {
-        teamId: team.id,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.polymartIntegration.delete({
+        where: {
+          teamId: team.id,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.DELETE_POLYMART_INTEGRATION,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.DELETE_POLYMART_INTEGRATION,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

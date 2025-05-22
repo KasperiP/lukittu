@@ -384,7 +384,7 @@ export async function PUT(
       );
     }
 
-    const release = await prisma.$transaction(async (prisma) => {
+    const response = await prisma.$transaction(async (prisma) => {
       const isPublished = status === 'PUBLISHED';
 
       if (isPublished && setAsLatest) {
@@ -434,22 +434,23 @@ export async function PUT(
         },
       });
 
-      return release;
-    });
+      const response = {
+        release,
+      };
 
-    const response = {
-      release,
-    };
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.UPDATE_RELEASE,
+        targetId: release.id,
+        targetType: AuditLogTargetType.RELEASE,
+        responseBody: response,
+        requestBody: body,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.UPDATE_RELEASE,
-      targetId: release.id,
-      targetType: AuditLogTargetType.RELEASE,
-      responseBody: response,
-      requestBody: body,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response);
@@ -554,32 +555,37 @@ export async function DELETE(
 
     const release = team.releases[0];
 
-    await prisma.release.delete({
-      where: {
-        id: releaseId,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.release.delete({
+        where: {
+          id: releaseId,
+        },
+      });
 
-    if (release.file) {
-      await deleteFileFromPrivateS3(
-        process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-        release.file.key,
-      );
-    }
+      if (release.file) {
+        await deleteFileFromPrivateS3(
+          process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+          release.file.key,
+        );
+      }
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.DELETE_RELEASE,
-      targetId: releaseId,
-      targetType: AuditLogTargetType.RELEASE,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.DELETE_RELEASE,
+        targetId: releaseId,
+        targetType: AuditLogTargetType.RELEASE,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });

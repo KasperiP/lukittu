@@ -70,28 +70,33 @@ export async function POST() {
 
     const { privateKey, publicKey } = generateKeyPair();
 
-    await prisma.keyPair.update({
-      where: {
-        teamId: selectedTeam,
-      },
-      data: {
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.keyPair.update({
+        where: {
+          teamId: selectedTeam,
+        },
+        data: {
+          publicKey,
+          privateKey,
+        },
+      });
+
+      const response = {
         publicKey,
-        privateKey,
-      },
-    });
+      };
 
-    const response = {
-      publicKey,
-    };
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.RESET_PUBLIC_KEY,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.RESET_PUBLIC_KEY,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });

@@ -39,15 +39,15 @@ export async function GET(request: NextRequest) {
         );
 
         if (stripeSubscription.status !== 'active') {
-          await prisma.$transaction(async (tx) => {
-            await tx.subscription.update({
+          await prisma.$transaction(async (prisma) => {
+            await prisma.subscription.update({
               where: { id: subscription.id },
               data: {
                 status: stripeSubscription.status,
               },
             });
 
-            await tx.limits.update({
+            await prisma.limits.update({
               where: { teamId: subscription.teamId },
               data: DEFAULT_LIMITS,
             });

@@ -132,33 +132,36 @@ export async function DELETE(
       });
     }
 
-    await prisma.team.update({
-      where: {
-        id: teamId,
-      },
-      data: {
-        deletedAt: new Date(),
-      },
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.team.update({
+        where: {
+          id: teamId,
+        },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+
+      const response = {
+        success: true,
+      };
+
+      await createAuditLog({
+        action: AuditLogAction.DELETE_TEAM,
+        userId: session.user.id,
+        teamId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        targetId: team.id,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
-    const response = {
-      success: true,
-    };
-
-    createAuditLog({
-      action: AuditLogAction.DELETE_TEAM,
-      userId: session.user.id,
-      teamId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      targetId: team.id,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
-    });
-
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error occurred in 'teams/[slug]' route", error);
     return NextResponse.json(
@@ -242,28 +245,33 @@ export async function PUT(
       );
     }
 
-    const updatedTeam = await prisma.team.update({
-      where: {
-        id: teamId,
-      },
-      data: {
-        name,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      const updatedTeam = await prisma.team.update({
+        where: {
+          id: teamId,
+        },
+        data: {
+          name,
+        },
+      });
 
-    const response = {
-      team: updatedTeam,
-    };
+      const response = {
+        team: updatedTeam,
+      };
 
-    createAuditLog({
-      action: AuditLogAction.UPDATE_TEAM,
-      userId: session.user.id,
-      teamId,
-      targetType: AuditLogTargetType.TEAM,
-      targetId: teamId,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        action: AuditLogAction.UPDATE_TEAM,
+        userId: session.user.id,
+        teamId,
+        targetType: AuditLogTargetType.TEAM,
+        targetId: teamId,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

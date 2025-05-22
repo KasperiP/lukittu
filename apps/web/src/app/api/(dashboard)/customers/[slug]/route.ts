@@ -237,52 +237,57 @@ export async function PUT(
       );
     }
 
-    const updatedCustomer = await prisma.customer.update({
-      where: {
-        id: customerId,
-      },
-      data: {
-        email,
-        fullName,
-        username,
-        metadata: {
-          deleteMany: {},
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
-          },
+    const response = await prisma.$transaction(async (prisma) => {
+      const updatedCustomer = await prisma.customer.update({
+        where: {
+          id: customerId,
         },
-        address: {
-          upsert: {
-            create: {
-              ...address,
-            },
-            update: {
-              ...address,
+        data: {
+          email,
+          fullName,
+          username,
+          metadata: {
+            deleteMany: {},
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
             },
           },
+          address: {
+            upsert: {
+              create: {
+                ...address,
+              },
+              update: {
+                ...address,
+              },
+            },
+          },
         },
-      },
-      include: {
-        metadata: true,
-      },
-    });
+        include: {
+          metadata: true,
+        },
+      });
 
-    const response = {
-      customer: updatedCustomer,
-    };
+      const response = {
+        customer: updatedCustomer,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.UPDATE_CUSTOMER,
-      targetId: customerId,
-      targetType: AuditLogTargetType.CUSTOMER,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.UPDATE_CUSTOMER,
+        targetId: customerId,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
@@ -384,25 +389,30 @@ export async function DELETE(
       );
     }
 
-    await prisma.customer.delete({
-      where: {
-        id: customerId,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.customer.delete({
+        where: {
+          id: customerId,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.DELETE_CUSTOMER,
-      targetId: customerId,
-      targetType: AuditLogTargetType.CUSTOMER,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.DELETE_CUSTOMER,
+        targetId: customerId,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });

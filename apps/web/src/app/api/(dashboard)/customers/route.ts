@@ -384,51 +384,56 @@ export async function POST(
       );
     }
 
-    const customer = await prisma.customer.create({
-      data: {
-        email,
-        fullName,
-        username,
-        metadata: {
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const customer = await prisma.customer.create({
+        data: {
+          email,
+          fullName,
+          username,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
+          address: {
+            create: address,
+          },
+          createdBy: {
+            connect: {
+              id: session.user.id,
+            },
+          },
+          team: {
+            connect: {
+              id: team.id,
+            },
           },
         },
-        address: {
-          create: address,
+        include: {
+          metadata: true,
         },
-        createdBy: {
-          connect: {
-            id: session.user.id,
-          },
-        },
-        team: {
-          connect: {
-            id: team.id,
-          },
-        },
-      },
-      include: {
-        metadata: true,
-      },
-    });
+      });
 
-    const response = {
-      customer,
-    };
+      const response = {
+        customer,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.CREATE_CUSTOMER,
-      targetId: customer.id,
-      targetType: AuditLogTargetType.CUSTOMER,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.CREATE_CUSTOMER,
+        targetId: customer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

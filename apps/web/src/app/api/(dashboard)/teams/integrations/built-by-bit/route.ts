@@ -92,43 +92,48 @@ export async function POST(
 
     const team = session.user.teams[0];
 
-    await prisma.builtByBitIntegration.upsert({
-      where: {
-        teamId: team.id,
-      },
-      create: {
-        team: {
-          connect: {
-            id: team.id,
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.builtByBitIntegration.upsert({
+        where: {
+          teamId: team.id,
+        },
+        create: {
+          team: {
+            connect: {
+              id: team.id,
+            },
+          },
+          active,
+          apiSecret,
+          createdBy: {
+            connect: {
+              id: session.user.id,
+            },
           },
         },
-        active,
-        apiSecret,
-        createdBy: {
-          connect: {
-            id: session.user.id,
-          },
+        update: {
+          active,
+          apiSecret,
         },
-      },
-      update: {
-        active,
-        apiSecret,
-      },
-    });
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.SET_BUILT_BY_BIT_INTEGRATION,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.SET_BUILT_BY_BIT_INTEGRATION,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);
@@ -217,25 +222,30 @@ export async function DELETE(): Promise<
       );
     }
 
-    await prisma.builtByBitIntegration.delete({
-      where: {
-        teamId: team.id,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.builtByBitIntegration.delete({
+        where: {
+          teamId: team.id,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.DELETE_BUILT_BY_BIT_INTEGRATION,
-      targetId: selectedTeam,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.DELETE_BUILT_BY_BIT_INTEGRATION,
+        targetId: selectedTeam,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

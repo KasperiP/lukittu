@@ -3,12 +3,20 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   logger,
+  Prisma,
   prisma,
+  PrismaClient,
 } from '@lukittu/shared';
+import { DefaultArgs } from '@lukittu/shared/dist/prisma/generated/client/runtime/library';
 import 'server-only';
 import { getCloudflareVisitorData } from '../providers/cloudflare';
 import { iso2toIso3 } from '../utils/country-helpers';
 import { getIp, getUserAgent } from '../utils/header-helpers';
+
+type PrismaTransaction = Omit<
+  PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;
 
 interface BaseAuditLogProps {
   teamId: string;
@@ -17,6 +25,7 @@ interface BaseAuditLogProps {
   targetType: AuditLogTargetType;
   requestBody?: any;
   responseBody?: any;
+  tx?: PrismaTransaction;
 }
 
 type SystemAuditLogProps = BaseAuditLogProps & {
@@ -38,8 +47,11 @@ export const createAuditLog = async ({
   source,
   requestBody,
   responseBody,
+  tx,
   ...rest
 }: CreateAuditLogProps) => {
+  const prismaClient = tx || prisma;
+
   const userId =
     source === 'DASHBOARD' ? (rest as UserAuditLogProps).userId : undefined;
 
@@ -54,7 +66,7 @@ export const createAuditLog = async ({
     : null;
 
   try {
-    await prisma.auditLog.create({
+    await prismaClient.auditLog.create({
       data: {
         version: process.env.version!,
         teamId,

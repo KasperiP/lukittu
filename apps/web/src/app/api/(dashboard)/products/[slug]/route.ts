@@ -233,7 +233,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.$transaction(async (prisma) => {
+    const response = await prisma.$transaction(async (prisma) => {
       await prisma.product.delete({
         where: {
           id: productId,
@@ -260,6 +260,21 @@ export async function DELETE(
         },
       });
 
+      const response = {
+        success: true,
+      };
+
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.DELETE_PRODUCT,
+        targetId: product.id,
+        targetType: AuditLogTargetType.PRODUCT,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       const deleteFilePromises = fileIds.map((fileId) =>
         deleteFileFromPrivateS3(
           process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
@@ -268,20 +283,8 @@ export async function DELETE(
       );
 
       await Promise.all(deleteFilePromises);
-    });
 
-    const response = {
-      success: true,
-    };
-
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.DELETE_PRODUCT,
-      targetId: product.id,
-      targetType: AuditLogTargetType.PRODUCT,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response);
@@ -408,38 +411,43 @@ export async function PUT(
       );
     }
 
-    const product = await prisma.product.update({
-      where: {
-        id: productId,
-      },
-      data: {
-        name,
-        url: url || null,
-        metadata: {
-          deleteMany: {},
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const product = await prisma.product.update({
+        where: {
+          id: productId,
+        },
+        data: {
+          name,
+          url: url || null,
+          metadata: {
+            deleteMany: {},
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
           },
         },
-      },
-    });
+      });
 
-    const response = {
-      product,
-    };
+      const response = {
+        product,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.UPDATE_PRODUCT,
-      targetId: product.id,
-      targetType: AuditLogTargetType.PRODUCT,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.UPDATE_PRODUCT,
+        targetId: product.id,
+        targetType: AuditLogTargetType.PRODUCT,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

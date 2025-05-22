@@ -235,32 +235,37 @@ export async function DELETE(
       );
     }
 
-    await prisma.license.delete({
-      where: {
-        id: license.id,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.license.delete({
+        where: {
+          id: license.id,
+        },
+      });
 
-    const response = {
-      data: {
-        licenseKey,
-        deleted: true,
-      },
-      result: {
-        details: 'License deleted successfully',
-        timestamp: new Date(),
-        valid: true,
-      },
-    };
+      const response = {
+        data: {
+          licenseKey,
+          deleted: true,
+        },
+        result: {
+          details: 'License deleted successfully',
+          timestamp: new Date(),
+          valid: true,
+        },
+      };
 
-    createAuditLog({
-      teamId: team.id,
-      action: AuditLogAction.DELETE_LICENSE,
-      targetId: license.id,
-      targetType: AuditLogTargetType.LICENSE,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.API_KEY,
+      await createAuditLog({
+        teamId: team.id,
+        action: AuditLogAction.DELETE_LICENSE,
+        targetId: license.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.API_KEY,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, {

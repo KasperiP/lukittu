@@ -121,31 +121,36 @@ export async function DELETE(
       );
     }
 
-    await prisma.team.update({
-      where: {
-        id: selectedTeam,
-      },
-      data: {
-        users: {
-          disconnect: {
-            id: memberId,
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.team.update({
+        where: {
+          id: selectedTeam,
+        },
+        data: {
+          users: {
+            disconnect: {
+              id: memberId,
+            },
           },
         },
-      },
-    });
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.KICK_MEMBER,
-      targetId: memberId,
-      targetType: AuditLogTargetType.TEAM,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.KICK_MEMBER,
+        targetId: memberId,
+        targetType: AuditLogTargetType.TEAM,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

@@ -365,7 +365,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const release = await prisma.$transaction(async (prisma) => {
+    const response = await prisma.$transaction(async (prisma) => {
       const isPublished = status === 'PUBLISHED';
 
       if (isPublished && setAsLatest) {
@@ -418,22 +418,23 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return release;
-    });
+      const response = {
+        release,
+      };
 
-    const response = {
-      release,
-    };
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.CREATE_RELEASE,
+        targetId: release.id,
+        targetType: AuditLogTargetType.RELEASE,
+        responseBody: response,
+        requestBody: body,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.CREATE_RELEASE,
-      targetId: release.id,
-      targetType: AuditLogTargetType.RELEASE,
-      responseBody: response,
-      requestBody: body,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

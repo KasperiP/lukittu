@@ -116,7 +116,7 @@ export async function POST(
       );
     }
 
-    const team = await prisma.$transaction(async (prisma) => {
+    const response = await prisma.$transaction(async (prisma) => {
       await prisma.invitation.update({
         where: {
           id: invitationId,
@@ -139,21 +139,22 @@ export async function POST(
         },
       });
 
-      return team;
-    });
+      const response = {
+        team,
+      };
 
-    const response = {
-      team,
-    };
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.ACCEPT_INVITATION,
+        targetId: invitation.id,
+        targetType: AuditLogTargetType.TEAM,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.ACCEPT_INVITATION,
-      targetId: invitation.id,
-      targetType: AuditLogTargetType.TEAM,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response);
@@ -276,25 +277,30 @@ export async function DELETE(
       );
     }
 
-    await prisma.invitation.delete({
-      where: {
-        id: invitationId,
-        teamId: selectedTeam,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.invitation.delete({
+        where: {
+          id: invitationId,
+          teamId: selectedTeam,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.CANCEL_INVITATION,
-      targetId: invitation.id,
-      targetType: AuditLogTargetType.TEAM,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.CANCEL_INVITATION,
+        targetId: invitation.id,
+        targetType: AuditLogTargetType.TEAM,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

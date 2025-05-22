@@ -127,8 +127,8 @@ export async function POST(
       );
     }
 
-    await prisma.$transaction([
-      prisma.release.updateMany({
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.release.updateMany({
         where: {
           productId: release.productId,
           branchId: release.branchId, // Only clear "latest" flag for releases in the same branch
@@ -136,30 +136,34 @@ export async function POST(
         data: {
           latest: false,
         },
-      }),
-      prisma.release.update({
+      });
+
+      await prisma.release.update({
         where: {
           id: releaseId,
         },
         data: {
           latest: true,
         },
-      }),
-    ]);
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.SET_LATEST_RELEASE,
-      targetId: releaseId,
-      targetType: AuditLogTargetType.RELEASE,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.SET_LATEST_RELEASE,
+        targetId: releaseId,
+        targetType: AuditLogTargetType.RELEASE,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

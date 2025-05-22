@@ -155,28 +155,33 @@ export async function POST(
       });
     }
 
-    await prisma.team.update({
-      where: {
-        id: teamId,
-      },
-      data: {
-        ownerId: newOwnerId,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.team.update({
+        where: {
+          id: teamId,
+        },
+        data: {
+          ownerId: newOwnerId,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      action: AuditLogAction.TRANSFER_TEAM_OWNERSHIP,
-      userId: session.user.id,
-      teamId,
-      targetType: AuditLogTargetType.TEAM,
-      targetId: teamId,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        action: AuditLogAction.TRANSFER_TEAM_OWNERSHIP,
+        userId: session.user.id,
+        teamId,
+        targetType: AuditLogTargetType.TEAM,
+        targetId: teamId,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

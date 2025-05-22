@@ -183,7 +183,7 @@ export const handleInvoicePaid = async (
           update: {},
         });
 
-        createAuditLog({
+        await createAuditLog({
           teamId: team.id,
           action: existingLukittuCustomer?.id
             ? AuditLogAction.UPDATE_CUSTOMER
@@ -193,6 +193,7 @@ export const handleInvoicePaid = async (
           requestBody: null,
           responseBody: null,
           source: AuditLogSource.STRIPE_INTEGRATION,
+          tx: prisma,
         });
 
         const licenseKey = await generateUniqueLicense(team.id);
@@ -238,7 +239,7 @@ export const handleInvoicePaid = async (
           },
         });
 
-        createAuditLog({
+        await createAuditLog({
           teamId: team.id,
           action: AuditLogAction.CREATE_LICENSE,
           targetId: license.id,
@@ -246,6 +247,7 @@ export const handleInvoicePaid = async (
           requestBody: null,
           responseBody: null,
           source: AuditLogSource.STRIPE_INTEGRATION,
+          tx: prisma,
         });
 
         const success = await sendLicenseDistributionEmail({
@@ -600,7 +602,7 @@ export const handleCheckoutSessionCompleted = async (
         update: {},
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: existingLukittuCustomer?.id
           ? AuditLogAction.UPDATE_CUSTOMER
@@ -610,6 +612,7 @@ export const handleCheckoutSessionCompleted = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.STRIPE_INTEGRATION,
+        tx: prisma,
       });
 
       const licenseKey = await generateUniqueLicense(team.id);
@@ -657,7 +660,7 @@ export const handleCheckoutSessionCompleted = async (
         },
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: AuditLogAction.CREATE_LICENSE,
         targetId: license.id,
@@ -665,6 +668,7 @@ export const handleCheckoutSessionCompleted = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.STRIPE_INTEGRATION,
+        tx: prisma,
       });
 
       const success = await sendLicenseDistributionEmail({

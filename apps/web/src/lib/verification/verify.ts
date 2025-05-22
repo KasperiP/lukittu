@@ -462,9 +462,9 @@ export const handleVerify = async ({
     };
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (prisma) => {
     if (deviceIdentifier) {
-      await tx.device.upsert({
+      await prisma.device.upsert({
         where: {
           licenseId_deviceIdentifier: {
             licenseId: license.id,
@@ -490,7 +490,7 @@ export const handleVerify = async ({
     if (matchingRelease || latestRelease) {
       const idToUse = matchingRelease?.id || latestRelease?.id;
 
-      await tx.release.update({
+      await prisma.release.update({
         where: { id: idToUse },
         data: {
           lastSeenAt: new Date(),

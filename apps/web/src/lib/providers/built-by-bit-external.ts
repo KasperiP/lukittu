@@ -199,7 +199,7 @@ export const handleBuiltByBitPurchase = async (
         },
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: existingLukittuCustomer?.id
           ? AuditLogAction.UPDATE_CUSTOMER
@@ -209,6 +209,7 @@ export const handleBuiltByBitPurchase = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
+        tx: prisma,
       });
 
       const licenseKey = await generateUniqueLicense(team.id);
@@ -256,7 +257,7 @@ export const handleBuiltByBitPurchase = async (
         },
       });
 
-      createAuditLog({
+      await createAuditLog({
         teamId: team.id,
         action: AuditLogAction.CREATE_LICENSE,
         targetId: license.id,
@@ -264,6 +265,7 @@ export const handleBuiltByBitPurchase = async (
         requestBody: null,
         responseBody: null,
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
+        tx: prisma,
       });
 
       return license;
@@ -371,7 +373,7 @@ export const handleBuiltByBitPlaceholder = async (
       licenseId: licenseKey.id,
     });
 
-    createAuditLog({
+    await createAuditLog({
       teamId,
       action: AuditLogAction.SET_BUILT_BY_BIT_PLACEHOLDER,
       targetId: licenseKey.id,

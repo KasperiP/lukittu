@@ -462,8 +462,8 @@ export const handleHeartbeat = async ({
     };
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.device.upsert({
+  await prisma.$transaction(async (prisma) => {
+    await prisma.device.upsert({
       where: {
         licenseId_deviceIdentifier: {
           licenseId: license.id,
@@ -488,7 +488,7 @@ export const handleHeartbeat = async ({
     if (matchingRelease || latestRelease) {
       const idToUse = matchingRelease?.id || latestRelease?.id;
 
-      await tx.release.update({
+      await prisma.release.update({
         where: { id: idToUse },
         data: {
           lastSeenAt: new Date(),

@@ -118,36 +118,36 @@ export async function POST(request: NextRequest) {
       .update(apiKey)
       .digest('hex');
 
-    await prisma.apiKey.create({
-      data: {
-        teamId: team.id,
-        key: hashedApiKey,
-        createdByUserId: session.user.id,
-        expiresAt,
-      },
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.apiKey.create({
+        data: {
+          teamId: team.id,
+          key: hashedApiKey,
+          createdByUserId: session.user.id,
+          expiresAt,
+        },
+      });
+
+      const response = {
+        apiKey: `${apiKey.substring(0, 6)}${'*'.repeat(26)}`,
+      };
+
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.CREATE_API_KEY,
+        targetId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
-    const response = {
-      apiKey: `${apiKey.substring(0, 6)}${'*'.repeat(26)}`,
-    };
-
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.CREATE_API_KEY,
-      targetId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
-    });
-
-    return NextResponse.json(
-      {
-        apiKey,
-      },
-      { status: HttpStatus.CREATED },
-    );
+    return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {
     logger.error("Error occurred in 'teams/api-key' route", error);
     return NextResponse.json(

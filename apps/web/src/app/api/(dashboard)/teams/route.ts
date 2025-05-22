@@ -116,52 +116,56 @@ export async function POST(
 
     const { privateKey, publicKey } = generateKeyPair();
 
-    const createdTeam = await prisma.team.create({
-      data: {
-        name,
-        ownerId: session.user.id,
-        users: {
-          connect: {
-            id: session.user.id,
+    const response = await prisma.$transaction(async (prisma) => {
+      const createdTeam = await prisma.team.create({
+        data: {
+          name,
+          ownerId: session.user.id,
+          users: {
+            connect: {
+              id: session.user.id,
+            },
+          },
+          keyPair: {
+            create: {
+              privateKey,
+              publicKey,
+            },
+          },
+          settings: {
+            create: {
+              strictCustomers: false,
+              strictProducts: false,
+            },
+          },
+          limits: {
+            create: {},
           },
         },
-        keyPair: {
-          create: {
-            privateKey,
-            publicKey,
-          },
-        },
-        settings: {
-          create: {
-            strictCustomers: false,
-            strictProducts: false,
-          },
-        },
-        limits: {
-          create: {},
-        },
-      },
+      });
+
+      (await cookies()).set('selectedTeam', createdTeam.id.toString(), {
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 5),
+      });
+
+      const response = {
+        team: createdTeam,
+      };
+
+      await createAuditLog({
+        action: AuditLogAction.CREATE_TEAM,
+        userId: session.user.id,
+        teamId: createdTeam.id,
+        targetType: AuditLogTargetType.TEAM,
+        targetId: createdTeam.id,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
-
-    (await cookies()).set('selectedTeam', createdTeam.id.toString(), {
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 5),
-    });
-
-    const response = {
-      team: createdTeam,
-    };
-
-    createAuditLog({
-      action: AuditLogAction.CREATE_TEAM,
-      userId: session.user.id,
-      teamId: createdTeam.id,
-      targetType: AuditLogTargetType.TEAM,
-      targetId: createdTeam.id,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
-    });
-
     return NextResponse.json(response);
   } catch (error) {
     logger.error("Error occurred in 'teams' route", error);

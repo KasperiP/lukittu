@@ -175,28 +175,33 @@ export async function POST(
 
     const imageUrl = `${process.env.PUBLIC_OBJECT_STORAGE_BASE_URL}/${fileKey}`;
 
-    await prisma.team.update({
-      where: {
-        id: team.id,
-      },
-      data: {
-        imageUrl,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.team.update({
+        where: {
+          id: team.id,
+        },
+        data: {
+          imageUrl,
+        },
+      });
 
-    const response = {
-      url: imageUrl,
-    };
+      const response = {
+        url: imageUrl,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.UPDATE_TEAM_PICTURE,
-      targetId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.UPDATE_TEAM_PICTURE,
+        targetId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
@@ -275,28 +280,31 @@ export async function DELETE(request: NextRequest) {
       fileKey,
     );
 
-    await prisma.team.update({
-      where: {
-        id: team.id,
-      },
-      data: {
-        imageUrl: null,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.team.update({
+        where: {
+          id: team.id,
+        },
+        data: {
+          imageUrl: null,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.DELETE_TEAM_PICTURE,
-      targetId: team.id,
-      targetType: AuditLogTargetType.TEAM,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.DELETE_TEAM_PICTURE,
+        targetId: team.id,
+        targetType: AuditLogTargetType.TEAM,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
     });
 
     return NextResponse.json(response);

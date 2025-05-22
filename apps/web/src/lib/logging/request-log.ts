@@ -59,9 +59,9 @@ export async function logRequest({
       ? iso2toIso3(geoData.alpha2!)
       : null;
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (prisma) => {
       if (licenseKeyLookup && teamId) {
-        await tx.license.update({
+        await prisma.license.update({
           where: {
             teamId_licenseKeyLookup: {
               teamId,
@@ -74,7 +74,7 @@ export async function logRequest({
         });
       }
 
-      await tx.requestLog.create({
+      await prisma.requestLog.create({
         data: {
           version: process.env.version!,
           method: method.toUpperCase() as RequestMethod,

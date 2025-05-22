@@ -310,47 +310,52 @@ export async function POST(
       );
     }
 
-    const blacklist = await prisma.blacklist.create({
-      data: {
-        value,
-        type,
-        metadata: {
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const blacklist = await prisma.blacklist.create({
+        data: {
+          value,
+          type,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
+          createdBy: {
+            connect: {
+              id: session.user.id,
+            },
+          },
+          team: {
+            connect: {
+              id: selectedTeam,
+            },
           },
         },
-        createdBy: {
-          connect: {
-            id: session.user.id,
-          },
+        include: {
+          metadata: true,
         },
-        team: {
-          connect: {
-            id: selectedTeam,
-          },
-        },
-      },
-      include: {
-        metadata: true,
-      },
-    });
+      });
 
-    const response = {
-      blacklist,
-    };
+      const response = {
+        blacklist,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.CREATE_BLACKLIST,
-      targetId: blacklist.id,
-      targetType: AuditLogTargetType.BLACKLIST,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.CREATE_BLACKLIST,
+        targetId: blacklist.id,
+        targetType: AuditLogTargetType.BLACKLIST,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);

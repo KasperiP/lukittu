@@ -607,53 +607,58 @@ export async function POST(
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
 
-    const license = await prisma.license.create({
-      data: {
-        expirationDate,
-        expirationDays,
-        expirationStart: expirationStart || 'CREATION',
-        expirationType,
-        ipLimit,
-        licenseKey: encryptedLicenseKey,
-        licenseKeyLookup: hmac,
-        metadata: {
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const license = await prisma.license.create({
+        data: {
+          expirationDate,
+          expirationDays,
+          expirationStart: expirationStart || 'CREATION',
+          expirationType,
+          ipLimit,
+          licenseKey: encryptedLicenseKey,
+          licenseKeyLookup: hmac,
+          metadata: {
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
           },
+          suspended,
+          teamId: team.id,
+          seats,
+          products: productIds.length
+            ? { connect: productIds.map((id) => ({ id })) }
+            : undefined,
+          customers: customerIds.length
+            ? { connect: customerIds.map((id) => ({ id })) }
+            : undefined,
+          createdByUserId: session.user.id,
         },
-        suspended,
+      });
+
+      const response = {
+        license: {
+          ...license,
+          licenseKey,
+          licenseKeyLookup: undefined,
+        },
+      };
+
+      await createAuditLog({
+        userId: session.user.id,
         teamId: team.id,
-        seats,
-        products: productIds.length
-          ? { connect: productIds.map((id) => ({ id })) }
-          : undefined,
-        customers: customerIds.length
-          ? { connect: customerIds.map((id) => ({ id })) }
-          : undefined,
-        createdByUserId: session.user.id,
-      },
-    });
+        action: AuditLogAction.CREATE_LICENSE,
+        targetId: license.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    const response = {
-      license: {
-        ...license,
-        licenseKey,
-        licenseKeyLookup: undefined,
-      },
-    };
-
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.CREATE_LICENSE,
-      targetId: license.id,
-      targetType: AuditLogTargetType.LICENSE,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response);

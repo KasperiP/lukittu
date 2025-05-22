@@ -324,56 +324,61 @@ export async function PUT(
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
 
-    const updatedLicense = await prisma.license.update({
-      where: { id: licenseId },
-      data: {
-        expirationDate,
-        expirationDays,
-        expirationStart: expirationStart || 'CREATION',
-        expirationType,
-        ipLimit,
-        licenseKey: encryptedLicenseKey,
-        licenseKeyLookup: hmac,
-        metadata: {
-          deleteMany: {},
-          createMany: {
-            data: metadata.map((m) => ({
-              ...m,
-              teamId: team.id,
-            })),
+    const response = await prisma.$transaction(async (prisma) => {
+      const updatedLicense = await prisma.license.update({
+        where: { id: licenseId },
+        data: {
+          expirationDate,
+          expirationDays,
+          expirationStart: expirationStart || 'CREATION',
+          expirationType,
+          ipLimit,
+          licenseKey: encryptedLicenseKey,
+          licenseKeyLookup: hmac,
+          metadata: {
+            deleteMany: {},
+            createMany: {
+              data: metadata.map((m) => ({
+                ...m,
+                teamId: team.id,
+              })),
+            },
+          },
+          suspended,
+          seats,
+          products: {
+            set: productIds.map((id) => ({ id })),
+          },
+          customers: {
+            set: customerIds.map((id) => ({ id })),
           },
         },
-        suspended,
-        seats,
-        products: {
-          set: productIds.map((id) => ({ id })),
+        include: {
+          metadata: true,
         },
-        customers: {
-          set: customerIds.map((id) => ({ id })),
+      });
+
+      const response = {
+        license: {
+          ...updatedLicense,
+          licenseKey,
+          licenseKeyLookup: undefined,
         },
-      },
-      include: {
-        metadata: true,
-      },
-    });
+      };
 
-    const response = {
-      license: {
-        ...updatedLicense,
-        licenseKey,
-        licenseKeyLookup: undefined,
-      },
-    };
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: team.id,
+        action: AuditLogAction.UPDATE_LICENSE,
+        targetId: updatedLicense.id,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: body,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: team.id,
-      action: AuditLogAction.UPDATE_LICENSE,
-      targetId: updatedLicense.id,
-      targetType: AuditLogTargetType.LICENSE,
-      requestBody: body,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      return response;
     });
 
     return NextResponse.json(response);
@@ -473,25 +478,30 @@ export async function DELETE(
       );
     }
 
-    await prisma.license.delete({
-      where: {
-        id: licenseId,
-      },
-    });
+    const response = await prisma.$transaction(async (prisma) => {
+      await prisma.license.delete({
+        where: {
+          id: licenseId,
+        },
+      });
 
-    const response = {
-      success: true,
-    };
+      const response = {
+        success: true,
+      };
 
-    createAuditLog({
-      userId: session.user.id,
-      teamId: selectedTeam,
-      action: AuditLogAction.DELETE_LICENSE,
-      targetId: licenseId,
-      targetType: AuditLogTargetType.LICENSE,
-      requestBody: null,
-      responseBody: response,
-      source: AuditLogSource.DASHBOARD,
+      await createAuditLog({
+        userId: session.user.id,
+        teamId: selectedTeam,
+        action: AuditLogAction.DELETE_LICENSE,
+        targetId: licenseId,
+        targetType: AuditLogTargetType.LICENSE,
+        requestBody: null,
+        responseBody: response,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
+      return response;
     });
 
     return NextResponse.json(response);
