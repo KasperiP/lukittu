@@ -206,8 +206,15 @@ export const handleBuiltByBitPurchase = async (
           : AuditLogAction.CREATE_CUSTOMER,
         targetId: lukittuCustomer.id,
         targetType: AuditLogTargetType.CUSTOMER,
-        requestBody: null,
-        responseBody: null,
+        requestBody: JSON.stringify({
+          username: bbbUser.username,
+          metadata: metadata.map((m) => ({
+            key: m.key,
+            value: m.value,
+            locked: m.locked,
+          })),
+        }),
+        responseBody: JSON.stringify({ customer: lukittuCustomer }),
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
         tx: prisma,
       });
@@ -262,8 +269,29 @@ export const handleBuiltByBitPurchase = async (
         action: AuditLogAction.CREATE_LICENSE,
         targetId: license.id,
         targetType: AuditLogTargetType.LICENSE,
-        requestBody: null,
-        responseBody: null,
+        requestBody: JSON.stringify({
+          licenseKey,
+          teamId: team.id,
+          customers: [lukittuCustomer.id],
+          products: [productId],
+          metadata: metadata.map((m) => ({
+            key: m.key,
+            value: m.value,
+            locked: m.locked,
+          })),
+          ipLimit,
+          seats,
+          expirationType: expirationDays ? 'DURATION' : 'NEVER',
+          expirationDays: expirationDays || null,
+          expirationStart: expirationStartFormatted,
+        }),
+        responseBody: JSON.stringify({
+          license: {
+            ...license,
+            licenseKey,
+            licenseKeyLookup: undefined,
+          },
+        }),
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
         tx: prisma,
       });
@@ -373,17 +401,19 @@ export const handleBuiltByBitPlaceholder = async (
       licenseId: licenseKey.id,
     });
 
+    const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
+
     await createAuditLog({
       teamId,
       action: AuditLogAction.SET_BUILT_BY_BIT_PLACEHOLDER,
       targetId: licenseKey.id,
       targetType: AuditLogTargetType.LICENSE,
-      requestBody: null,
-      responseBody: null,
+      requestBody: JSON.stringify(validatedData),
+      responseBody: JSON.stringify({
+        licenseKey: decryptedKey,
+      }),
       source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
     });
-
-    const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
 
     return {
       success: true,

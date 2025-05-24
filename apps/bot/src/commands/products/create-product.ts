@@ -1,4 +1,10 @@
-import { logger, prisma } from '@lukittu/shared';
+import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
+  logger,
+  prisma,
+} from '@lukittu/shared';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -907,30 +913,50 @@ async function finalizeProductCreation(
       return;
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name: state.name,
-        url: state.url,
-        metadata: {
-          createMany: {
-            data: state.metadata.map((m) => ({
-              key: m.key,
-              value: m.value,
-              teamId,
-            })),
+    const product = await prisma.$transaction(async (prisma) => {
+      const product = await prisma.product.create({
+        data: {
+          name: state.name,
+          url: state.url,
+          metadata: {
+            createMany: {
+              data: state.metadata.map((m) => ({
+                key: m.key,
+                value: m.value,
+                teamId,
+              })),
+            },
+          },
+          createdBy: {
+            connect: {
+              id: userId,
+            },
+          },
+          team: {
+            connect: {
+              id: teamId,
+            },
           },
         },
-        createdBy: {
-          connect: {
-            id: userId,
-          },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          action: AuditLogAction.CREATE_PRODUCT,
+          source: AuditLogSource.DISCORD_INTEGRATION,
+          targetId: product.id,
+          targetType: AuditLogTargetType.PRODUCT,
+          version: process.env.version || '',
+          requestBody: JSON.stringify(state),
+          responseBody: JSON.stringify({
+            product,
+          }),
+          teamId,
+          userId,
         },
-        team: {
-          connect: {
-            id: teamId,
-          },
-        },
-      },
+      });
+
+      return product;
     });
 
     const successEmbed = new EmbedBuilder()

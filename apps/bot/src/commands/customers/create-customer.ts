@@ -1,4 +1,10 @@
-import { logger, prisma } from '@lukittu/shared';
+import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
+  logger,
+  prisma,
+} from '@lukittu/shared';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -1351,39 +1357,57 @@ async function finalizeCustomerCreation(
       addressData.postalCode = state.address.postalCode;
     if (state.address.country) addressData.country = state.address.country;
 
-    const customer = await prisma.customer.create({
-      data: {
-        username: state.username,
-        email: state.email,
-        fullName: state.fullName,
-        metadata: {
-          createMany: {
-            data: state.metadata.map((m) => ({
-              key: m.key,
-              value: m.value,
-              teamId,
-            })),
+    const customer = await prisma.$transaction(async (prisma) => {
+      const customer = await prisma.customer.create({
+        data: {
+          username: state.username,
+          email: state.email,
+          fullName: state.fullName,
+          metadata: {
+            createMany: {
+              data: state.metadata.map((m) => ({
+                key: m.key,
+                value: m.value,
+                teamId,
+              })),
+            },
+          },
+          address:
+            Object.keys(addressData).length > 0
+              ? { create: addressData }
+              : undefined,
+          createdBy: {
+            connect: {
+              id: userId,
+            },
+          },
+          team: {
+            connect: {
+              id: teamId,
+            },
           },
         },
-        address:
-          Object.keys(addressData).length > 0
-            ? { create: addressData }
-            : undefined,
-        createdBy: {
-          connect: {
-            id: userId,
-          },
+        include: {
+          metadata: true,
+          address: true,
         },
-        team: {
-          connect: {
-            id: teamId,
-          },
+      });
+
+      await prisma.auditLog.create({
+        data: {
+          action: AuditLogAction.CREATE_CUSTOMER,
+          source: AuditLogSource.DISCORD_INTEGRATION,
+          targetId: customer.id,
+          targetType: AuditLogTargetType.CUSTOMER,
+          version: process.env.version || '',
+          requestBody: JSON.stringify(state),
+          responseBody: JSON.stringify({ customer }),
+          teamId,
+          userId,
         },
-      },
-      include: {
-        metadata: true,
-        address: true,
-      },
+      });
+
+      return customer;
     });
 
     const successEmbed = new EmbedBuilder()
