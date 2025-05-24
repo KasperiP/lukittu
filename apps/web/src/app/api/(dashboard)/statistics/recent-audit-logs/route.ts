@@ -3,7 +3,12 @@ import { iso3toIso2, iso3ToName } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { AuditLogAction, AuditLogTargetType, logger } from '@lukittu/shared';
+import {
+  AuditLogAction,
+  AuditLogSource,
+  AuditLogTargetType,
+  logger,
+} from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -13,7 +18,7 @@ type RecentAuditLogs = {
   targetType: AuditLogTargetType;
   action: AuditLogAction;
   country: string | null;
-  system: boolean;
+  source: AuditLogSource;
   alpha2: string | null;
   imageUrl: string | null;
   fullName: string | null;
@@ -104,7 +109,7 @@ export async function GET(
         action: log.action,
         country: iso3ToName(log.country),
         alpha2: iso3toIso2(log.country),
-        system: log.system,
+        source: log.source,
         imageUrl: log.user?.imageUrl ?? null,
         fullName: log.user?.fullName ?? null,
         email: log.user?.email ?? null,

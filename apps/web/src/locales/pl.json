@@ -321,7 +321,8 @@
     "branches": "Gałęzie",
     "select_branch": "Wybierz gałąź",
     "releases_count": "Liczba wydań",
-    "branch": "Gałąź"
+    "branch": "Gałąź",
+    "source": "Źródło"
   },
   "auth": {
     "oauth": {
@@ -655,7 +656,9 @@
         "delete_branch": "usunął gałąź",
         "create_branch": "utworzył gałąź",
         "set_polymart_integration": "ustawił integrację Polymart",
-        "delete_polymart_integration": "usunął integrację Polymart"
+        "delete_polymart_integration": "usunął integrację Polymart",
+        "set_built_by_bit_placeholder": "ustawiono zastępczy BuiltByBit",
+        "set_polymart_placeholder": "ustawiono zastępczy Polymart"
       }
     },
     "members": {

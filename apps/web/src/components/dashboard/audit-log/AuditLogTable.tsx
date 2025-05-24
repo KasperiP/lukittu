@@ -1,4 +1,8 @@
 'use client';
+import builtByBitLogo from '@/../public/integrations/builtbybit_square.png';
+import discordLogo from '@/../public/integrations/discord_square.jpg';
+import polymartLogo from '@/../public/integrations/polymart.png';
+import stripeLogo from '@/../public/integrations/stripe_square.jpeg';
 import {
   IAuditLogsGetResponse,
   IAuditLogsGetSuccessResponse,
@@ -20,8 +24,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  getBrowserName,
+  getSourceAvatarColor,
+  getSourceBadgeVariant,
+  getSourceDisplayName,
+} from '@/lib/utils/audit-helpers';
 import { getInitials } from '@/lib/utils/text-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
+import { AuditLogSource } from '@lukittu/shared';
 import {
   ArrowDownUp,
   Bot,
@@ -31,6 +42,7 @@ import {
   ExternalLink,
   Logs,
   MapPinOff,
+  User,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
@@ -165,6 +177,32 @@ const ExpandedContent = React.memo(
 
 ExpandedContent.displayName = 'ExpandedContent';
 
+const getSourceLogoOrIcon = (source: string) => {
+  switch (source) {
+    case AuditLogSource.API_KEY:
+      return <Bot className="h-full w-full p-1" />;
+    case AuditLogSource.DASHBOARD:
+      return <User className="h-full w-full" />;
+    default:
+      return null; // Will use image for integrations
+  }
+};
+
+const getIntegrationLogoSrc = (source: string) => {
+  switch (source) {
+    case AuditLogSource.STRIPE_INTEGRATION:
+      return stripeLogo;
+    case AuditLogSource.DISCORD_INTEGRATION:
+      return discordLogo;
+    case AuditLogSource.BUILT_BY_BIT_INTEGRATION:
+      return builtByBitLogo;
+    case AuditLogSource.POLYMART_INTEGRATION:
+      return polymartLogo;
+    default:
+      return null;
+  }
+};
+
 export default function AuditLogTable() {
   const teamCtx = useContext(TeamContext);
   const t = useTranslations();
@@ -286,32 +324,56 @@ export default function AuditLogTable() {
                         <div className="group relative flex items-center justify-between">
                           <div className="absolute inset-0 -mx-2 -my-3 rounded-lg transition-colors group-hover:bg-secondary/80 md:hidden" />
                           <div className="z-10 grid grid-cols-[auto,1fr,auto] items-center gap-4">
-                            <Avatar className="h-12 w-12 border">
-                              <AvatarImage
-                                src={auditLog.user?.imageUrl!}
-                                asChild
-                              >
-                                {auditLog.user?.imageUrl && (
-                                  <Image
-                                    alt="Avatar"
-                                    src={auditLog.user.imageUrl}
-                                    fill
-                                  />
-                                )}
-                              </AvatarImage>
-                              <AvatarFallback className="bg-primary text-xs text-white">
-                                {auditLog.system ? (
-                                  <Bot className="h-8 w-8" />
-                                ) : (
-                                  getInitials(auditLog.user?.fullName ?? '??')
-                                )}
-                              </AvatarFallback>
+                            <Avatar
+                              className={`h-12 w-12 border ${auditLog.source === AuditLogSource.DASHBOARD || (auditLog.source === AuditLogSource.DISCORD_INTEGRATION && auditLog.user) ? '' : 'p-0'}`}
+                            >
+                              {auditLog.source === AuditLogSource.DASHBOARD ||
+                              (auditLog.source ===
+                                AuditLogSource.DISCORD_INTEGRATION &&
+                                auditLog.user) ? (
+                                <>
+                                  <AvatarImage
+                                    src={auditLog.user?.imageUrl || undefined}
+                                    asChild
+                                  >
+                                    {auditLog.user?.imageUrl && (
+                                      <Image
+                                        alt="Avatar"
+                                        src={auditLog.user.imageUrl}
+                                        fill
+                                      />
+                                    )}
+                                  </AvatarImage>
+                                  <AvatarFallback className="bg-primary text-xs text-white">
+                                    {getInitials(
+                                      auditLog.user?.fullName ?? '??',
+                                    )}
+                                  </AvatarFallback>
+                                </>
+                              ) : getIntegrationLogoSrc(auditLog.source) ? (
+                                <Image
+                                  alt={getSourceDisplayName(auditLog.source, t)}
+                                  className="rounded-full object-cover"
+                                  src={getIntegrationLogoSrc(auditLog.source)!}
+                                  fill
+                                />
+                              ) : (
+                                <AvatarFallback
+                                  className={`${getSourceAvatarColor(auditLog.source)} text-xs text-white`}
+                                >
+                                  {getSourceLogoOrIcon(auditLog.source)}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             <div className="overflow-hidden">
                               <p className="truncate font-medium">
-                                {auditLog.system
-                                  ? t('general.system')
-                                  : auditLog.user?.email}
+                                {auditLog.source === AuditLogSource.DASHBOARD
+                                  ? auditLog.user?.email
+                                  : auditLog.source ===
+                                        AuditLogSource.DISCORD_INTEGRATION &&
+                                      auditLog.user
+                                    ? auditLog.user?.email
+                                    : getSourceDisplayName(auditLog.source, t)}
                               </p>
                               <div className="flex items-center gap-1">
                                 <div className="truncate text-sm font-semibold text-muted-foreground">
@@ -376,10 +438,13 @@ export default function AuditLogTable() {
                       {t('general.action')}
                     </TableHead>
                     <TableHead className="truncate">
+                      {t('general.source')}
+                    </TableHead>
+                    <TableHead className="truncate">
                       {t('general.target')}
                     </TableHead>
                     <TableHead className="truncate">
-                      {t('general.device')}
+                      {t('general.browser')}
                     </TableHead>
                     <TableHead className="truncate">
                       {t('general.ip_address')}
@@ -404,7 +469,7 @@ export default function AuditLogTable() {
                   </TableRow>
                 </TableHeader>
                 {isLoading ? (
-                  <TableSkeleton columns={6} rows={7} />
+                  <TableSkeleton columns={7} rows={7} />
                 ) : (
                   <TableBody>
                     {auditLogs.map((auditLog) => (
@@ -423,38 +488,70 @@ export default function AuditLogTable() {
                             </Button>
                           </TableCell>
                           <TableCell className="flex items-center gap-2 truncate">
-                            <Avatar className="h-8 w-8 border">
-                              <AvatarImage
-                                src={auditLog.user?.imageUrl!}
-                                asChild
-                              >
-                                {auditLog.user?.imageUrl && (
-                                  <Image
-                                    alt="Avatar"
-                                    src={auditLog.user.imageUrl}
-                                    fill
-                                  />
-                                )}
-                              </AvatarImage>
-                              <AvatarFallback className="bg-primary text-xs text-white">
-                                {auditLog.system ? (
-                                  <Bot className="h-6 w-6" />
-                                ) : (
-                                  getInitials(auditLog.user?.fullName ?? '??')
-                                )}
-                              </AvatarFallback>
+                            <Avatar
+                              className={`h-8 w-8 border ${auditLog.source === AuditLogSource.DASHBOARD || (auditLog.source === AuditLogSource.DISCORD_INTEGRATION && auditLog.user) ? '' : 'p-0'}`}
+                            >
+                              {auditLog.source === AuditLogSource.DASHBOARD ||
+                              (auditLog.source ===
+                                AuditLogSource.DISCORD_INTEGRATION &&
+                                auditLog.user) ? (
+                                <>
+                                  <AvatarImage
+                                    src={auditLog.user?.imageUrl || undefined}
+                                    asChild
+                                  >
+                                    {auditLog.user?.imageUrl && (
+                                      <Image
+                                        alt="Avatar"
+                                        src={auditLog.user.imageUrl}
+                                        fill
+                                      />
+                                    )}
+                                  </AvatarImage>
+                                  <AvatarFallback className="bg-primary text-xs text-white">
+                                    {getInitials(
+                                      auditLog.user?.fullName ?? '??',
+                                    )}
+                                  </AvatarFallback>
+                                </>
+                              ) : getIntegrationLogoSrc(auditLog.source) ? (
+                                <Image
+                                  alt={getSourceDisplayName(auditLog.source, t)}
+                                  className="rounded-full object-cover"
+                                  src={getIntegrationLogoSrc(auditLog.source)!}
+                                  fill
+                                />
+                              ) : (
+                                <AvatarFallback
+                                  className={`${getSourceAvatarColor(auditLog.source)} text-xs text-white`}
+                                >
+                                  {getSourceLogoOrIcon(auditLog.source)}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             <span>
                               <b>
-                                {auditLog.system
-                                  ? t('general.system')
-                                  : (auditLog.user?.email ??
-                                    t('general.unknown'))}
+                                {auditLog.source === AuditLogSource.DASHBOARD
+                                  ? (auditLog.user?.email ??
+                                    t('general.unknown'))
+                                  : auditLog.source ===
+                                        AuditLogSource.DISCORD_INTEGRATION &&
+                                      auditLog.user
+                                    ? auditLog.user?.email
+                                    : getSourceDisplayName(auditLog.source, t)}
                               </b>{' '}
                               {t(
                                 `dashboard.audit_logs.actions_types.${auditLog.action.toLowerCase()}` as any,
                               )}
                             </span>
+                          </TableCell>
+                          <TableCell className="truncate">
+                            <Badge
+                              className="text-xs"
+                              variant={getSourceBadgeVariant(auditLog.source)}
+                            >
+                              {getSourceDisplayName(auditLog.source, t)}
+                            </Badge>
                           </TableCell>
                           <TableCell className="truncate">
                             <Badge className="text-xs" variant="primary">
@@ -464,7 +561,8 @@ export default function AuditLogTable() {
                             </Badge>
                           </TableCell>
                           <TableCell className="truncate">
-                            {auditLog.device ?? t('general.unknown')}
+                            {getBrowserName(auditLog.browser) ??
+                              t('general.unknown')}
                           </TableCell>
                           <TableCell className="truncate">
                             {auditLog.ipAddress ?? t('general.unknown')}
@@ -474,7 +572,7 @@ export default function AuditLogTable() {
                           </TableCell>
                         </TableRow>
                         <TableRow className="hover:bg-background">
-                          <TableCell className="p-0" colSpan={6}>
+                          <TableCell className="p-0" colSpan={7}>
                             <div
                               className={`expanded-content ${expandedRows.has(auditLog.id) ? 'open' : ''}`}
                             >

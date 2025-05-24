@@ -321,7 +321,8 @@
     "branches": "Sucursales",
     "select_branch": "Seleccionar sucursal",
     "releases_count": "Conteo de versiones",
-    "branch": "Sucursal"
+    "branch": "Sucursal",
+    "source": "Fuente"
   },
   "auth": {
     "oauth": {
@@ -655,7 +656,9 @@
         "delete_branch": "eliminó rama",
         "create_branch": "creó rama",
         "set_polymart_integration": "estableció integración de Polymart",
-        "delete_polymart_integration": "eliminó integración de Polymart"
+        "delete_polymart_integration": "eliminó integración de Polymart",
+        "set_built_by_bit_placeholder": "estableció marcador de BuiltByBit",
+        "set_polymart_placeholder": "estableció marcador de Polymart"
       }
     },
     "members": {

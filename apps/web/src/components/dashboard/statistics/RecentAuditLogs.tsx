@@ -23,14 +23,31 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  getIntegrationLogoSrc,
+  getSourceAvatarColor,
+  getSourceDisplayName,
+} from '@/lib/utils/audit-helpers';
 import { getInitials } from '@/lib/utils/text-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
-import { ArrowLeft, ArrowRight, Bot, Logs } from 'lucide-react';
+import { AuditLogSource } from '@lukittu/shared';
+import { ArrowLeft, ArrowRight, Bot, Logs, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
+
+const getSourceLogoOrIcon = (source: string) => {
+  switch (source) {
+    case AuditLogSource.API_KEY:
+      return <Bot className="h-full w-full p-1" />;
+    case AuditLogSource.DASHBOARD:
+      return <User className="h-full w-full" />;
+    default:
+      return null; // Will use image for integrations
+  }
+};
 
 const fetchRecentAuditLogs = async (url: string) => {
   const response = await fetch(url);
@@ -131,25 +148,55 @@ export default function RecentAuditLogs() {
                 {response?.data.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="flex items-center gap-2 truncate">
-                      <Avatar className="h-8 w-8 border">
-                        <AvatarImage src={row.imageUrl!} asChild>
-                          {row.imageUrl && (
-                            <Image alt="Avatar" src={row.imageUrl} fill />
-                          )}
-                        </AvatarImage>
-                        <AvatarFallback className="bg-primary text-xs text-white">
-                          {row.system ? (
-                            <Bot className="h-6 w-6" />
-                          ) : (
-                            getInitials(row.fullName ?? '??')
-                          )}
-                        </AvatarFallback>
+                      <Avatar
+                        className={`h-8 w-8 border ${
+                          row.source === AuditLogSource.DASHBOARD ||
+                          (row.source === AuditLogSource.DISCORD_INTEGRATION &&
+                            row.email)
+                            ? ''
+                            : 'p-0'
+                        }`}
+                      >
+                        {row.source === AuditLogSource.DASHBOARD ||
+                        (row.source === AuditLogSource.DISCORD_INTEGRATION &&
+                          row.email) ? (
+                          <>
+                            <AvatarImage
+                              src={row.imageUrl || undefined}
+                              asChild
+                            >
+                              {row.imageUrl && (
+                                <Image alt="Avatar" src={row.imageUrl} fill />
+                              )}
+                            </AvatarImage>
+                            <AvatarFallback className="bg-primary text-xs text-white">
+                              {getInitials(row.fullName ?? '??')}
+                            </AvatarFallback>
+                          </>
+                        ) : getIntegrationLogoSrc(row.source) ? (
+                          <Image
+                            alt={getSourceDisplayName(row.source, t)}
+                            className="rounded-full object-cover"
+                            src={getIntegrationLogoSrc(row.source)!}
+                            fill
+                          />
+                        ) : (
+                          <AvatarFallback
+                            className={`${getSourceAvatarColor(row.source)} text-xs text-white`}
+                          >
+                            {getSourceLogoOrIcon(row.source)}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <span>
                         <b>
-                          {row.system
-                            ? t('general.system')
-                            : (row.email ?? t('general.unknown'))}
+                          {row.source === AuditLogSource.DASHBOARD
+                            ? (row.email ?? t('general.unknown'))
+                            : row.source ===
+                                  AuditLogSource.DISCORD_INTEGRATION &&
+                                row.email
+                              ? row.email
+                              : getSourceDisplayName(row.source, t)}
                         </b>{' '}
                         {t(
                           `dashboard.audit_logs.actions_types.${row.action.toLowerCase()}` as any,

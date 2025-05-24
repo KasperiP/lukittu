@@ -140,6 +140,7 @@
     "polymart_signing_secret_invalid": "Polymart signing secret is invalid! It must be 20-255 characters long."
   },
   "general": {
+    "source": "Source",
     "branches": "Branches",
     "select_branch": "Select branch",
     "releases_count": "Releases count",
@@ -655,7 +656,9 @@
         "delete_polymart_integration": "deleted Polymart integration",
         "update_branch": "updated branch",
         "delete_branch": "deleted branch",
-        "create_branch": "created branch"
+        "create_branch": "created branch",
+        "set_built_by_bit_placeholder": "set BuiltByBit placeholder",
+        "set_polymart_placeholder": "set Polymart placeholder"
       }
     },
     "members": {
