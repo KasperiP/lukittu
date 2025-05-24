@@ -27,6 +27,10 @@ type ExtendedTeam = Team & {
   };
 };
 
+jest.mock('../logging/audit-log', () => ({
+  createAuditLog: jest.fn().mockResolvedValue({}),
+}));
+
 jest.mock('../emails/templates/send-license-distribution-email', () => ({
   __esModule: true,
   sendLicenseDistributionEmail: jest.fn(),

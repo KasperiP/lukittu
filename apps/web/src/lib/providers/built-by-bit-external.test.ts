@@ -12,10 +12,15 @@ import {
   Team,
 } from '@lukittu/shared';
 import { prismaMock } from '../../../jest.setup';
+import { createAuditLog } from '../logging/audit-log';
 import {
   handleBuiltByBitPlaceholder,
   handleBuiltByBitPurchase,
 } from './built-by-bit-external';
+
+jest.mock('../logging/audit-log', () => ({
+  createAuditLog: jest.fn().mockResolvedValue({}),
+}));
 
 type ExtendedTeam = Team & {
   settings: Settings | null;
@@ -341,6 +346,9 @@ describe('BuiltByBit Integration', () => {
         licenseKey: 'encrypted-license-key',
       });
 
+      // Clear previous mock calls
+      (createAuditLog as jest.Mock).mockClear();
+
       const result = await handleBuiltByBitPlaceholder(
         mockPlaceholderData,
         mockTeam.id,
@@ -359,6 +367,7 @@ describe('BuiltByBit Integration', () => {
         'License key found for BuiltByBit placeholder',
         expect.any(Object),
       );
+      expect(createAuditLog).toHaveBeenCalledTimes(1);
     });
 
     test('handles license key not found', async () => {
