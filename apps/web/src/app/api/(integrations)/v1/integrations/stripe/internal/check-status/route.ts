@@ -3,10 +3,10 @@ import { sendDiscordWebhook } from '@/lib/providers/discord-webhook';
 import { HttpStatus } from '@/types/http-status';
 import { logger, prisma } from '@lukittu/shared';
 import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const reqHeaders = await headers();
     const authorizationHeader = reqHeaders.get('authorization');

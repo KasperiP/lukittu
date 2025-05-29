@@ -6,6 +6,10 @@ import {
   SetLicenseScheama,
   setLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
+import {
+  attemptWebhookDelivery,
+  createWebhookEvents,
+} from '@/lib/webhooks/webhook-handler';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -23,6 +27,7 @@ import {
   Prisma,
   Product,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -442,6 +447,7 @@ export type ILicensesCreateResponse =
 export type ILicensesCreateSuccessResponse = {
   license: Omit<License, 'licenseKeyLookup'>;
 };
+
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<ILicensesCreateResponse>> {
@@ -606,6 +612,7 @@ export async function POST(
     }
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       const license = await prisma.license.create({
@@ -658,8 +665,17 @@ export async function POST(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: team.id,
+        payload: createLicenseWebhookPayload(response.license),
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
