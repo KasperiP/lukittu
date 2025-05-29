@@ -455,6 +455,7 @@
       "watermark_found": "Watermark found"
     },
     "navigation": {
+      "webhooks": "Webhooks",
       "dashboard": "Dashboard",
       "licenses": "Licenses",
       "products": "Products",
