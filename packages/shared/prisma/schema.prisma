@@ -40,6 +40,7 @@ model User {
     createdInvitations            Invitation[]
     blacklist                     Blacklist[]
     releases                      Release[]
+    webhooks                      Webhook[]
 }
 
 model DiscordAccount {
@@ -94,10 +95,72 @@ model Team {
     settings              Settings?
     keyPair               KeyPair?
     activeDiscordAccounts DiscordAccount[]
+    webhooks              Webhook[]
     deletedAt             DateTime?
     createdAt             DateTime               @default(now())
     updatedAt             DateTime               @updatedAt
     subscription          Subscription?
+}
+
+model Webhook {
+    id              String             @id @default(uuid())
+    teamId          String
+    team            Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    name            String
+    url             String
+    secret          String
+    active          Boolean            @default(true)
+    enabledEvents   WebhookEventType[] @default([])
+    createdByUserId String?
+    createdBy       User?              @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    events          WebhookEvent[]
+    createdAt       DateTime           @default(now())
+    updatedAt       DateTime           @updatedAt
+
+    @@index([teamId])
+}
+
+model WebhookEvent {
+    id            String             @id @default(uuid())
+    webhookId     String
+    webhook       Webhook            @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+    eventType     WebhookEventType
+    payload       Json
+    status        WebhookEventStatus @default(PENDING)
+    attempts      Int                @default(0)
+    lastAttemptAt DateTime?
+    nextRetryAt   DateTime?
+    errorMessage  String?
+    responseCode  Int?
+    responseBody  String?
+    completedAt   DateTime?
+    createdAt     DateTime           @default(now())
+    updatedAt     DateTime           @updatedAt
+
+    @@index([status, nextRetryAt])
+}
+
+enum WebhookEventStatus {
+    PENDING // Event created but not yet processed or sent to webhook endpoint
+    IN_PROGRESS // Event is currently being processed or sent
+    DELIVERED // Event was successfully delivered to webhook endpoint (received 2xx response)
+    FAILED // Event delivery failed permanently after all retries were exhausted
+    RETRY_SCHEDULED // Event delivery failed but is scheduled for retry
+}
+
+enum WebhookEventType {
+    LICENSE_CREATED
+    LICENSE_UPDATED
+    LICENSE_DELETED
+    CUSTOMER_CREATED
+    CUSTOMER_UPDATED
+    CUSTOMER_DELETED
+    PRODUCT_CREATED
+    PRODUCT_UPDATED
+    PRODUCT_DELETED
+    RELEASE_CREATED
+    RELEASE_UPDATED
+    RELEASE_DELETED
 }
 
 model Subscription {
