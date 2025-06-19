@@ -72,7 +72,7 @@ export const handleHeartbeat = async ({
 
   if (ipAddress) {
     const key = `license-heartbeat:${ipAddress}`;
-    const isLimited = await isRateLimited(key, 5, 60); // 5 requests per 1 minute
+    const isLimited = await isRateLimited(key, 25, 60); // 25 requests per 1 minute
 
     if (isLimited) {
       return {
