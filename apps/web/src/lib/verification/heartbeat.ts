@@ -9,7 +9,7 @@ import {
 } from '@lukittu/shared';
 import 'server-only';
 import { CloudflareVisitorData } from '../providers/cloudflare';
-import { isRateLimited } from '../security/rate-limiter';
+import { isRateLimited, isTrustedSource } from '../security/rate-limiter';
 import { licenseHeartbeatSchema } from '../validation/licenses/license-heartbeat-schema';
 import { getReturnedFields } from './shared/shared-returned-fields';
 import { sharedVerificationHandler } from './shared/shared-verification';
@@ -70,7 +70,9 @@ export const handleHeartbeat = async ({
     body: validated.data,
   };
 
-  if (ipAddress) {
+  const isTrusted = isTrustedSource(payload.licenseKey, teamId);
+
+  if (ipAddress && !isTrusted) {
     const key = `license-heartbeat:${ipAddress}`;
     const isLimited = await isRateLimited(key, 25, 60); // 25 requests per 1 minute
 

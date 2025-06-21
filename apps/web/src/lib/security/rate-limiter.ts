@@ -1,4 +1,4 @@
-import { logger } from '@lukittu/shared';
+import { logger, regex } from '@lukittu/shared';
 import 'server-only';
 import { redisClient } from '../database/redis';
 
@@ -41,4 +41,26 @@ export async function isRateLimited(
     logger.error('Error checking rate limit', error);
     return false;
   }
+}
+
+export function isTrustedSource(licenseKey: string, teamId: string): boolean {
+  if (!regex.licenseKey.test(licenseKey) || !regex.uuidV4.test(teamId)) {
+    logger.info(
+      `Invalid licenseKey or teamId format: ${licenseKey}, ${teamId}`,
+    );
+    return false;
+  }
+
+  const trustedLicenseKeys = process.env.TRUSTED_LICENSE_KEYS?.split(',') || [];
+  const trustedTeamIds = process.env.TRUSTED_TEAM_IDS?.split(',') || [];
+
+  if (
+    trustedLicenseKeys.includes(licenseKey) &&
+    trustedTeamIds.includes(teamId)
+  ) {
+    logger.info(`Trusted source: licenseKey=${licenseKey}, teamId=${teamId}`);
+    return true;
+  }
+
+  return false;
 }

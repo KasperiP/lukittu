@@ -13,7 +13,7 @@ import {
 import 'server-only';
 import { getFileFromPrivateS3 } from '../providers/aws-s3';
 import { CloudflareVisitorData } from '../providers/cloudflare';
-import { isRateLimited } from '../security/rate-limiter';
+import { isRateLimited, isTrustedSource } from '../security/rate-limiter';
 import { downloadReleaseSchema } from '../validation/products/download-release-schema';
 import { sharedVerificationHandler } from './shared/shared-verification';
 
@@ -84,7 +84,9 @@ export const handleClassloader = async ({
     query: validated.data,
   };
 
-  if (ipAddress) {
+  const isTrusted = isTrustedSource(licenseKey, teamId);
+
+  if (ipAddress && !isTrusted) {
     const key = `license-encrypted:${ipAddress}`;
     const isLimited = await isRateLimited(key, 25, 60); // 25 requests per 1 minute
 
