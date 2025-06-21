@@ -11,6 +11,7 @@ import {
   Package,
   Shield,
   Users,
+  Webhook,
 } from 'lucide-react';
 import { Messages } from '../../../global';
 
@@ -103,6 +104,18 @@ export function getMenuList(pathname: string): Group[] {
           translation: 'logs',
           active: pathname === '/dashboard/logs',
           icon: Logs,
+          submenus: [],
+        },
+      ],
+    },
+    {
+      groupTranslation: '',
+      menus: [
+        {
+          href: '/dashboard/webhooks',
+          translation: 'webhooks',
+          active: pathname === '/dashboard/webhooks',
+          icon: Webhook,
           submenus: [],
         },
       ],

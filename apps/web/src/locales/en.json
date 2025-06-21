@@ -455,6 +455,7 @@
       "watermark_found": "Watermark found"
     },
     "navigation": {
+      "webhooks": "Webhooks",
       "dashboard": "Dashboard",
       "licenses": "Licenses",
       "products": "Products",
@@ -532,6 +533,9 @@
       "product_created": "Product created",
       "no_licenses_assigned": "No licenses assigned",
       "editing_products_of_license": "You are editing products of license <strong>{license}</strong>."
+    },
+    "webhooks": {
+      "create_webhook": "Create webhook"
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",
