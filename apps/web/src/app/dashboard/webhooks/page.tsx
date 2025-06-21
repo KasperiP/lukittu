@@ -1,3 +1,4 @@
+import { WebhooksTable } from '@/components/dashboard/webhooks/list/WebhooksTable';
 import { Separator } from '@/components/ui/separator';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { Metadata } from 'next';
@@ -12,7 +13,7 @@ export default async function WebhooksPage() {
       </h1>
       <Separator className="mt-2" />
       <div className="mt-6 flex flex-col gap-6">
-        <p>TODO</p>
+        <WebhooksTable />
       </div>
     </div>
   );
