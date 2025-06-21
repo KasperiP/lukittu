@@ -6,6 +6,7 @@ import {
   prisma,
 } from '@lukittu/shared';
 import crypto from 'crypto';
+import { formatDiscordPayload, isDiscordWebhook } from './discord-webhooks';
 
 /**
  * Creates webhook events in the database (without sending) as part of a transaction
@@ -128,33 +129,9 @@ export async function attemptWebhookDelivery(webhookEventIds: string[]) {
 }
 
 /**
- * Detects if the provided URL is a Discord webhook URL
- */
-function isDiscordWebhook(url: string): boolean {
-  try {
-    const parsedUrl = new URL(url);
-    return (
-      parsedUrl.hostname === 'discord.com' &&
-      parsedUrl.pathname.startsWith('/api/webhooks/')
-    );
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Formats a payload for Discord webhooks using embeds
- */
-function formatDiscordPayload(eventType: WebhookEventType, payload: any): any {
-  // TODO: Implement proper Discord payload formatting
-}
-
-/**
  * Sends a webhook event to its destination
  */
-export async function sendWebhookEvent(
-  webhookEventId: string,
-): Promise<boolean> {
+async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
   logger.info('Sending webhook event', { webhookEventId });
 
   try {
@@ -205,12 +182,19 @@ export async function sendWebhookEvent(
 
     // Validate webhook URL before attempting to send
     let url: URL;
+    const isProd = process.env.NODE_ENV === 'production';
     try {
       url = new URL(webhookEvent.webhook.url);
 
-      // Check for recommended protocols
-      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-        throw new Error(`Unsupported URL protocol: ${url.protocol}`);
+      if (isProd) {
+        if (url.protocol !== 'https:') {
+          throw new Error('Only HTTPS URLs are allowed in production');
+        }
+      } else {
+        // In development, allow HTTP but warn
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+          throw new Error(`Unsupported URL protocol: ${url.protocol}`);
+        }
       }
     } catch (error) {
       logger.error('Invalid webhook URL', {
