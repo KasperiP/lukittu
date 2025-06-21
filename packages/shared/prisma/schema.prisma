@@ -651,6 +651,9 @@ enum AuditLogAction {
     DELETE_BRANCH
     SET_BUILT_BY_BIT_PLACEHOLDER
     SET_POLYMART_PLACEHOLDER
+    CREATE_WEBHOOK
+    UPDATE_WEBHOOK
+    DELETE_WEBHOOK
 }
 
 enum ReleaseStatus {
@@ -668,6 +671,7 @@ enum AuditLogTargetType {
     BLACKLIST
     RELEASE
     BRANCH
+    WEBHOOK
 }
 
 enum BlacklistType {
