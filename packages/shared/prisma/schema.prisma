@@ -259,6 +259,7 @@ model Limits {
     maxReleasesPerProduct Int      @default(100)
     maxBranchesPerProduct Int      @default(10)
     maxInvitations        Int      @default(10)
+    maxWebhooks           Int      @default(20)
     allowClassloader      Boolean  @default(false)
     allowCustomEmails     Boolean  @default(false)
     allowWatermarking     Boolean  @default(false)

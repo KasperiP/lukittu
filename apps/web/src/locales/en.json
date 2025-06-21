@@ -87,6 +87,7 @@
     "max_team_members_reached": "Your team has reached the maximum number of members allowed for the current plan. Please upgrade to add more members.",
     "max_team_members_reached_invite": "The team has reached the maximum number of members allowed for the current plan. Please ask the team owner to upgrade the plan.",
     "latest_release_not_allowed_with_licenses": "Latest release cannot be set when release is restricted to specific licenses!",
+    "webhook_limit_reached": "Your team has reached the maximum number of webhooks allowed for the current plan. Please upgrade to add more webhooks.",
     "blacklist_value_required": "Blacklist value is required!",
     "blacklist_value_min_length": "Blacklist value must be at least 3 characters long!",
     "blacklist_value_max_length": "Blacklist value must be at most 255 characters long!",
@@ -137,7 +138,14 @@
     "polymart_webhook_secret_required": "Polymart webhook secret is required!",
     "polymart_webhook_secret_invalid": "Polymart webhook secret is invalid! It must be 20-255 characters long.",
     "polymart_signing_secret_required": "Polymart signing secret is required!",
-    "polymart_signing_secret_invalid": "Polymart signing secret is invalid! It must be 20-255 characters long."
+    "polymart_signing_secret_invalid": "Polymart signing secret is invalid! It must be 20-255 characters long.",
+    "webhook_name_required": "Webhook name is required!",
+    "webhook_name_min_length": "Webhook name must be at least 3 characters long!",
+    "webhook_name_max_length": "Webhook name must be at most 255 characters long!",
+    "webhook_url_invalid": "Webhook URL is invalid! It must be a valid URL.",
+    "webhook_name_already_exists": "Webhook with this name already exists!",
+    "webhook_url_already_exists": "Webhook with this URL already exists!",
+    "webhook_not_found": "Webhook not found!"
   },
   "general": {
     "select_source": "Select source",
