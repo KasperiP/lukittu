@@ -14,6 +14,7 @@ import { MemberModalContext } from '@/providers/MemberModalProvider';
 import { ProductModalContext } from '@/providers/ProductModalProvider';
 import { ReleaseModalContext } from '@/providers/ReleasesModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
+import { WebhookModalContext } from '@/providers/WebhookModalProvider';
 import { VariantProps } from 'class-variance-authority';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -27,7 +28,8 @@ interface AddEntityButtonProps {
     | 'license'
     | 'blacklist'
     | 'release'
-    | 'branch';
+    | 'branch'
+    | 'webhook';
   displayText?: boolean;
   isTeamOwner?: boolean;
   variant?: VariantProps<typeof buttonVariants>['variant'];
@@ -49,6 +51,7 @@ export default function AddEntityButton({
   const blacklistModalCtx = useContext(BlacklistModalContext);
   const releaseModalCtx = useContext(ReleaseModalContext);
   const branchModalCtx = useContext(BranchModalContext);
+  const webhookModalCtx = useContext(WebhookModalContext);
 
   const translationKey = (() => {
     switch (entityType) {
@@ -66,6 +69,8 @@ export default function AddEntityButton({
         return 'dashboard.releases.create_release';
       case 'branch':
         return 'dashboard.releases.create_branch';
+      case 'webhook':
+        return 'dashboard.webhooks.create_webhook';
       default:
         throw new Error(`Unsupported entity type: ${entityType}`);
     }
@@ -90,6 +95,8 @@ export default function AddEntityButton({
         return releaseModalCtx.setReleaseModalOpen(true);
       case 'branch':
         return branchModalCtx.setBranchModalOpen(true);
+      case 'webhook':
+        return webhookModalCtx.setWebhookModalOpen(true);
     }
   };
 

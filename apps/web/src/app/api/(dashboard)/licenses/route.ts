@@ -6,6 +6,7 @@ import {
   SetLicenseScheama,
   setLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
+import { createLicensePayload } from '@/lib/webhooks/payloads/create-license-payloads';
 import {
   attemptWebhookDelivery,
   createWebhookEvents,
@@ -445,7 +446,11 @@ export type ILicensesCreateResponse =
   | ILicensesCreateSuccessResponse;
 
 export type ILicensesCreateSuccessResponse = {
-  license: Omit<License, 'licenseKeyLookup'>;
+  license: Omit<License, 'licenseKeyLookup'> & {
+    products: Product[];
+    customers: Customer[];
+    metadata: Metadata[];
+  };
 };
 
 export async function POST(
@@ -643,6 +648,11 @@ export async function POST(
             : undefined,
           createdByUserId: session.user.id,
         },
+        include: {
+          products: true,
+          customers: true,
+          metadata: true,
+        },
       });
 
       const response = {
@@ -668,7 +678,7 @@ export async function POST(
       webhookEventIds = await createWebhookEvents({
         eventType: WebhookEventType.LICENSE_CREATED,
         teamId: team.id,
-        payload: createLicenseWebhookPayload(response.license),
+        payload: createLicensePayload(response.license),
         tx: prisma,
       });
 
