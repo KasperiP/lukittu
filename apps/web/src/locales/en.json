@@ -280,6 +280,7 @@
     "ip_address": "IP address",
     "date": "Date",
     "role": "Role",
+    "select_all": "Select all",
     "select_licenses": "Select licenses",
     "last_login": "Last login",
     "actions": "Actions",
@@ -543,7 +544,16 @@
       "editing_products_of_license": "You are editing products of license <strong>{license}</strong>."
     },
     "webhooks": {
-      "create_webhook": "Create webhook"
+      "create_webhook": "Create webhook",
+      "webhook_created": "Webhook created",
+      "webhook_updated": "Webhook updated",
+      "delete_webhook_confirm_title": "Delete webhook",
+      "delete_webhook_confirm_description": "You are about to delete webhook <strong>{webhookName}</strong>! This will <strong>permanently delete</strong> this webhook. This action cannot be undone.",
+      "enabled_events": "Enabled events",
+      "edit_webhook": "Edit webhook",
+      "search_webhook": "Search webhook...",
+      "add_your_first_webhook": "Add your first webhook",
+      "webhook_description": "Webhooks are used to send real-time notifications to external services when certain events occur in Lukittu. You can use them to integrate with other services or to automate tasks."
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",
