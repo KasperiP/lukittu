@@ -5,6 +5,9 @@ import {
   Metadata,
   Product,
 } from '@lukittu/shared';
+import { WebhookDiscordPayload } from '../discord-webhooks';
+import { formatDiscordAuthor } from './shared/format-author';
+import { formatDiscordFooter } from './shared/format-footer';
 
 // Helper function to truncate text with ellipsis
 const truncateText = (text: string, maxLength: number): string => {
@@ -40,13 +43,16 @@ export const createLicensePayload = (payload: CreateLicenseWebhookPayload) => ({
   licenseKey: decryptLicenseKey(payload.licenseKey),
 });
 
-export const createLicenseDiscordPayload = (
-  payload: CreateLicenseWebhookPayload,
-) => {
+export const createLicenseDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<CreateLicenseWebhookPayload>) => {
   const fields = [
     {
       name: 'License Key',
-      value: `\`\`\`\n${decryptLicenseKey(payload.licenseKey)}\`\`\``,
+      value: `\`\`\`\n${payload.licenseKey}\`\`\``,
       inline: false,
     },
     {
@@ -153,10 +159,9 @@ export const createLicenseDiscordPayload = (
         description:
           'A new license has been created with the following details.',
         fields,
-        color: 0x3b82f6, // Blue color to match bot
-        footer: {
-          text: 'License Management System',
-        },
+        color: 0x4153af,
+        author: formatDiscordAuthor({ team }),
+        footer: formatDiscordFooter({ source, user }),
         timestamp: new Date(payload.createdAt).toISOString(),
       },
     ],

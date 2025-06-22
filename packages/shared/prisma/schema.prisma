@@ -38,6 +38,7 @@ model User {
     createdBuiltByBitIntegrations BuiltByBitIntegration[]
     createdPolymartIntegrations   PolymartIntegration[]
     createdInvitations            Invitation[]
+    createdWebhookEvents          WebhookEvent[]
     blacklist                     Blacklist[]
     releases                      Release[]
     webhooks                      Webhook[]
@@ -134,6 +135,9 @@ model WebhookEvent {
     responseCode  Int?
     responseBody  String?
     completedAt   DateTime?
+    source        AuditLogSource     @default(DASHBOARD)
+    userId        String?
+    user          User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
     createdAt     DateTime           @default(now())
     updatedAt     DateTime           @updatedAt
 
