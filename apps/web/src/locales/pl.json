@@ -137,7 +137,15 @@
     "polymart_webhook_secret_required": "Wymagany jest tajny klucz webhook Polymart!",
     "polymart_webhook_secret_invalid": "Nieprawidłowy tajny klucz webhook Polymart! Musi mieć od 20 do 255 znaków.",
     "polymart_signing_secret_required": "Wymagany jest tajny klucz podpisujący Polymart!",
-    "polymart_signing_secret_invalid": "Nieprawidłowy tajny klucz podpisujący Polymart! Musi mieć od 20 do 255 znaków."
+    "polymart_signing_secret_invalid": "Nieprawidłowy tajny klucz podpisujący Polymart! Musi mieć od 20 do 255 znaków.",
+    "webhook_limit_reached": "Osiągnięto limit webhooków.",
+    "webhook_name_required": "Nazwa webhooka jest wymagana.",
+    "webhook_name_min_length": "Nazwa webhooka jest za krótka.",
+    "webhook_name_max_length": "Nazwa webhooka jest za długa.",
+    "webhook_url_invalid": "Nieprawidłowy adres URL webhooka.",
+    "webhook_name_already_exists": "Nazwa webhooka już istnieje.",
+    "webhook_url_already_exists": "Adres URL webhooka już istnieje.",
+    "webhook_not_found": "Webhook nie został znaleziony."
   },
   "general": {
     "add": "Dodaj",
@@ -324,7 +332,9 @@
     "branch": "Gałąź",
     "source": "Źródło",
     "select_source": "Wybierz źródło",
-    "select_target": "Wybierz cel"
+    "select_target": "Wybierz cel",
+    "webhook": "Webhook",
+    "select_all": "Zaznacz wszystko"
   },
   "auth": {
     "oauth": {
@@ -472,7 +482,8 @@
       "settings": "Ustawienia",
       "releases": "Wydania",
       "list": "Lista",
-      "integrations": "Integracje"
+      "integrations": "Integracje",
+      "webhooks": "Webhooki"
     },
     "teams": {
       "create_team": "Utwórz zespół",
@@ -660,7 +671,10 @@
         "set_polymart_integration": "ustawił integrację Polymart",
         "delete_polymart_integration": "usunął integrację Polymart",
         "set_built_by_bit_placeholder": "ustawiono zastępczy BuiltByBit",
-        "set_polymart_placeholder": "ustawiono zastępczy Polymart"
+        "set_polymart_placeholder": "ustawiono zastępczy Polymart",
+        "update_webhook": "zaktualizowano webhook",
+        "delete_webhook": "usunął webhook",
+        "create_webhook": "utworzył webhook"
       }
     },
     "members": {
@@ -820,6 +834,19 @@
       "search_blacklist": "Szukaj na czarnej liście...",
       "delete_blacklist_confirm_title": "Usuń czarną listę",
       "delete_blacklist_confirm_description": "Zamierzasz usunąć wartość <strong>{value}</strong> z czarnej listy! Spowoduje to <strong>trwałe usunięcie</strong> tej wartości. Tej akcji nie można cofnąć."
+    },
+    "webhooks": {
+      "create_webhook": "Utwórz webhook",
+      "webhook_created": "Webhook został utworzony",
+      "webhook_updated": "Webhook został zaktualizowany",
+      "delete_webhook_confirm_title": "Usuń webhook",
+      "delete_webhook_confirm_description": "Zamierzasz usunąć webhook <strong>{webhookName}</strong>! To <strong>trwale usunie</strong> ten webhook. Tej operacji nie można cofnąć.",
+      "enabled_events": "Włączone zdarzenia",
+      "edit_webhook": "Edytuj webhook",
+      "search_webhook": "Szukaj webhooka...",
+      "add_your_first_webhook": "Dodaj swój pierwszy webhook",
+      "webhook_description": "Webhooki służą do wysyłania powiadomień w czasie rzeczywistym do zewnętrznych usług, gdy w Lukittu wystąpią określone zdarzenia. Możesz ich używać do integracji z innymi usługami lub automatyzacji zadań.",
+      "discord_webhook_detected": "Wykryto webhook Discorda! Do ładunku zostanie zastosowane formatowanie Discorda."
     }
   }
 }
