@@ -38,6 +38,7 @@ export function WebhooksActionDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
+          className="hover:cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             webhookModalCtx.setWebhookToEdit(webhook);
@@ -49,7 +50,7 @@ export function WebhooksActionDropdown({
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          className="text-destructive focus:text-destructive"
+          className="text-destructive hover:cursor-pointer focus:text-destructive"
           onClick={(e) => {
             e.stopPropagation();
             webhookModalCtx.setWebhookToDelete(webhook);
