@@ -35,7 +35,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -68,7 +67,6 @@ const StatusBadge = ({ active, t }: { active: boolean; t: any }) => (
 export function WebhooksTable() {
   const locale = useLocale();
   const t = useTranslations();
-  const router = useRouter();
   const { showDropdown, containerRef } = useTableScroll();
   const teamCtx = useContext(TeamContext);
 
@@ -333,13 +331,7 @@ export function WebhooksTable() {
                 ) : (
                   <TableBody>
                     {webhooks.map((webhook) => (
-                      <TableRow
-                        key={webhook.id}
-                        className="cursor-pointer"
-                        onClick={() =>
-                          router.push(`/dashboard/webhooks/${webhook.id}`)
-                        }
-                      >
+                      <TableRow key={webhook.id}>
                         <TableCell className="truncate font-medium">
                           {webhook.name}
                         </TableCell>

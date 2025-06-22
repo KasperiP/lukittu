@@ -682,7 +682,10 @@
         "delete_branch": "deleted branch",
         "create_branch": "created branch",
         "set_built_by_bit_placeholder": "set BuiltByBit placeholder",
-        "set_polymart_placeholder": "set Polymart placeholder"
+        "set_polymart_placeholder": "set Polymart placeholder",
+        "update_webhook": "updated webhook",
+        "delete_webhook": "deleted webhook",
+        "create_webhook": "created webhook"
       }
     },
     "members": {
