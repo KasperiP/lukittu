@@ -678,7 +678,9 @@ export async function POST(
       webhookEventIds = await createWebhookEvents({
         eventType: WebhookEventType.LICENSE_CREATED,
         teamId: team.id,
-        payload: createLicensePayload(response.license),
+        payload: createLicensePayload(license),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
         tx: prisma,
       });
 

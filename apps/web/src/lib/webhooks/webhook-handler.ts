@@ -1,5 +1,6 @@
 import { PrismaTransaction } from '@/types/prisma-types';
 import {
+  AuditLogSource,
   WebhookEventStatus,
   WebhookEventType,
   logger,
@@ -8,6 +9,15 @@ import {
 import crypto from 'crypto';
 import { formatDiscordPayload, isDiscordWebhook } from './discord-webhooks';
 
+interface CreateWebhookEventParams {
+  eventType: WebhookEventType;
+  teamId: string;
+  source: AuditLogSource;
+  userId?: string;
+  payload: any;
+  tx: PrismaTransaction;
+}
+
 /**
  * Creates webhook events in the database (without sending) as part of a transaction
  * This should be called within a Prisma transaction
@@ -15,14 +25,11 @@ import { formatDiscordPayload, isDiscordWebhook } from './discord-webhooks';
 export async function createWebhookEvents({
   eventType,
   teamId,
+  userId,
+  source,
   payload,
   tx,
-}: {
-  eventType: WebhookEventType;
-  teamId: string;
-  payload: any;
-  tx: PrismaTransaction;
-}) {
+}: CreateWebhookEventParams) {
   try {
     logger.info('Creating webhook events in transaction', {
       eventType,
@@ -64,6 +71,8 @@ export async function createWebhookEvents({
           webhookId: webhook.id,
           eventType,
           payload,
+          source,
+          userId: userId || null,
           status: WebhookEventStatus.PENDING,
         },
       });
@@ -154,7 +163,12 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
           lastAttemptAt: new Date(),
         },
         include: {
-          webhook: true,
+          webhook: {
+            include: {
+              team: true,
+            },
+          },
+          user: true,
         },
       })
       .catch((error) => {
@@ -171,6 +185,9 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
       });
       return false;
     }
+
+    const team = webhookEvent.webhook.team;
+    const user = webhookEvent.user;
 
     logger.info('Processing webhook event', {
       webhookEventId,
@@ -213,10 +230,13 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
       let requestBody: string;
 
       if (isDiscord) {
-        const discordPayload = formatDiscordPayload(
-          webhookEvent.eventType,
-          webhookEvent.payload,
-        );
+        const discordPayload = formatDiscordPayload({
+          eventType: webhookEvent.eventType,
+          payload: webhookEvent.payload,
+          team,
+          source: webhookEvent.source,
+          user,
+        });
         requestBody = JSON.stringify(discordPayload);
         logger.info('Using Discord webhook format', { webhookEventId });
       } else {

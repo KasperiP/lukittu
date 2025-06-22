@@ -1,6 +1,7 @@
 'use client';
 import { IWebhookUpdateResponse } from '@/app/api/(dashboard)/webhooks/[slug]/route';
 import { IWebhookCreateResponse } from '@/app/api/(dashboard)/webhooks/route';
+import { DiscordIcon } from '@/components/shared/Icons';
 import LoadingButton from '@/components/shared/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -41,6 +42,7 @@ export default function SetWebhookModal() {
   const { mutate } = useSWRConfig();
 
   const [submitting, setSubmitting] = useState(false);
+  const [isDiscordWebhook, setIsDiscordWebhook] = useState(false);
 
   const getWebhookEvents = () => [
     {
@@ -103,7 +105,20 @@ export default function SetWebhookModal() {
     },
   });
 
-  const { handleSubmit, setError, reset, setValue, control, getValues } = form;
+  const { handleSubmit, setError, reset, setValue, control, getValues, watch } =
+    form;
+
+  const watchedUrl = watch('url');
+
+  const isDiscordWebhookUrl = (url: string) => {
+    const discordWebhookRegex =
+      /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+    return discordWebhookRegex.test(url);
+  };
+
+  useEffect(() => {
+    setIsDiscordWebhook(isDiscordWebhookUrl(watchedUrl || ''));
+  }, [watchedUrl]);
 
   useEffect(() => {
     if (ctx.webhookToEdit) {
@@ -238,11 +253,21 @@ export default function SetWebhookModal() {
                 <FormItem>
                   <FormLabel>{t('general.url')}</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="https://api.lukittu.com/webhooks"
-                      type="url"
-                      {...field}
-                    />
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="https://api.lukittu.com/webhooks"
+                        type="url"
+                        {...field}
+                      />
+                      {isDiscordWebhook && (
+                        <div className="flex items-center space-x-2 rounded-md bg-blue-50 p-2 dark:bg-blue-950">
+                          <DiscordIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                            {t('dashboard.webhooks.discord_webhook_detected')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

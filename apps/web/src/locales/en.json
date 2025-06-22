@@ -268,6 +268,7 @@
     "name": "Name",
     "customer": "Customer",
     "create": "Create",
+    "webhook": "Webhook",
     "license": "License",
     "product": "Product",
     "edit": "Edit",
@@ -553,7 +554,8 @@
       "edit_webhook": "Edit webhook",
       "search_webhook": "Search webhook...",
       "add_your_first_webhook": "Add your first webhook",
-      "webhook_description": "Webhooks are used to send real-time notifications to external services when certain events occur in Lukittu. You can use them to integrate with other services or to automate tasks."
+      "webhook_description": "Webhooks are used to send real-time notifications to external services when certain events occur in Lukittu. You can use them to integrate with other services or to automate tasks.",
+      "discord_webhook_detected": "Discord webhook detected! Discord formatting will be applied to the payload."
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",
