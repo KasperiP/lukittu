@@ -134,10 +134,18 @@
     "branch_name_exists": "El nombre de la sucursal ya existe!",
     "branch_has_releases": "La sucursal tiene versiones y no se puede eliminar.",
     "polymart_integration_not_found": "Integración de Polymart no encontrada.",
-    "polymart_webhook_secret_required": "¡Se requiere el secreto del webhook de Polymart!",
-    "polymart_webhook_secret_invalid": "¡El secreto del webhook de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
-    "polymart_signing_secret_required": "¡Se requiere el secreto de firma de Polymart!",
-    "polymart_signing_secret_invalid": "¡El secreto de firma de Polymart no es válido! Debe tener entre 20 y 255 caracteres."
+    "polymart_webhook_secret_required": "Se requiere el secreto del webhook de Polymart!",
+    "polymart_webhook_secret_invalid": "El secreto del webhook de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
+    "polymart_signing_secret_required": "Se requiere el secreto de firma de Polymart!",
+    "polymart_signing_secret_invalid": "El secreto de firma de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
+    "webhook_limit_reached": "Se ha alcanzado el límite de webhooks.",
+    "webhook_name_required": "Se requiere un nombre para el webhook.",
+    "webhook_name_min_length": "El nombre del webhook es demasiado corto.",
+    "webhook_name_max_length": "El nombre del webhook es demasiado largo.",
+    "webhook_url_invalid": "La URL del webhook no es válida.",
+    "webhook_name_already_exists": "El nombre del webhook ya existe.",
+    "webhook_url_already_exists": "La URL del webhook ya existe.",
+    "webhook_not_found": "No se encontró el webhook."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -324,7 +332,9 @@
     "branch": "Sucursal",
     "source": "Fuente",
     "select_source": "Seleccionar fuente",
-    "select_target": "Seleccionar objetivo"
+    "select_target": "Seleccionar objetivo",
+    "webhook": "Webhook",
+    "select_all": "Seleccionar todo"
   },
   "auth": {
     "oauth": {
@@ -472,7 +482,8 @@
       "settings": "Configuraciones",
       "releases": "Versiones",
       "list": "Lista",
-      "integrations": "Integraciones"
+      "integrations": "Integraciones",
+      "webhooks": "Webhooks"
     },
     "teams": {
       "create_team": "Crear un equipo",
@@ -660,7 +671,10 @@
         "set_polymart_integration": "estableció integración de Polymart",
         "delete_polymart_integration": "eliminó integración de Polymart",
         "set_built_by_bit_placeholder": "estableció marcador de BuiltByBit",
-        "set_polymart_placeholder": "estableció marcador de Polymart"
+        "set_polymart_placeholder": "estableció marcador de Polymart",
+        "update_webhook": "actualizó webhook",
+        "delete_webhook": "eliminó webhook",
+        "create_webhook": "creó webhook"
       }
     },
     "members": {
@@ -820,6 +834,19 @@
       "search_blacklist": "Buscar en la lista negra...",
       "delete_blacklist_confirm_title": "Eliminar lista negra",
       "delete_blacklist_confirm_description": "Estás a punto de eliminar el valor de la lista negra <strong>{value}</strong>! Esto <strong>eliminará permanentemente</strong> este valor de la lista negra. Esta acción no se puede deshacer."
+    },
+    "webhooks": {
+      "create_webhook": "Crear webhook",
+      "webhook_created": "Webhook creado",
+      "webhook_updated": "Webhook actualizado",
+      "delete_webhook_confirm_title": "Eliminar webhook",
+      "delete_webhook_confirm_description": "Estás a punto de eliminar el webhook <strong>{webhookName}</strong>. Esto <strong>eliminará permanentemente</strong> este webhook. Esta acción no se puede deshacer.",
+      "enabled_events": "Eventos habilitados",
+      "edit_webhook": "Editar webhook",
+      "search_webhook": "Buscar webhook...",
+      "add_your_first_webhook": "Agrega tu primer webhook",
+      "webhook_description": "Los webhooks se utilizan para enviar notificaciones en tiempo real a servicios externos cuando ocurren ciertos eventos en Lukittu. Puedes usarlos para integrarte con otros servicios o automatizar tareas.",
+      "discord_webhook_detected": "Webhook de Discord detectado! Se aplicará el formato de Discord al contenido enviado."
     }
   }
 }
