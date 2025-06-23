@@ -10,6 +10,11 @@ import {
   CreateLicenseSchema,
   createLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
+import { createLicensePayload } from '@/lib/webhooks/payloads/create-license-payloads';
+import {
+  attemptWebhookDelivery,
+  createWebhookEvents,
+} from '@/lib/webhooks/webhook-handler';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -24,6 +29,7 @@ import {
   prisma,
   Prisma,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -183,6 +189,7 @@ export async function POST(
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
     const hmac = generateHMAC(`${licenseKey}:${team.id}`);
+    let webhookEventIds: string[] = [];
 
     try {
       const response = await prisma.$transaction(async (prisma) => {
@@ -287,8 +294,18 @@ export async function POST(
           tx: prisma,
         });
 
+        webhookEventIds = await createWebhookEvents({
+          eventType: WebhookEventType.LICENSE_CREATED,
+          teamId: team.id,
+          payload: createLicensePayload(license),
+          source: AuditLogSource.API_KEY,
+          tx: prisma,
+        });
+
         return response;
       });
+
+      await attemptWebhookDelivery(webhookEventIds);
 
       return NextResponse.json(response);
     } catch (txError) {
