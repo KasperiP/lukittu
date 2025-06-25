@@ -227,6 +227,9 @@
     "settings": "Settings",
     "apply": "Apply",
     "clear": "Clear",
+    "event_type": "Event type",
+    "attempts": "Attempts",
+    "last_attempt_at": "Last attempt at",
     "filters": "Filters",
     "never": "Never",
     "error": "Error",
@@ -305,15 +308,20 @@
     "server_error": "Server error",
     "metadata": "Metadata",
     "key": "Key",
+    "delivery_rate": "Delivery rate",
+    "failed": "Failed",
     "value": "Value",
     "hits": "Hits",
     "add_metadata": "Add metadata",
+    "total_events": "Total events",
     "active": "Active",
+    "delivered": "Delivered",
     "basic": "Basic",
     "inactive": "Inactive",
     "billing_period_ends": "Billing period ends",
     "plan": "Plan",
     "expiring": "Expiring",
+    "pending": "Pending",
     "expired": "Expired",
     "suspended": "Suspended",
     "search_country": "Search country...",
@@ -334,7 +342,9 @@
     "unlock_metadata": "Unlock metadata",
     "locked_metadata_warning": "This metadata field is locked. These fields are typically locked because they are system-generated. Modifying this field may cause issues with integrations that depend on this data.",
     "confirm": "Confirm",
-    "sending_email_failed": "Sending email failed"
+    "sending_email_failed": "Sending email failed",
+    "hide_secret": "Hide secret",
+    "show_secret": "Show secret"
   },
   "auth": {
     "oauth": {
@@ -545,6 +555,7 @@
       "editing_products_of_license": "You are editing products of license <strong>{license}</strong>."
     },
     "webhooks": {
+      "webhook_events": "Webhook events",
       "create_webhook": "Create webhook",
       "webhook_created": "Webhook created",
       "webhook_updated": "Webhook updated",
@@ -555,7 +566,15 @@
       "search_webhook": "Search webhook...",
       "add_your_first_webhook": "Add your first webhook",
       "webhook_description": "Webhooks are used to send real-time notifications to external services when certain events occur in Lukittu. You can use them to integrate with other services or to automate tasks.",
-      "discord_webhook_detected": "Discord webhook detected! Discord formatting will be applied to the payload."
+      "discord_webhook_detected": "Discord webhook detected! Discord formatting will be applied to the payload.",
+      "no_webhook_events_found": "No webhook events found",
+      "event_delivery_trends": "Event delivery trends",
+      "event_delivery_trends_description": "Webhook event delivery statistics over the last 30 days",
+      "excellent_delivery_rate": "Excellent delivery rate {rate}%",
+      "good_delivery_rate": "Good delivery rate {rate}%",
+      "poor_delivery_rate": "Poor delivery rate {rate}%",
+      "no_delivery_data": "No data available",
+      "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events"
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",

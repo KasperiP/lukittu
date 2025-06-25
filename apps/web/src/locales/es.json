@@ -334,7 +334,17 @@
     "select_source": "Seleccionar fuente",
     "select_target": "Seleccionar objetivo",
     "webhook": "Webhook",
-    "select_all": "Seleccionar todo"
+    "select_all": "Seleccionar todo",
+    "event_type": "",
+    "attempts": "",
+    "last_attempt_at": "",
+    "delivery_rate": "",
+    "failed": "",
+    "total_events": "",
+    "delivered": "",
+    "pending": "",
+    "hide_secret": "",
+    "show_secret": ""
   },
   "auth": {
     "oauth": {
@@ -846,7 +856,16 @@
       "search_webhook": "Buscar webhook...",
       "add_your_first_webhook": "Agrega tu primer webhook",
       "webhook_description": "Los webhooks se utilizan para enviar notificaciones en tiempo real a servicios externos cuando ocurren ciertos eventos en Lukittu. Puedes usarlos para integrarte con otros servicios o automatizar tareas.",
-      "discord_webhook_detected": "Webhook de Discord detectado! Se aplicará el formato de Discord al contenido enviado."
+      "discord_webhook_detected": "Webhook de Discord detectado! Se aplicará el formato de Discord al contenido enviado.",
+      "webhook_events": "",
+      "no_webhook_events_found": "",
+      "event_delivery_trends": "",
+      "event_delivery_trends_description": "",
+      "excellent_delivery_rate": "",
+      "good_delivery_rate": "",
+      "poor_delivery_rate": "",
+      "no_delivery_data": "",
+      "delivery_rate_tooltip": ""
     }
   }
 }

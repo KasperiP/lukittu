@@ -35,6 +35,8 @@ import {
   XCircle,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -67,6 +69,7 @@ const StatusBadge = ({ active, t }: { active: boolean; t: any }) => (
 export function WebhooksTable() {
   const locale = useLocale();
   const t = useTranslations();
+  const router = useRouter();
   const { showDropdown, containerRef } = useTableScroll();
   const teamCtx = useContext(TeamContext);
 
@@ -198,9 +201,11 @@ export function WebhooksTable() {
                       </div>
                     ))
                   : webhooks.map((webhook) => (
-                      <div
+                      <Link
                         key={webhook.id}
                         className="group relative flex items-center justify-between border-b py-3 first:border-t"
+                        href={`/dashboard/webhooks/${webhook.id}`}
+                        tabIndex={0}
                       >
                         <div className="absolute inset-0 -mx-2 rounded-lg transition-colors group-hover:bg-secondary/80" />
                         <div className="z-10">
@@ -237,7 +242,7 @@ export function WebhooksTable() {
                           </span>
                           <WebhooksActionDropdown webhook={webhook} />
                         </div>
-                      </div>
+                      </Link>
                     ))}
               </div>
               <Table
@@ -331,7 +336,13 @@ export function WebhooksTable() {
                 ) : (
                   <TableBody>
                     {webhooks.map((webhook) => (
-                      <TableRow key={webhook.id}>
+                      <TableRow
+                        key={webhook.id}
+                        className="cursor-pointer"
+                        onClick={() =>
+                          router.push(`/dashboard/webhooks/${webhook.id}`)
+                        }
+                      >
                         <TableCell className="truncate font-medium">
                           {webhook.name}
                         </TableCell>
