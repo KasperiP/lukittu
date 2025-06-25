@@ -334,7 +334,17 @@
     "select_source": "Valitse lähde",
     "select_target": "Valitse kohde",
     "webhook": "Webhook",
-    "select_all": "Valitse kaikki"
+    "select_all": "Valitse kaikki",
+    "event_type": "",
+    "attempts": "",
+    "last_attempt_at": "",
+    "delivery_rate": "",
+    "failed": "",
+    "total_events": "",
+    "delivered": "",
+    "pending": "",
+    "hide_secret": "",
+    "show_secret": ""
   },
   "auth": {
     "oauth": {
@@ -846,7 +856,16 @@
       "search_webhook": "Etsi webhook...",
       "add_your_first_webhook": "Lisää ensimmäinen webhookisi",
       "webhook_description": "Webhookkeja käytetään reaaliaikaisten ilmoitusten lähettämiseen ulkoisiin palveluihin, kun tiettyjä tapahtumia tapahtuu Lukitussa. Niiden avulla voit integroitua muihin palveluihin tai automatisoida tehtäviä.",
-      "discord_webhook_detected": "Discord-webhook havaittu! Payloadiin sovelletaan Discord-muotoilua."
+      "discord_webhook_detected": "Discord-webhook havaittu! Payloadiin sovelletaan Discord-muotoilua.",
+      "webhook_events": "",
+      "no_webhook_events_found": "",
+      "event_delivery_trends": "",
+      "event_delivery_trends_description": "",
+      "excellent_delivery_rate": "",
+      "good_delivery_rate": "",
+      "poor_delivery_rate": "",
+      "no_delivery_data": "",
+      "delivery_rate_tooltip": ""
     }
   }
 }
