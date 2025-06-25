@@ -13,7 +13,7 @@ import 'server-only';
 
 const publicS3Client = new S3Client({
   endpoint: process.env.PUBLIC_OBJECT_STORAGE_ENDPOINT,
-  region: 'auto',
+  region: process.env.PUBLIC_OBJECT_STORAGE_REGION,
   credentials: {
     accessKeyId: process.env.PUBLIC_OBJECT_STORAGE_ACCESS_KEY!,
     secretAccessKey: process.env.PUBLIC_OBJECT_STORAGE_SECRET_KEY!,
@@ -23,7 +23,7 @@ const publicS3Client = new S3Client({
 
 const privateS3Client = new S3Client({
   endpoint: process.env.PRIVATE_OBJECT_STORAGE_ENDPOINT,
-  region: 'auto',
+  region: process.env.PRIVATE_OBJECT_STORAGE_REGION,
   credentials: {
     accessKeyId: process.env.PRIVATE_OBJECT_STORAGE_ACCESS_KEY!,
     secretAccessKey: process.env.PRIVATE_OBJECT_STORAGE_SECRET_KEY!,
