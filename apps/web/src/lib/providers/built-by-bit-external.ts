@@ -13,11 +13,17 @@ import {
   prisma,
   Settings,
   Team,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { BuiltByBitMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';
 import { PlaceholderBuiltByBitSchema } from '../validation/integrations/placeholder-built-by-bit-schema';
 import { PurchaseBuiltByBitSchema } from '../validation/integrations/purchase-built-by-bit-schema';
+import { createLicensePayload } from '../webhooks/payloads/create-license-payloads';
+import {
+  attemptWebhookDelivery,
+  createWebhookEvents,
+} from '../webhooks/webhook-handler';
 
 type ExtendedTeam = Team & {
   settings: Settings | null;
@@ -164,6 +170,8 @@ export const handleBuiltByBitPurchase = async (
         : []),
     ];
 
+    let webhookEventIds: string[] = [];
+
     const license = await prisma.$transaction(async (prisma) => {
       const existingLukittuCustomer = await prisma.customer.findFirst({
         where: {
@@ -260,7 +268,9 @@ export const handleBuiltByBitPurchase = async (
           expirationDate,
         },
         include: {
+          customers: true,
           products: true,
+          metadata: true,
         },
       });
 
@@ -296,6 +306,14 @@ export const handleBuiltByBitPurchase = async (
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: team.id,
+        payload: createLicensePayload(license),
+        source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
+        tx: prisma,
+      });
+
       return license;
     });
 
@@ -310,6 +328,8 @@ export const handleBuiltByBitPurchase = async (
         message: 'Failed to create a license',
       };
     }
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     logger.info('BuiltByBit purchase processed successfully', {
       licenseId: license.id,

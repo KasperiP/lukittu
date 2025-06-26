@@ -6,6 +6,11 @@ import {
   SetLicenseScheama,
   setLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
+import { createLicensePayload } from '@/lib/webhooks/payloads/create-license-payloads';
+import {
+  attemptWebhookDelivery,
+  createWebhookEvents,
+} from '@/lib/webhooks/webhook-handler';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -23,6 +28,7 @@ import {
   Prisma,
   Product,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -440,8 +446,13 @@ export type ILicensesCreateResponse =
   | ILicensesCreateSuccessResponse;
 
 export type ILicensesCreateSuccessResponse = {
-  license: Omit<License, 'licenseKeyLookup'>;
+  license: Omit<License, 'licenseKeyLookup'> & {
+    products: Product[];
+    customers: Customer[];
+    metadata: Metadata[];
+  };
 };
+
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<ILicensesCreateResponse>> {
@@ -606,6 +617,7 @@ export async function POST(
     }
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       const license = await prisma.license.create({
@@ -636,6 +648,11 @@ export async function POST(
             : undefined,
           createdByUserId: session.user.id,
         },
+        include: {
+          products: true,
+          customers: true,
+          metadata: true,
+        },
       });
 
       const response = {
@@ -658,8 +675,19 @@ export async function POST(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: team.id,
+        payload: createLicensePayload(license),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
