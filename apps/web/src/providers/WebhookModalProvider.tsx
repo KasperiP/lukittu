@@ -1,4 +1,6 @@
 'use client';
+import DeleteWebhookModal from '@/components/dashboard/webhooks/DeleteWebhookModal';
+import SetWebhookModal from '@/components/dashboard/webhooks/SetWebhookModal';
 import { Webhook } from '@lukittu/shared';
 import React, { createContext, ReactNode, useState } from 'react';
 
@@ -49,6 +51,8 @@ export const WebhookModalProvider: React.FC<WebhookModalProviderProps> = ({
         setWebhookToDelete,
       }}
     >
+      <SetWebhookModal />
+      <DeleteWebhookModal />
       {children}
     </WebhookModalContext.Provider>
   );

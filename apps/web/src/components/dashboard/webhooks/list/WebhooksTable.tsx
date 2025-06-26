@@ -41,8 +41,6 @@ import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { WebhooksActionDropdown } from '../../webhooks/WebhooksActionDropdown';
-import DeleteWebhookModal from '../DeleteWebhookModal';
-import SetWebhookModal from '../SetWebhookModal';
 
 const fetchWebhooks = async (url: string) => {
   const response = await fetch(url);
@@ -422,8 +420,6 @@ export function WebhooksTable() {
           )}
         </CardContent>
       </Card>
-      <SetWebhookModal />
-      <DeleteWebhookModal />
     </WebhookModalProvider>
   );
 }

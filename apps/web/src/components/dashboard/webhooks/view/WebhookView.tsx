@@ -59,7 +59,7 @@ export default function WebhookView() {
         ) : (
           <h1 className="truncate text-2xl font-bold">{webhook?.name}</h1>
         )}
-        <WebhooksActionDropdown webhook={webhook!} />
+        <WebhooksActionDropdown variant="outline" webhook={webhook!} />
       </div>
       <Separator className="mt-2" />
       <div className="mt-6">
