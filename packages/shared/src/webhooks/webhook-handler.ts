@@ -1,20 +1,24 @@
-import { PrismaTransaction } from '@/types/prisma-types';
+import crypto from 'crypto';
 import {
   AuditLogSource,
   WebhookEventStatus,
   WebhookEventType,
-  logger,
-  prisma,
-} from '@lukittu/shared';
-import crypto from 'crypto';
-import { formatDiscordPayload, isDiscordWebhook } from './discord-webhooks';
+} from '../../prisma/generated/client';
+import { logger } from '../logging/logger';
+import { prisma } from '../prisma/prisma';
+import { PrismaTransaction } from '../types/prisma-types';
+import {
+  formatDiscordPayload,
+  isDiscordWebhook,
+  PayloadType,
+} from './discord-webhooks';
 
 interface CreateWebhookEventParams {
   eventType: WebhookEventType;
   teamId: string;
   source: AuditLogSource;
   userId?: string;
-  payload: any;
+  payload: PayloadType;
   tx: PrismaTransaction;
 }
 
@@ -232,7 +236,7 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
       if (isDiscord) {
         const discordPayload = formatDiscordPayload({
           eventType: webhookEvent.eventType,
-          payload: webhookEvent.payload,
+          payload: webhookEvent.payload as unknown as PayloadType,
           team,
           source: webhookEvent.source,
           user,
@@ -290,6 +294,10 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
         try {
           responseText = await response.text();
         } catch (error) {
+          logger.error('Failed to read response body', {
+            webhookEventId,
+            error: error instanceof Error ? error.message : String(error),
+          });
           responseText = '(Failed to read response body)';
         }
 
@@ -324,6 +332,10 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
         try {
           responseText = await response.text();
         } catch (error) {
+          logger.error('Failed to read error response body', {
+            webhookEventId,
+            error: error instanceof Error ? error.message : String(error),
+          });
           responseText = '(Failed to read error response)';
         }
 

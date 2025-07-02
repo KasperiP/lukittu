@@ -1,8 +1,10 @@
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   decryptLicenseKey,
   encryptLicenseKey,
   generateHMAC,
@@ -15,6 +17,7 @@ import {
   Team,
   WebhookEventType,
 } from '@lukittu/shared';
+import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import crypto from 'crypto';
 import { PolymartMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';
@@ -23,11 +26,6 @@ import {
   PolymartPurchaseParams,
   PurchasePolymartSchema,
 } from '../validation/integrations/purchase-polymart-schema';
-import { createLicensePayload } from '../webhooks/payloads/create-license-payloads';
-import {
-  attemptWebhookDelivery,
-  createWebhookEvents,
-} from '../webhooks/webhook-handler';
 
 type ExtendedTeam = Team & {
   settings: Settings | null;

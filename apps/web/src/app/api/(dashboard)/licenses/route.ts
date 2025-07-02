@@ -6,17 +6,14 @@ import {
   SetLicenseScheama,
   setLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
-import { createLicensePayload } from '@/lib/webhooks/payloads/create-license-payloads';
-import {
-  attemptWebhookDelivery,
-  createWebhookEvents,
-} from '@/lib/webhooks/webhook-handler';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   Customer,
   decryptLicenseKey,
   encryptLicenseKey,
@@ -30,6 +27,7 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 

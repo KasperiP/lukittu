@@ -1,10 +1,10 @@
 import {
   Customer,
-  decryptLicenseKey,
   License,
   Metadata,
   Product,
-} from '@lukittu/shared';
+} from '../../../prisma/generated/client';
+import { decryptLicenseKey } from '../../security/crypto';
 import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
@@ -18,8 +18,8 @@ const truncateText = (text: string, maxLength: number): string => {
 // Helper function to format list with limits
 const formatLimitedList = (
   items: string[],
-  maxItems: number = 10,
-  maxLength: number = 1000,
+  maxItems = 10,
+  maxLength = 1000,
 ): string => {
   const displayItems = items.slice(0, maxItems);
   let result = displayItems.join('\n');

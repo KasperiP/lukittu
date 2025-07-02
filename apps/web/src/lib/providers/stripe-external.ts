@@ -1,7 +1,9 @@
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
@@ -14,16 +16,12 @@ import {
   Team,
   WebhookEventType,
 } from '@lukittu/shared';
+import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import 'server-only';
 import Stripe from 'stripe';
 import { StripeMetadataKeys } from '../constants/metadata';
 import { sendLicenseDistributionEmail } from '../emails/templates/send-license-distribution-email';
 import { createAuditLog } from '../logging/audit-log';
-import { createLicensePayload } from '../webhooks/payloads/create-license-payloads';
-import {
-  attemptWebhookDelivery,
-  createWebhookEvents,
-} from '../webhooks/webhook-handler';
 
 type ExtendedTeam = Team & {
   settings: Settings | null;

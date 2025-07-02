@@ -1,6 +1,5 @@
-import { processWebhookRetries } from '@/lib/webhooks/webhook-handler';
 import { HttpStatus } from '@/types/http-status';
-import { logger } from '@lukittu/shared';
+import { logger, processWebhookRetries } from '@lukittu/shared';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 

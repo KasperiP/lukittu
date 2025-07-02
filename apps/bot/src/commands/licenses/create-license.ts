@@ -1,7 +1,9 @@
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
@@ -11,7 +13,9 @@ import {
   Prisma,
   prisma,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
+import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
@@ -1887,6 +1891,7 @@ async function finalizeLicenseCreation(
 
     const hmac = generateHMAC(`${state.licenseKey}:${state.teamId}`);
     const encryptedLicenseKey = encryptLicenseKey(state.licenseKey);
+    let webhookEventIds: string[] = [];
 
     const license = await prisma.$transaction(async (prisma) => {
       const license = await prisma.license.create({
@@ -1923,6 +1928,11 @@ async function finalizeLicenseCreation(
               ? { connect: state.customerIds.map((id) => ({ id })) }
               : undefined,
         },
+        include: {
+          products: true,
+          customers: true,
+          metadata: true,
+        },
       });
 
       await prisma.auditLog.create({
@@ -1945,8 +1955,19 @@ async function finalizeLicenseCreation(
         },
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: state.teamId,
+        payload: createLicensePayload(license),
+        userId,
+        source: AuditLogSource.DISCORD_INTEGRATION,
+        tx: prisma,
+      });
+
       return license;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('License Created Successfully')
