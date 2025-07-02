@@ -308,9 +308,12 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
           eventType: webhookEvent.eventType,
         });
 
-        await prisma.webhookEvent
-          .update({
-            where: { id: webhookEvent.id },
+        const updateResult = await prisma.webhookEvent
+          .updateMany({
+            where: {
+              id: webhookEvent.id,
+              status: WebhookEventStatus.IN_PROGRESS,
+            },
             data: {
               status: WebhookEventStatus.DELIVERED,
               responseCode: response.status,
@@ -323,7 +326,18 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
               webhookEventId,
               error: error.message,
             });
+            return { count: 0 };
           });
+
+        if (updateResult.count === 0) {
+          logger.error(
+            'Webhook event was already processed by another instance',
+            {
+              webhookEventId,
+            },
+          );
+          return false;
+        }
 
         return true;
       } else {
@@ -386,9 +400,12 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
         retryDelaySeconds: retryDelay,
       });
 
-      await prisma.webhookEvent
-        .update({
-          where: { id: webhookEvent.id },
+      const retryUpdateResult = await prisma.webhookEvent
+        .updateMany({
+          where: {
+            id: webhookEvent.id,
+            status: WebhookEventStatus.IN_PROGRESS,
+          },
           data: {
             status: WebhookEventStatus.RETRY_SCHEDULED,
             errorMessage: errorMessage.substring(0, 255),
@@ -400,7 +417,17 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
             webhookEventId,
             error: updateError.message,
           });
+          return { count: 0 };
         });
+
+      if (retryUpdateResult.count === 0) {
+        logger.error(
+          'Failed to schedule retry - webhook event was already processed',
+          {
+            webhookEventId,
+          },
+        );
+      }
 
       return false;
     }
@@ -512,6 +539,9 @@ export async function processWebhookRetries(): Promise<number> {
   let processedCount = 0;
 
   try {
+    // First, clean up any stuck events before processing retries
+    await cleanupStuckWebhookEvents();
+
     // Find events that are scheduled for retry and are due
     const eventsToRetry = await prisma.webhookEvent
       .findMany({
@@ -608,4 +638,46 @@ function generateSignature(
     .createHmac('sha256', secret)
     .update(signatureData)
     .digest('hex');
+}
+
+/**
+/**
+ * Clean up webhook events that are stuck in IN_PROGRESS status
+ * These can occur when a process crashes during webhook delivery
+ */
+export async function cleanupStuckWebhookEvents(): Promise<number> {
+  logger.info('Cleaning up stuck webhook events');
+
+  try {
+    // Find events that have been IN_PROGRESS for more than 10 minutes
+    const stuckThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
+
+    const result = await prisma.webhookEvent.updateMany({
+      where: {
+        status: WebhookEventStatus.IN_PROGRESS,
+        lastAttemptAt: {
+          lt: stuckThreshold,
+        },
+      },
+      data: {
+        status: WebhookEventStatus.RETRY_SCHEDULED,
+        nextRetryAt: new Date(Date.now() + 60 * 1000), // Retry in 1 minute
+        errorMessage:
+          'Event was stuck in IN_PROGRESS status - likely due to process crash',
+      },
+    });
+
+    if (result.count > 0) {
+      logger.error(`Cleaned up ${result.count} stuck webhook events`, {
+        count: result.count,
+      });
+    }
+
+    return result.count;
+  } catch (error) {
+    logger.error('Failed to cleanup stuck webhook events', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return 0;
+  }
 }
