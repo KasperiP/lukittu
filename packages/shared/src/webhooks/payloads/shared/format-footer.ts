@@ -1,10 +1,5 @@
-import builtByBitSquare from '@/../public/integrations/builtbybit_square.png';
-import discordSquare from '@/../public/integrations/discord_square.jpg';
-import lukittuBot from '@/../public/integrations/lukittu_bot_square.png';
-import polymartSquare from '@/../public/integrations/polymart.png';
-import stripeSquare from '@/../public/integrations/stripe_square.jpeg';
-import { AuditLogSource } from '@lukittu/shared';
 import { User } from '@sentry/nextjs';
+import { AuditLogSource } from '../../../../prisma/generated/client';
 
 const getSourceDisplayName = (source: AuditLogSource): string => {
   switch (source) {
@@ -28,15 +23,15 @@ const getSourceDisplayName = (source: AuditLogSource): string => {
 const getIntegrationLogoUrl = (source: AuditLogSource): string | null => {
   switch (source) {
     case AuditLogSource.STRIPE_INTEGRATION:
-      return stripeSquare.src;
+      return `${process.env.BASE_URL}/integrations/stripe_square.jpeg`;
     case AuditLogSource.DISCORD_INTEGRATION:
-      return discordSquare.src;
+      return `${process.env.BASE_URL}/integrations/discord_square.jpg`;
     case AuditLogSource.BUILT_BY_BIT_INTEGRATION:
-      return builtByBitSquare.src;
+      return `${process.env.BASE_URL}/integrations/builtbybit_square.png`;
     case AuditLogSource.POLYMART_INTEGRATION:
-      return polymartSquare.src;
+      return `${process.env.BASE_URL}/integrations/polymart.png`;
     case AuditLogSource.API_KEY:
-      return lukittuBot.src;
+      return `${process.env.BASE_URL}/integrations/lukittu_bot_square.png`;
     default:
       return null;
   }

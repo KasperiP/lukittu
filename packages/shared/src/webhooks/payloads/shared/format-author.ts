@@ -1,4 +1,4 @@
-import { Team } from '@lukittu/shared';
+import { Team } from '../../../../prisma/generated/client';
 
 export interface FormatAuthorParams {
   team: Team;

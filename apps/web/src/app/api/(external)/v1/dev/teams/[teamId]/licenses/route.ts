@@ -10,17 +10,14 @@ import {
   CreateLicenseSchema,
   createLicenseSchema,
 } from '@/lib/validation/licenses/set-license-schema';
-import { createLicensePayload } from '@/lib/webhooks/payloads/create-license-payloads';
-import {
-  attemptWebhookDelivery,
-  createWebhookEvents,
-} from '@/lib/webhooks/webhook-handler';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   decryptLicenseKey,
   encryptLicenseKey,
   generateHMAC,
@@ -31,6 +28,7 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(

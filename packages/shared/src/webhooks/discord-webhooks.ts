@@ -1,12 +1,20 @@
-import { AuditLogSource, Team, User, WebhookEventType } from '@lukittu/shared';
-import { createLicenseDiscordPayload } from './payloads/create-license-payloads';
+import {
+  AuditLogSource,
+  Team,
+  User,
+  WebhookEventType,
+} from '../../prisma/generated/client';
+import {
+  createLicenseDiscordPayload,
+  CreateLicenseWebhookPayload,
+} from './payloads/create-license-payloads';
 
-export type WebhookDiscordPayload<T> = {
+export interface WebhookDiscordPayload<T> {
   source: AuditLogSource;
   payload: T;
   team: Team;
   user: Omit<User, 'passwordHash'> | null;
-};
+}
 
 export function isDiscordWebhook(url: string): boolean {
   try {
@@ -20,10 +28,12 @@ export function isDiscordWebhook(url: string): boolean {
   }
 }
 
+export type PayloadType = CreateLicenseWebhookPayload;
+
 interface FormatDiscordPayloadParams {
   eventType: WebhookEventType;
   source: AuditLogSource;
-  payload: any;
+  payload: PayloadType;
   team: Team;
   user: Omit<User, 'passwordHash'> | null;
 }
@@ -34,7 +44,7 @@ export function formatDiscordPayload({
   team,
   source,
   user,
-}: FormatDiscordPayloadParams): any {
+}: FormatDiscordPayloadParams) {
   switch (eventType) {
     case WebhookEventType.LICENSE_CREATED:
       return createLicenseDiscordPayload({
@@ -45,7 +55,8 @@ export function formatDiscordPayload({
       });
 
     default:
-
-    // Fallback for unsupported event types
+      throw new Error(
+        `Unsupported event type for Discord webhook: ${eventType}`,
+      );
   }
 }
