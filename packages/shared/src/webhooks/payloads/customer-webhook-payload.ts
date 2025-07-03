@@ -3,10 +3,14 @@ import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
 
-export type CreateCustomerWebhookPayload = Customer & {
+export type CustomerWebhookPayload = Customer & {
   address: Address | null;
   metadata: Metadata[];
 };
+
+export type CreateCustomerWebhookPayload = CustomerWebhookPayload;
+export type UpdateCustomerWebhookPayload = CustomerWebhookPayload;
+export type DeleteCustomerWebhookPayload = CustomerWebhookPayload;
 
 export const createCustomerPayload = (
   payload: CreateCustomerWebhookPayload,
@@ -14,12 +18,19 @@ export const createCustomerPayload = (
   ...payload,
 });
 
-export const createCustomerDiscordPayload = ({
-  payload,
-  team,
-  user,
-  source,
-}: WebhookDiscordPayload<CreateCustomerWebhookPayload>) => {
+export const updateCustomerPayload = (
+  payload: UpdateCustomerWebhookPayload,
+) => ({
+  ...payload,
+});
+
+export const deleteCustomerPayload = (
+  payload: DeleteCustomerWebhookPayload,
+) => ({
+  ...payload,
+});
+
+const buildCustomerFields = (payload: CustomerWebhookPayload) => {
   const fields = [];
 
   fields.push(
@@ -108,6 +119,17 @@ export const createCustomerDiscordPayload = ({
     inline: true,
   });
 
+  return fields;
+};
+
+export const createCustomerDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<CreateCustomerWebhookPayload>) => {
+  const fields = buildCustomerFields(payload);
+
   return {
     embeds: [
       {
@@ -119,6 +141,53 @@ export const createCustomerDiscordPayload = ({
         author: formatDiscordAuthor({ team }),
         footer: formatDiscordFooter({ source, user }),
         timestamp: new Date(payload.createdAt).toISOString(),
+      },
+    ],
+  };
+};
+
+export const updateCustomerDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<UpdateCustomerWebhookPayload>) => {
+  const fields = buildCustomerFields(payload);
+
+  return {
+    embeds: [
+      {
+        title: 'Customer Updated Successfully',
+        description: 'A customer has been updated with the following details.',
+        fields,
+        color: 0xf59e0b,
+        author: formatDiscordAuthor({ team }),
+        footer: formatDiscordFooter({ source, user }),
+        timestamp: new Date(payload.updatedAt).toISOString(),
+      },
+    ],
+  };
+};
+
+export const deleteCustomerDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<DeleteCustomerWebhookPayload>) => {
+  const fields = buildCustomerFields(payload);
+
+  return {
+    embeds: [
+      {
+        title: 'Customer Deleted',
+        description:
+          'A customer has been deleted. Below are the details of the deleted customer.',
+        fields,
+        color: 0xef4444,
+        author: formatDiscordAuthor({ team }),
+        footer: formatDiscordFooter({ source, user }),
+        timestamp: new Date().toISOString(),
       },
     ],
   };

@@ -7,11 +7,27 @@ import {
 import {
   createCustomerDiscordPayload,
   CreateCustomerWebhookPayload,
-} from './payloads/create-customer-payloads';
+  deleteCustomerDiscordPayload,
+  DeleteCustomerWebhookPayload,
+  updateCustomerDiscordPayload,
+  UpdateCustomerWebhookPayload,
+} from './payloads/customer-webhook-payload';
 import {
   createLicenseDiscordPayload,
   CreateLicenseWebhookPayload,
-} from './payloads/create-license-payloads';
+  deleteLicenseDiscordPayload,
+  DeleteLicenseWebhookPayload,
+  updateLicenseDiscordPayload,
+  UpdateLicenseWebhookPayload,
+} from './payloads/license-webhook-payload';
+import {
+  createProductDiscordPayload,
+  CreateProductWebhookPayload,
+  deleteProductDiscordPayload,
+  DeleteProductWebhookPayload,
+  updateProductDiscordPayload,
+  UpdateProductWebhookPayload,
+} from './payloads/product-webhook-payload';
 
 export interface WebhookDiscordPayload<T> {
   source: AuditLogSource;
@@ -34,7 +50,14 @@ export function isDiscordWebhook(url: string): boolean {
 
 export type PayloadType =
   | CreateLicenseWebhookPayload
-  | CreateCustomerWebhookPayload;
+  | UpdateLicenseWebhookPayload
+  | DeleteLicenseWebhookPayload
+  | CreateCustomerWebhookPayload
+  | UpdateCustomerWebhookPayload
+  | DeleteCustomerWebhookPayload
+  | CreateProductWebhookPayload
+  | UpdateProductWebhookPayload
+  | DeleteProductWebhookPayload;
 
 interface FormatDiscordPayloadParams {
   eventType: WebhookEventType;
@@ -60,9 +83,65 @@ export function formatDiscordPayload({
         source,
       });
 
+    case WebhookEventType.LICENSE_UPDATED:
+      return updateLicenseDiscordPayload({
+        payload: payload as UpdateLicenseWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.LICENSE_DELETED:
+      return deleteLicenseDiscordPayload({
+        payload: payload as DeleteLicenseWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
     case WebhookEventType.CUSTOMER_CREATED:
       return createCustomerDiscordPayload({
         payload: payload as CreateCustomerWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.CUSTOMER_UPDATED:
+      return updateCustomerDiscordPayload({
+        payload: payload as UpdateCustomerWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.CUSTOMER_DELETED:
+      return deleteCustomerDiscordPayload({
+        payload: payload as DeleteCustomerWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.PRODUCT_CREATED:
+      return createProductDiscordPayload({
+        payload: payload as CreateProductWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.PRODUCT_UPDATED:
+      return updateProductDiscordPayload({
+        payload: payload as UpdateProductWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.PRODUCT_DELETED:
+      return deleteProductDiscordPayload({
+        payload: payload as DeleteProductWebhookPayload,
         team,
         user,
         source,
