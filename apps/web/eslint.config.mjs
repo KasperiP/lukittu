@@ -40,8 +40,9 @@ const config = [
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
-          args: 'none',
-          caughtErrors: 'none',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
 

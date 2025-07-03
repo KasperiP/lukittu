@@ -1,9 +1,11 @@
 packages:
   - apps/*
   - packages/*
+
 catalogs:
   prisma:
-    prisma: latest
+    prisma: ^6.11.1
+
 onlyBuiltDependencies:
   - '@prisma/client'
   - '@prisma/engines'

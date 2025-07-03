@@ -6,7 +6,7 @@ import { createContext, useState } from 'react';
 
 export const ConfettiContext = createContext({
   isConfettiActive: false,
-  setIsConfettiActive: (isActive: boolean) => {},
+  setIsConfettiActive: (_isActive: boolean) => {},
 });
 
 export function ThemeProvider({ children, ...props }: ThemeProviderProps) {

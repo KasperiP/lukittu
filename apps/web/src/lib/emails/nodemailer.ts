@@ -1,3 +1,4 @@
+import { logger } from '@lukittu/shared';
 import nodemailer from 'nodemailer';
 import { MailOptions } from 'nodemailer/lib/sendmail-transport';
 import 'server-only';
@@ -36,6 +37,7 @@ export async function sendEmail({ to, subject, html, text, fromName }: Email) {
     await transporter.sendMail(mailOptions);
     return true;
   } catch (error) {
+    logger.error('Error sending email:', error);
     return false;
   }
 }

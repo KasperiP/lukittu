@@ -39,7 +39,7 @@ export function DeleteTeamConfirmModal({
       await onConfirm(team, confirmName);
       onOpenChange(false);
       setLoading(false);
-    } catch (error) {
+    } catch (_error) {
       setLoading(false);
     }
   };

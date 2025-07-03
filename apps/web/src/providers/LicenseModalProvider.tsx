@@ -12,12 +12,14 @@ type LicenseExtended = Omit<License, 'licenseKeyLookup'> & {
 };
 
 export const LicenseModalContext = createContext({
-  setLicenseModalOpen: (open: boolean) => {},
-  setLicenseToEdit: (license: LicenseExtended | null) => {},
-  setLicenseToDelete: (license: Omit<License, 'licenseKeyLookup'> | null) => {},
-  setLicenseToDeleteModalOpen: (open: boolean) => {},
-  setLicenseEmailDeliveryModalOpen: (open: boolean) => {},
-  setLicenseEmailDelivery: (license: LicenseExtended | null) => {},
+  setLicenseModalOpen: (_open: boolean) => {},
+  setLicenseToEdit: (_license: LicenseExtended | null) => {},
+  setLicenseToDelete: (
+    _license: Omit<License, 'licenseKeyLookup'> | null,
+  ) => {},
+  setLicenseToDeleteModalOpen: (_open: boolean) => {},
+  setLicenseEmailDeliveryModalOpen: (_open: boolean) => {},
+  setLicenseEmailDelivery: (_license: LicenseExtended | null) => {},
   licenseToEdit: null as LicenseExtended | null,
   licenseModalOpen: false,
   licenseToDelete: null as Omit<License, 'licenseKeyLookup'> | null,

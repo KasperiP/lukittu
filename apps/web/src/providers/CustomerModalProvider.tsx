@@ -10,10 +10,10 @@ type CustomerExtended = Customer & {
 };
 
 export const CustomerModalContext = createContext({
-  setCustomerModalOpen: (open: boolean) => {},
-  setCustomerToDelete: (customer: CustomerExtended | null) => {},
-  setCustomerToEdit: (customer: CustomerExtended | null) => {},
-  setCustomerToDeleteModalOpen: (open: boolean) => {},
+  setCustomerModalOpen: (_open: boolean) => {},
+  setCustomerToDelete: (_customer: CustomerExtended | null) => {},
+  setCustomerToEdit: (_customer: CustomerExtended | null) => {},
+  setCustomerToDeleteModalOpen: (_open: boolean) => {},
   customerModalOpen: false,
   customerToDelete: null as CustomerExtended | null,
   customerToEdit: null as CustomerExtended | null,
