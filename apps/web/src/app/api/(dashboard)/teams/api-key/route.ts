@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as CreateApiKeySchema;
-    const validated = await createApiKeySchema(t).safeParseAsync(body);
+    const validated = await createApiKeySchema().safeParseAsync(body);
 
     if (!validated.success) {
       return NextResponse.json(

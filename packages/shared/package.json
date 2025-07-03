@@ -2,6 +2,12 @@
   "name": "@lukittu/shared",
   "version": "1.0.0",
   "main": "dist/src/index.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/src/client.js",
+      "default": "./dist/src/index.js"
+    }
+  },
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -31,6 +37,7 @@
     "typescript-eslint": "^8.35.1"
   },
   "browser": {
-    "crypto": false
+    "./server": false,
+    "./dist/src/server.js": false
   }
 }

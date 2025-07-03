@@ -4,8 +4,8 @@ import {
   AuditLogTargetType,
   logger,
   prisma,
+  PrismaTransaction,
 } from '@lukittu/shared';
-import { PrismaTransaction } from '@lukittu/shared/dist/src/types/prisma-types';
 import 'server-only';
 import { getCloudflareVisitorData } from '../providers/cloudflare';
 import { iso2toIso3 } from '../utils/country-helpers';

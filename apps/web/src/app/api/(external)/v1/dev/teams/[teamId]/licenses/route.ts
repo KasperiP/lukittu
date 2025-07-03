@@ -17,6 +17,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createLicensePayload,
   createWebhookEvents,
   decryptLicenseKey,
   encryptLicenseKey,
@@ -28,7 +29,6 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
-import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(

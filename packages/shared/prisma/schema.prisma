@@ -5,9 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-    provider        = "prisma-client-js"
-    output          = "./generated/client"
-    previewFeatures = ["queryCompiler", "driverAdapters"]
+    provider = "prisma-client-js"
+    output   = "./generated/client"
 }
 
 datasource db {

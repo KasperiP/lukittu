@@ -50,7 +50,6 @@ export default function ApiKeysCard({ team }: ApiKeyCardProps) {
     <>
       <CreateApiKeyModal
         open={createModalOpen}
-        team={team}
         onOpenChange={setCreateModalOpen}
       />
       <DeleteApiKeyModal

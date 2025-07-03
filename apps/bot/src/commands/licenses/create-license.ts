@@ -3,6 +3,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createLicensePayload,
   createWebhookEvents,
   encryptLicenseKey,
   generateHMAC,
@@ -15,7 +16,6 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
-import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
