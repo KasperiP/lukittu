@@ -166,9 +166,9 @@ export type IUsersImageDeleteResponse =
   | ErrorResponse
   | IUsersImageDeleteSuccessResponse;
 
-export async function DELETE(
-  request: NextRequest,
-): Promise<NextResponse<IUsersImageDeleteResponse>> {
+export async function DELETE(): Promise<
+  NextResponse<IUsersImageDeleteResponse>
+> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {

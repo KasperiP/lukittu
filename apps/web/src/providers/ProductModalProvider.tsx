@@ -9,10 +9,10 @@ type ProductExtended = Product & {
 };
 
 export const ProductModalContext = createContext({
-  setProductToDelete: (product: ProductExtended | null) => {},
-  setProductToEdit: (product: ProductExtended | null) => {},
-  setProductModalOpen: (open: boolean) => {},
-  setProductToDeleteModalOpen: (open: boolean) => {},
+  setProductToDelete: (_product: ProductExtended | null) => {},
+  setProductToEdit: (_product: ProductExtended | null) => {},
+  setProductModalOpen: (_open: boolean) => {},
+  setProductToDeleteModalOpen: (_open: boolean) => {},
   productToEdit: null as ProductExtended | null,
   productToDelete: null as ProductExtended | null,
   productToDeleteModalOpen: false,

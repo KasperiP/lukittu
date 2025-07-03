@@ -1,4 +1,3 @@
-import { ITeamGetSuccessResponse } from '@/app/api/(dashboard)/teams/[slug]/route';
 import LoadingButton from '@/components/shared/LoadingButton';
 import {
   ResponsiveDialog,
@@ -14,14 +13,12 @@ import { useState } from 'react';
 interface ResetPublicKeyConfirmModalProps {
   open: boolean;
   onOpenChange: (boolean: boolean) => void;
-  team: ITeamGetSuccessResponse['team'] | null;
   onConfirm: () => Promise<void>;
 }
 
 export function ResetPublicKeyConfirmModal({
   open,
   onOpenChange,
-  team,
   onConfirm,
 }: ResetPublicKeyConfirmModalProps) {
   const t = useTranslations();
@@ -33,7 +30,7 @@ export function ResetPublicKeyConfirmModal({
       await onConfirm();
       onOpenChange(false);
       setLoading(false);
-    } catch (error) {
+    } catch (_error) {
       setLoading(false);
     }
   };

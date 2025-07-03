@@ -216,7 +216,7 @@ export async function POST(
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {

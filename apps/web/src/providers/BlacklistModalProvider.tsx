@@ -11,10 +11,10 @@ type BlacklistExtended = Blacklist & {
 };
 
 export const BlacklistModalContext = createContext({
-  setBlacklistToDelete: (blacklist: BlacklistExtended | null) => {},
-  setBlacklistToEdit: (blacklist: BlacklistExtended | null) => {},
-  setBlacklistModalOpen: (open: boolean) => {},
-  setBlacklistToDeleteModalOpen: (open: boolean) => {},
+  setBlacklistToDelete: (_blacklist: BlacklistExtended | null) => {},
+  setBlacklistToEdit: (_blacklist: BlacklistExtended | null) => {},
+  setBlacklistModalOpen: (_open: boolean) => {},
+  setBlacklistToDeleteModalOpen: (_open: boolean) => {},
   blacklistToEdit: null as BlacklistExtended | null,
   blacklistToDelete: null as BlacklistExtended | null,
   blacklistToDeleteModalOpen: false,

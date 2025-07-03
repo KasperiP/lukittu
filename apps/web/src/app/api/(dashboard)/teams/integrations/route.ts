@@ -10,7 +10,7 @@ import {
   StripeIntegration,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export type ITeamsIntegrationsGetSuccessResponse = {
   integrations: {
@@ -25,9 +25,9 @@ export type ITeamsIntegrationsGetResponse =
   | ErrorResponse
   | ITeamsIntegrationsGetSuccessResponse;
 
-export async function GET(
-  request: NextRequest,
-): Promise<NextResponse<ITeamsIntegrationsGetResponse>> {
+export async function GET(): Promise<
+  NextResponse<ITeamsIntegrationsGetResponse>
+> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {

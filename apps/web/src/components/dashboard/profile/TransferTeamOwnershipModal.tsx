@@ -55,7 +55,7 @@ export function TransferTeamOwnershipModal({
       await onConfirm(team, newOwner);
       onOpenChange(false);
       setLoading(false);
-    } catch (error) {
+    } catch (_error) {
       setLoading(false);
     }
   };
