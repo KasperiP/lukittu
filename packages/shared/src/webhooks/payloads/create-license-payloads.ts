@@ -9,28 +9,6 @@ import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
 
-// Helper function to truncate text with ellipsis
-const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
-};
-
-// Helper function to format list with limits
-const formatLimitedList = (
-  items: string[],
-  maxItems = 10,
-  maxLength = 1000,
-): string => {
-  const displayItems = items.slice(0, maxItems);
-  let result = displayItems.join('\n');
-
-  if (items.length > maxItems) {
-    result += `\n... and ${items.length - maxItems} more`;
-  }
-
-  return truncateText(result, maxLength);
-};
-
 export type CreateLicenseWebhookPayload = Omit<License, 'licenseKeyLookup'> & {
   products: Product[];
   customers: Customer[];
@@ -56,17 +34,17 @@ export const createLicenseDiscordPayload = ({
       inline: false,
     },
     {
-      name: 'License Status',
-      value: payload.suspended ? 'Suspended' : 'Active',
-      inline: false,
+      name: 'Status',
+      value: payload.suspended ? '🔴 Suspended' : '🟢 Active',
+      inline: true,
     },
   ];
 
-  // Add expiration information
+  // Add expiration information (with emojis like bot)
   if (payload.expirationType === 'NEVER') {
     fields.push({
       name: 'Expiration',
-      value: 'Never expires',
+      value: '♾️ Never expires',
       inline: true,
     });
   } else if (payload.expirationType === 'DATE' && payload.expirationDate) {
@@ -75,13 +53,13 @@ export const createLicenseDiscordPayload = ({
     );
     fields.push({
       name: 'Expiration Date',
-      value: `<t:${timestamp}:f>`,
+      value: `📅 <t:${timestamp}:f>`,
       inline: true,
     });
   } else if (payload.expirationType === 'DURATION' && payload.expirationDays) {
     fields.push({
       name: 'Expiration',
-      value: `${payload.expirationDays} days from ${
+      value: `⏱️ ${payload.expirationDays} days from ${
         payload.expirationStart === 'ACTIVATION'
           ? 'first activation'
           : 'creation'
@@ -90,66 +68,94 @@ export const createLicenseDiscordPayload = ({
     });
   }
 
-  // Add limits if present (inline to save space)
+  // Add limits section if present (like bot)
   if (payload.ipLimit || payload.seats) {
-    const limits = [];
-    if (payload.ipLimit) limits.push(`IP Address Limit: ${payload.ipLimit}`);
-    if (payload.seats) limits.push(`Concurrent users: ${payload.seats}`);
-
     fields.push({
-      name: 'License Limits',
-      value: limits.join('\n'),
+      name: '\u200B',
+      value: '**License Limits**',
       inline: false,
     });
+
+    if (payload.ipLimit) {
+      fields.push({
+        name: 'IP Limit',
+        value: payload.ipLimit.toString(),
+        inline: true,
+      });
+    }
+
+    if (payload.seats) {
+      fields.push({
+        name: 'Concurrent users',
+        value: payload.seats.toString(),
+        inline: true,
+      });
+    }
   }
 
-  // Add products if present (compact format)
+  // Add products section (like bot)
   if (payload.products && payload.products.length > 0) {
-    const productList = formatLimitedList(
-      payload.products.map((p) => p.name),
-      5,
-      800,
+    fields.push(
+      {
+        name: '\u200B',
+        value: `**Products (${payload.products.length} total)**`,
+        inline: false,
+      },
+      {
+        name: 'Assigned Products',
+        value: payload.products.map((p) => `• ${p.name}`).join('\n'),
+        inline: false,
+      },
     );
-
-    fields.push({
-      name: `Assigned Products (${payload.products.length})`,
-      value: productList,
-      inline: false,
-    });
+  } else {
+    fields.push(
+      { name: '\u200B', value: '**Products**', inline: false },
+      { name: 'Assigned Products', value: 'None', inline: false },
+    );
   }
 
-  // Add customers if present (compact format)
+  // Add customers section (like bot)
   if (payload.customers && payload.customers.length > 0) {
-    const customerList = formatLimitedList(
-      payload.customers.map(
-        (c) => c.fullName || c.email || c.username || 'Unknown Customer',
-      ),
-      5,
-      800,
+    fields.push(
+      {
+        name: '\u200B',
+        value: `**Customers (${payload.customers.length} total)**`,
+        inline: false,
+      },
+      {
+        name: 'Assigned Customers',
+        value: payload.customers
+          .map(
+            (c) =>
+              `• ${c.fullName || c.email || c.username || 'Unknown Customer'}`,
+          )
+          .join('\n'),
+        inline: false,
+      },
     );
-
-    fields.push({
-      name: `Assigned Customers (${payload.customers.length})`,
-      value: customerList,
-      inline: false,
-    });
+  } else {
+    fields.push(
+      { name: '\u200B', value: '**Customers**', inline: false },
+      { name: 'Assigned Customers', value: 'None', inline: false },
+    );
   }
 
-  // Add metadata if present (compact format)
+  // Add metadata if present (formatted like bot)
   if (payload.metadata && payload.metadata.length > 0) {
-    const metadataList = formatLimitedList(
-      payload.metadata.map(
-        (m) => `**${truncateText(m.key, 50)}**: ${truncateText(m.value, 100)}`,
-      ),
-      3,
-      600,
+    fields.push(
+      {
+        name: '\u200B',
+        value: `**Metadata (${payload.metadata.length} total)**`,
+        inline: false,
+      },
+      {
+        name: 'Custom Fields',
+        value: payload.metadata
+          .map((m) => `• **${m.key}**: ${m.value}`)
+          .join('\n'),
+        inline: false,
+      },
     );
-
-    fields.push({
-      name: `Metadata (${payload.metadata.length})`,
-      value: metadataList,
-      inline: false,
-    });
   }
 
   return {

@@ -5,6 +5,10 @@ import {
   WebhookEventType,
 } from '../../prisma/generated/client';
 import {
+  createCustomerDiscordPayload,
+  CreateCustomerWebhookPayload,
+} from './payloads/create-customer-payloads';
+import {
   createLicenseDiscordPayload,
   CreateLicenseWebhookPayload,
 } from './payloads/create-license-payloads';
@@ -28,7 +32,9 @@ export function isDiscordWebhook(url: string): boolean {
   }
 }
 
-export type PayloadType = CreateLicenseWebhookPayload;
+export type PayloadType =
+  | CreateLicenseWebhookPayload
+  | CreateCustomerWebhookPayload;
 
 interface FormatDiscordPayloadParams {
   eventType: WebhookEventType;
@@ -48,7 +54,15 @@ export function formatDiscordPayload({
   switch (eventType) {
     case WebhookEventType.LICENSE_CREATED:
       return createLicenseDiscordPayload({
-        payload,
+        payload: payload as CreateLicenseWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.CUSTOMER_CREATED:
+      return createCustomerDiscordPayload({
+        payload: payload as CreateCustomerWebhookPayload,
         team,
         user,
         source,
