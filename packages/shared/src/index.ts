@@ -6,4 +6,7 @@ export * from './logging/logger';
 export * from './prisma/prisma';
 export * from './security/crypto';
 export * from './webhooks/discord-webhooks';
+export * from './webhooks/payloads/customer-webhook-payload';
+export * from './webhooks/payloads/license-webhook-payload';
+export * from './webhooks/payloads/product-webhook-payload';
 export * from './webhooks/webhook-handler';
