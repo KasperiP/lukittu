@@ -13,6 +13,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createLicensePayload,
   createWebhookEvents,
   Customer,
   decryptLicenseKey,
@@ -27,7 +28,6 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
-import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 

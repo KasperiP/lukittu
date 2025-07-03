@@ -62,7 +62,7 @@ export default function TeamEmailSettings({ team }: TeamEmailSettingsProps) {
   const [uploading, setUploading] = useState(false);
 
   const form = useForm<SetTeamEmailSettingsSchema>({
-    resolver: zodResolver(setTeamEmailSettingsSchema(t)),
+    resolver: zodResolver(setTeamEmailSettingsSchema()),
     defaultValues: {
       emailMessage: '',
     },

@@ -4,6 +4,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createLicensePayload,
   createWebhookEvents,
   decryptLicenseKey,
   encryptLicenseKey,
@@ -17,7 +18,6 @@ import {
   Team,
   WebhookEventType,
 } from '@lukittu/shared';
-import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import crypto from 'crypto';
 import { PolymartMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';

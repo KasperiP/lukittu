@@ -1,8 +1,8 @@
 import { withSentryConfig } from '@sentry/nextjs';
 import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
-import pkg from './package.json' with { type: 'json' };
 import path from 'path';
+import pkg from './package.json' with { type: 'json' };
 
 const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 

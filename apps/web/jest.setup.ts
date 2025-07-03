@@ -16,6 +16,9 @@ jest.mock('@lukittu/shared', () => ({
   decryptLicenseKey: jest.fn(),
   generateUniqueLicense: jest.fn(),
   generateHMAC: jest.fn(),
+  createLicensePayload: jest.fn(),
+  createWebhookEvents: jest.fn(),
+  attemptWebhookDelivery: jest.fn(),
 }));
 
 beforeEach(() => {

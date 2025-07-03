@@ -3,6 +3,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createLicensePayload,
   createWebhookEvents,
   encryptLicenseKey,
   generateHMAC,
@@ -16,7 +17,6 @@ import {
   Team,
   WebhookEventType,
 } from '@lukittu/shared';
-import { createLicensePayload } from '@lukittu/shared/dist/src/webhooks/payloads/create-license-payloads';
 import 'server-only';
 import Stripe from 'stripe';
 import { StripeMetadataKeys } from '../constants/metadata';
