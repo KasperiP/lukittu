@@ -9,11 +9,15 @@ import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
 
-export type CreateLicenseWebhookPayload = Omit<License, 'licenseKeyLookup'> & {
+export type LicenseWebhookPayload = Omit<License, 'licenseKeyLookup'> & {
   products: Product[];
   customers: Customer[];
   metadata: Metadata[];
 };
+
+export type CreateLicenseWebhookPayload = LicenseWebhookPayload;
+export type UpdateLicenseWebhookPayload = LicenseWebhookPayload;
+export type DeleteLicenseWebhookPayload = LicenseWebhookPayload;
 
 export const createLicensePayload = (payload: CreateLicenseWebhookPayload) => ({
   ...payload,
@@ -21,12 +25,19 @@ export const createLicensePayload = (payload: CreateLicenseWebhookPayload) => ({
   licenseKey: decryptLicenseKey(payload.licenseKey),
 });
 
-export const createLicenseDiscordPayload = ({
-  payload,
-  team,
-  user,
-  source,
-}: WebhookDiscordPayload<CreateLicenseWebhookPayload>) => {
+export const updateLicensePayload = (payload: UpdateLicenseWebhookPayload) => ({
+  ...payload,
+  licenseKeyLookup: undefined,
+  licenseKey: decryptLicenseKey(payload.licenseKey),
+});
+
+export const deleteLicensePayload = (payload: DeleteLicenseWebhookPayload) => ({
+  ...payload,
+  licenseKeyLookup: undefined,
+  licenseKey: decryptLicenseKey(payload.licenseKey),
+});
+
+const buildLicenseFields = (payload: LicenseWebhookPayload) => {
   const fields = [
     {
       name: 'License Key',
@@ -40,7 +51,6 @@ export const createLicenseDiscordPayload = ({
     },
   ];
 
-  // Add expiration information (with emojis like bot)
   if (payload.expirationType === 'NEVER') {
     fields.push({
       name: 'Expiration',
@@ -68,7 +78,6 @@ export const createLicenseDiscordPayload = ({
     });
   }
 
-  // Add limits section if present (like bot)
   if (payload.ipLimit || payload.seats) {
     fields.push({
       name: '\u200B',
@@ -93,7 +102,6 @@ export const createLicenseDiscordPayload = ({
     }
   }
 
-  // Add products section (like bot)
   if (payload.products && payload.products.length > 0) {
     fields.push(
       {
@@ -114,7 +122,6 @@ export const createLicenseDiscordPayload = ({
     );
   }
 
-  // Add customers section (like bot)
   if (payload.customers && payload.customers.length > 0) {
     fields.push(
       {
@@ -140,7 +147,6 @@ export const createLicenseDiscordPayload = ({
     );
   }
 
-  // Add metadata if present (formatted like bot)
   if (payload.metadata && payload.metadata.length > 0) {
     fields.push(
       {
@@ -158,6 +164,17 @@ export const createLicenseDiscordPayload = ({
     );
   }
 
+  return fields;
+};
+
+export const createLicenseDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<CreateLicenseWebhookPayload>) => {
+  const fields = buildLicenseFields(payload);
+
   return {
     embeds: [
       {
@@ -169,6 +186,53 @@ export const createLicenseDiscordPayload = ({
         author: formatDiscordAuthor({ team }),
         footer: formatDiscordFooter({ source, user }),
         timestamp: new Date(payload.createdAt).toISOString(),
+      },
+    ],
+  };
+};
+
+export const updateLicenseDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<UpdateLicenseWebhookPayload>) => {
+  const fields = buildLicenseFields(payload);
+
+  return {
+    embeds: [
+      {
+        title: 'License Updated Successfully',
+        description: 'A license has been updated with the following details.',
+        fields,
+        color: 0xf59e0b,
+        author: formatDiscordAuthor({ team }),
+        footer: formatDiscordFooter({ source, user }),
+        timestamp: new Date(payload.updatedAt).toISOString(),
+      },
+    ],
+  };
+};
+
+export const deleteLicenseDiscordPayload = ({
+  payload,
+  team,
+  user,
+  source,
+}: WebhookDiscordPayload<DeleteLicenseWebhookPayload>) => {
+  const fields = buildLicenseFields(payload);
+
+  return {
+    embeds: [
+      {
+        title: 'License Deleted',
+        description:
+          'A license has been deleted. Below are the details of the deleted license.',
+        fields,
+        color: 0xef4444,
+        author: formatDiscordAuthor({ team }),
+        footer: formatDiscordFooter({ source, user }),
+        timestamp: new Date().toISOString(),
       },
     ],
   };
