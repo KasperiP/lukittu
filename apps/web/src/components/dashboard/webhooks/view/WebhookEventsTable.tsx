@@ -44,7 +44,7 @@ const fetchWebhookEvents = async (url: string) => {
   return data;
 };
 
-const StatusBadge = ({ status, t }: { status: WebhookEventStatus; t: any }) => {
+const StatusBadge = ({ status }: { status: WebhookEventStatus }) => {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case WebhookEventStatus.DELIVERED:
@@ -227,7 +227,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                         </Badge>
                       </TableCell>
                       <TableCell className="truncate">
-                        <StatusBadge status={event.status} t={t} />
+                        <StatusBadge status={event.status} />
                       </TableCell>
                       <TableCell className="truncate">
                         {event.attempts}

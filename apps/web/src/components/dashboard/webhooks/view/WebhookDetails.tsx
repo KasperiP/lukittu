@@ -40,7 +40,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
     try {
       await navigator.clipboard.writeText(text);
       toast.success(t('general.copied_to_clipboard'));
-    } catch (error) {
+    } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
   };

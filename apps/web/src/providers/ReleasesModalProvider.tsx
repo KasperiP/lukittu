@@ -12,11 +12,11 @@ type ReleaseExtended = Release & {
 };
 
 export const ReleaseModalContext = createContext({
-  setReleaseToDelete: (release: Release | null) => {},
-  setReleaseToEdit: (release: ReleaseExtended | null) => {},
-  setReleaseModalOpen: (open: boolean) => {},
-  setReleaseToDeleteModalOpen: (open: boolean) => {},
-  setReleaseAsLatest: (release: Release) =>
+  setReleaseToDelete: (_release: Release | null) => {},
+  setReleaseToEdit: (_release: ReleaseExtended | null) => {},
+  setReleaseModalOpen: (_open: boolean) => {},
+  setReleaseToDeleteModalOpen: (_open: boolean) => {},
+  setReleaseAsLatest: (_release: Release) =>
     ({}) as Promise<IProductsReleasesSetLatestResponse>,
   releaseToEdit: null as ReleaseExtended | null,
   releaseToDelete: null as Release | null,

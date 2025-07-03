@@ -1,9 +1,9 @@
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { metadataSchema } from '@/lib/validation/shared/metadata-schema';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import { FilterChip } from '../FilterChip';
+import {
+  IMetadataGetResponse,
+  IMetadataGetSuccessResponse,
+} from '@/app/api/(dashboard)/metadata/route';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -11,22 +11,22 @@ import {
   CommandInput,
   CommandItem,
 } from '@/components/ui/command';
-import { TeamContext } from '@/providers/TeamProvider';
-import { useContext, useState } from 'react';
-import useSWR from 'swr';
-import {
-  IMetadataGetResponse,
-  IMetadataGetSuccessResponse,
-} from '@/app/api/(dashboard)/metadata/route';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Check, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils/tailwind-helpers';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { metadataSchema } from '@/lib/validation/shared/metadata-schema';
+import { TeamContext } from '@/providers/TeamProvider';
+import { Check, ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import { useContext, useState } from 'react';
+import { toast } from 'sonner';
+import useSWR from 'swr';
+import { FilterChip } from '../FilterChip';
 
 interface MetadataFilterChipProps {
   metadataKey: string;
@@ -87,7 +87,7 @@ export function MetadataFilterChip({
           ]);
           setMetadataKey(tempMetadataKey);
           setMetadataValue(tempMetadataValue);
-        } catch (error) {
+        } catch (_error) {
           setTempMetadataKey('');
           setTempMetadataValue('');
           toast.error(t('validation.invalid_metadata'));

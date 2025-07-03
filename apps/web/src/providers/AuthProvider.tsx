@@ -14,7 +14,7 @@ export const AuthContext = createContext({
   session: null as ISessionsGetCurrentSuccessResponse['session'] | null,
   loading: true,
   setSession: ((
-    session: ISessionsGetCurrentSuccessResponse['session'] | null,
+    _session: ISessionsGetCurrentSuccessResponse['session'] | null,
   ) => {}) as React.Dispatch<
     React.SetStateAction<ISessionsGetCurrentSuccessResponse['session'] | null>
   >,

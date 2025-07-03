@@ -148,7 +148,7 @@ export default function SetStripeIntegrationModal({
     try {
       await navigator.clipboard.writeText(text);
       toast.success(t('general.copied_to_clipboard', { field: fieldName }));
-    } catch (err) {
+    } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
   };
