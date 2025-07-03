@@ -1,5 +1,4 @@
-import { User } from '@sentry/nextjs';
-import { AuditLogSource } from '../../../../prisma/generated/client';
+import { AuditLogSource, User } from '../../../../prisma/generated/client';
 
 const getSourceDisplayName = (source: AuditLogSource): string => {
   switch (source) {
