@@ -283,24 +283,29 @@ export async function PUT(
       }
     }
 
-    await prisma.$transaction(async (prisma) => {
-      const existingReleaseFile = await prisma.releaseFile.findUnique({
-        where: { releaseId },
-      });
-
-      const newFileUploaded = file && existingReleaseFile;
-      const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
-      if (newFileUploaded || fileDeleted) {
-        await deleteFileFromPrivateS3(
-          process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-          existingReleaseFile.key,
-        );
-
-        await prisma.releaseFile.delete({
+    await prisma.$transaction(
+      async (prisma) => {
+        const existingReleaseFile = await prisma.releaseFile.findUnique({
           where: { releaseId },
         });
-      }
-    });
+
+        const newFileUploaded = file && existingReleaseFile;
+        const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
+        if (newFileUploaded || fileDeleted) {
+          await deleteFileFromPrivateS3(
+            process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+            existingReleaseFile.key,
+          );
+
+          await prisma.releaseFile.delete({
+            where: { releaseId },
+          });
+        }
+      },
+      {
+        timeout: 20000,
+      },
+    );
 
     let fileKey: string | null = null;
     let checksum: string | null = null;
@@ -555,38 +560,43 @@ export async function DELETE(
 
     const release = team.releases[0];
 
-    const response = await prisma.$transaction(async (prisma) => {
-      await prisma.release.delete({
-        where: {
-          id: releaseId,
-        },
-      });
+    const response = await prisma.$transaction(
+      async (prisma) => {
+        await prisma.release.delete({
+          where: {
+            id: releaseId,
+          },
+        });
 
-      if (release.file) {
-        await deleteFileFromPrivateS3(
-          process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-          release.file.key,
-        );
-      }
+        if (release.file) {
+          await deleteFileFromPrivateS3(
+            process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+            release.file.key,
+          );
+        }
 
-      const response = {
-        success: true,
-      };
+        const response = {
+          success: true,
+        };
 
-      await createAuditLog({
-        userId: session.user.id,
-        teamId: team.id,
-        action: AuditLogAction.DELETE_RELEASE,
-        targetId: releaseId,
-        targetType: AuditLogTargetType.RELEASE,
-        requestBody: null,
-        responseBody: response,
-        source: AuditLogSource.DASHBOARD,
-        tx: prisma,
-      });
+        await createAuditLog({
+          userId: session.user.id,
+          teamId: team.id,
+          action: AuditLogAction.DELETE_RELEASE,
+          targetId: releaseId,
+          targetType: AuditLogTargetType.RELEASE,
+          requestBody: null,
+          responseBody: response,
+          source: AuditLogSource.DASHBOARD,
+          tx: prisma,
+        });
 
-      return response;
-    });
+        return response;
+      },
+      {
+        timeout: 20000,
+      },
+    );
 
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {
