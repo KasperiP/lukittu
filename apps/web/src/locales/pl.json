@@ -864,6 +864,7 @@
       "good_delivery_rate": "Dobry wskaźnik dostarczania {rate}%",
       "poor_delivery_rate": "Słaby wskaźnik dostarczania {rate}%",
       "no_delivery_data": "Brak dostępnych danych",
+      "webhook_events": "Zdarzenia webhook",
       "delivery_rate_tooltip": "Wskaźnik dostarczania wskazuje procent pomyślnie dostarczonych zdarzeń webhook"
     }
   }

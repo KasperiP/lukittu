@@ -216,6 +216,8 @@
     "published": "已发布",
     "select_status": "选择状态",
     "status": "状态",
+    "select_all": "全选",
+    "webhook": "Webhook",
     "last_seen": "最后查看",
     "never_used": "从未使用",
     "deprecated": "已弃用",
