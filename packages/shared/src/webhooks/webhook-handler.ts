@@ -362,7 +362,7 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : error instanceof DOMException && error.name === 'AbortError'
+          : error.name === 'AbortError'
             ? 'Request timed out after 5000ms'
             : String(error);
 
