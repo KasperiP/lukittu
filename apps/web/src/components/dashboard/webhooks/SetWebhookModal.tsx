@@ -36,6 +36,18 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 
+function isValidDiscordWebhook(url: string): boolean {
+  try {
+    const parsedUrl = new URL(url);
+    return (
+      parsedUrl.hostname === 'discord.com' &&
+      parsedUrl.pathname.startsWith('/api/webhooks/')
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function SetWebhookModal() {
   const t = useTranslations();
   const ctx = useContext(WebhookModalContext);
@@ -110,14 +122,8 @@ export default function SetWebhookModal() {
 
   const watchedUrl = watch('url');
 
-  const isDiscordWebhookUrl = (url: string) => {
-    const discordWebhookRegex =
-      /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
-    return discordWebhookRegex.test(url);
-  };
-
   useEffect(() => {
-    setIsDiscordWebhook(isDiscordWebhookUrl(watchedUrl || ''));
+    setIsDiscordWebhook(isValidDiscordWebhook(watchedUrl));
   }, [watchedUrl]);
 
   useEffect(() => {
