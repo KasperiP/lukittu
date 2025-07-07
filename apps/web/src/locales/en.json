@@ -148,6 +148,9 @@
     "webhook_not_found": "Webhook not found!"
   },
   "general": {
+    "response_status": "Response status",
+    "events": "Events",
+    "none": "None",
     "select_source": "Select source",
     "select_target": "Select target",
     "source": "Source",

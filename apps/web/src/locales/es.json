@@ -344,7 +344,10 @@
     "delivered": "Entregados",
     "pending": "Pendientes",
     "hide_secret": "Ocultar secreto",
-    "show_secret": "Mostrar secreto"
+    "show_secret": "Mostrar secreto",
+    "response_status": "Estado de respuesta",
+    "events": "Eventos",
+    "none": "Sin eventos"
   },
   "auth": {
     "oauth": {

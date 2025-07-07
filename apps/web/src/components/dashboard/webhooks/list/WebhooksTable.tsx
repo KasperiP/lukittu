@@ -280,11 +280,13 @@ export function WebhooksTable() {
                           );
                         }}
                       >
-                        {t('general.status')}
+                        {t('general.response_status')}
                         <ArrowDownUp className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead className="truncate">Events</TableHead>
+                    <TableHead className="truncate">
+                      {t('general.events')}
+                    </TableHead>
                     <TableHead className="truncate">
                       <Button
                         variant="ghost"
@@ -355,8 +357,8 @@ export function WebhooksTable() {
                         </TableCell>
                         <TableCell className="truncate">
                           {webhook.enabledEvents.length > 0
-                            ? `${webhook.enabledEvents.length} events`
-                            : 'None'}
+                            ? `${webhook.enabledEvents.length} ${t('general.events')}`
+                            : t('general.none')}
                         </TableCell>
                         <TableCell
                           className="truncate"

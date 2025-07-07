@@ -344,7 +344,10 @@
     "delivered": "Toimitettu",
     "pending": "Odottaa",
     "hide_secret": "Piilota salaisuus",
-    "show_secret": "Näytä salaisuus"
+    "show_secret": "Näytä salaisuus",
+    "response_status": "Vastauksen tila",
+    "events": "Tapahtumat",
+    "none": "Ei mitään"
   },
   "auth": {
     "oauth": {

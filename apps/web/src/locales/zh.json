@@ -344,7 +344,10 @@
     "delivered": "已投递",
     "pending": "待处理",
     "hide_secret": "隐藏密钥",
-    "show_secret": "显示密钥"
+    "show_secret": "显示密钥",
+    "response_status": "响应状态",
+    "events": "事件",
+    "none": "无"
   },
   "auth": {
     "oauth": {
