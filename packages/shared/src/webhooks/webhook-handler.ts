@@ -358,13 +358,8 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
         );
       }
     } catch (error) {
-      // Handle delivery failure
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : error.name === 'AbortError'
-            ? 'Request timed out after 5000ms'
-            : String(error);
+        error instanceof Error ? error.message : String(error);
 
       logger.info('Webhook delivery failed', {
         webhookEventId,
