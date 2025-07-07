@@ -16,9 +16,12 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createReleasePayload,
+  createWebhookEvents,
   decryptLicenseKey,
   generateMD5Hash,
   License,
@@ -31,6 +34,7 @@ import {
   Release,
   ReleaseBranch,
   ReleaseFile,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -365,6 +369,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(async (prisma) => {
       const isPublished = status === 'PUBLISHED';
 
@@ -416,6 +422,12 @@ export async function POST(request: NextRequest) {
               }
             : undefined,
         },
+        include: {
+          metadata: true,
+          product: true,
+          file: true,
+          branch: true,
+        },
       });
 
       const response = {
@@ -434,8 +446,19 @@ export async function POST(request: NextRequest) {
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.RELEASE_CREATED,
+        teamId: selectedTeam,
+        payload: createReleasePayload(release),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {

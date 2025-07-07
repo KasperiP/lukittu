@@ -4,6 +4,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
   createLicensePayload,
   createWebhookEvents,
   decryptLicenseKey,
@@ -16,6 +17,7 @@ import {
   prisma,
   Settings,
   Team,
+  updateCustomerPayload,
   WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
@@ -266,7 +268,7 @@ export const handlePolymartPurchase = async (
 
     const username = polymartUsername;
 
-    let webhookEventIds: string[] = [];
+    const webhookEventIds: string[] = [];
 
     const license = await prisma.$transaction(async (prisma) => {
       const existingLukittuCustomer = await prisma.customer.findFirst({
@@ -301,6 +303,10 @@ export const handlePolymartPurchase = async (
         update: {
           username,
         },
+        include: {
+          metadata: true,
+          address: true,
+        },
       });
 
       await createAuditLog({
@@ -322,6 +328,20 @@ export const handlePolymartPurchase = async (
         source: AuditLogSource.POLYMART_INTEGRATION,
         tx: prisma,
       });
+
+      const customerWebhookEvents = await createWebhookEvents({
+        teamId: team.id,
+        eventType: existingLukittuCustomer?.id
+          ? WebhookEventType.CUSTOMER_UPDATED
+          : WebhookEventType.CUSTOMER_CREATED,
+        payload: existingLukittuCustomer?.id
+          ? updateCustomerPayload(lukittuCustomer)
+          : createCustomerPayload(lukittuCustomer),
+        source: AuditLogSource.POLYMART_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...customerWebhookEvents);
 
       const licenseKey = await generateUniqueLicense(team.id);
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
@@ -402,13 +422,15 @@ export const handlePolymartPurchase = async (
         tx: prisma,
       });
 
-      webhookEventIds = await createWebhookEvents({
+      const licenseWebhookEvents = await createWebhookEvents({
         eventType: WebhookEventType.LICENSE_CREATED,
         teamId: team.id,
         payload: createLicensePayload(license),
         source: AuditLogSource.POLYMART_INTEGRATION,
         tx: prisma,
       });
+
+      webhookEventIds.push(...licenseWebhookEvents);
 
       return license;
     });

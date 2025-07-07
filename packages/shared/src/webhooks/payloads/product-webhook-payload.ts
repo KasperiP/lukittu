@@ -24,9 +24,7 @@ export const deleteProductPayload = (payload: DeleteProductWebhookPayload) => ({
 });
 
 const buildProductFields = (payload: ProductWebhookPayload) => {
-  const fields = [];
-
-  fields.push(
+  const fields = [
     {
       name: 'Product Name',
       value: payload.name,
@@ -37,7 +35,12 @@ const buildProductFields = (payload: ProductWebhookPayload) => {
       value: payload.url || '_Not set_',
       inline: true,
     },
-  );
+    {
+      name: 'Product ID',
+      value: `\`\`\`\n${payload.id}\`\`\``,
+      inline: false,
+    },
+  ];
 
   if (payload.metadata && payload.metadata.length > 0) {
     fields.push(
@@ -54,13 +57,12 @@ const buildProductFields = (payload: ProductWebhookPayload) => {
         inline: false,
       },
     );
+  } else {
+    fields.push(
+      { name: '\u200B', value: '**Metadata**', inline: false },
+      { name: 'Custom Fields', value: 'None', inline: false },
+    );
   }
-
-  fields.push({
-    name: 'Product ID',
-    value: `\`${payload.id}\``,
-    inline: true,
-  });
 
   return fields;
 };

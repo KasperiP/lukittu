@@ -6,4 +6,5 @@ export * from './webhooks/discord-webhooks';
 export * from './webhooks/payloads/customer-webhook-payload';
 export * from './webhooks/payloads/license-webhook-payload';
 export * from './webhooks/payloads/product-webhook-payload';
+export * from './webhooks/payloads/release-webhook-payload';
 export * from './webhooks/webhook-handler';

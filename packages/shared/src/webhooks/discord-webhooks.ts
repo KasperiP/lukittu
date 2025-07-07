@@ -28,6 +28,14 @@ import {
   updateProductDiscordPayload,
   UpdateProductWebhookPayload,
 } from './payloads/product-webhook-payload';
+import {
+  createReleaseDiscordPayload,
+  CreateReleaseWebhookPayload,
+  deleteReleaseDiscordPayload,
+  DeleteReleaseWebhookPayload,
+  updateReleaseDiscordPayload,
+  UpdateReleaseWebhookPayload,
+} from './payloads/release-webhook-payload';
 
 export interface WebhookDiscordPayload<T> {
   source: AuditLogSource;
@@ -57,7 +65,10 @@ export type PayloadType =
   | DeleteCustomerWebhookPayload
   | CreateProductWebhookPayload
   | UpdateProductWebhookPayload
-  | DeleteProductWebhookPayload;
+  | DeleteProductWebhookPayload
+  | CreateReleaseWebhookPayload
+  | UpdateReleaseWebhookPayload
+  | DeleteReleaseWebhookPayload;
 
 interface FormatDiscordPayloadParams {
   eventType: WebhookEventType;
@@ -142,6 +153,30 @@ export function formatDiscordPayload({
     case WebhookEventType.PRODUCT_DELETED:
       return deleteProductDiscordPayload({
         payload: payload as DeleteProductWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.RELEASE_CREATED:
+      return createReleaseDiscordPayload({
+        payload: payload as CreateReleaseWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.RELEASE_UPDATED:
+      return updateReleaseDiscordPayload({
+        payload: payload as UpdateReleaseWebhookPayload,
+        team,
+        user,
+        source,
+      });
+
+    case WebhookEventType.RELEASE_DELETED:
+      return deleteReleaseDiscordPayload({
+        payload: payload as DeleteReleaseWebhookPayload,
         team,
         user,
         source,

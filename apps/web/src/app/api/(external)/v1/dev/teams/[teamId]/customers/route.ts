@@ -7,11 +7,15 @@ import {
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
+  createWebhookEvents,
   logger,
   prisma,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -80,6 +84,8 @@ export async function POST(
       );
     }
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(async (prisma) => {
       const customer = await prisma.customer.create({
         data: {
@@ -105,6 +111,7 @@ export async function POST(
         },
         include: {
           metadata: true,
+          address: true,
         },
       });
 
@@ -128,8 +135,18 @@ export async function POST(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.CUSTOMER_CREATED,
+        teamId: team.id,
+        payload: createCustomerPayload(customer),
+        source: AuditLogSource.API_KEY,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {

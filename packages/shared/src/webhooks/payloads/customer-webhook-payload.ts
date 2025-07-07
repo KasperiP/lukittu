@@ -31,9 +31,7 @@ export const deleteCustomerPayload = (
 });
 
 const buildCustomerFields = (payload: CustomerWebhookPayload) => {
-  const fields = [];
-
-  fields.push(
+  const fields = [
     {
       name: 'Username',
       value: payload.username || '_Not set_',
@@ -49,7 +47,7 @@ const buildCustomerFields = (payload: CustomerWebhookPayload) => {
       value: payload.fullName || '_Not set_',
       inline: true,
     },
-  );
+  ];
 
   const hasAddressInfo =
     payload.address &&
@@ -90,11 +88,28 @@ const buildCustomerFields = (payload: CustomerWebhookPayload) => {
     }
   } else {
     fields.push({
+      name: '\u200B',
+      value: '**Address Information**',
+      inline: false,
+    });
+    fields.push({
       name: 'Address',
       value: 'No address information provided',
       inline: false,
     });
   }
+
+  fields.push({
+    name: '\u200B',
+    value: '**Customer Information**',
+    inline: false,
+  });
+
+  fields.push({
+    name: 'Customer ID',
+    value: `\`\`\`\n${payload.id}\`\`\``,
+    inline: false,
+  });
 
   if (payload.metadata && payload.metadata.length > 0) {
     fields.push(
@@ -111,13 +126,12 @@ const buildCustomerFields = (payload: CustomerWebhookPayload) => {
         inline: false,
       },
     );
+  } else {
+    fields.push(
+      { name: '\u200B', value: '**Metadata**', inline: false },
+      { name: 'Custom Fields', value: 'None', inline: false },
+    );
   }
-
-  fields.push({
-    name: 'Customer ID',
-    value: `\`${payload.id}\``,
-    inline: true,
-  });
 
   return fields;
 };

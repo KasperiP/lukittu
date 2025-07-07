@@ -8,15 +8,19 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createProductPayload,
+  createWebhookEvents,
   logger,
   Metadata,
   prisma,
   Prisma,
   Product,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -350,6 +354,8 @@ export async function POST(
       );
     }
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(async (prisma) => {
       const product = await prisma.product.create({
         data: {
@@ -374,6 +380,9 @@ export async function POST(
             },
           },
         },
+        include: {
+          metadata: true,
+        },
       });
 
       const response = {
@@ -392,8 +401,20 @@ export async function POST(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.PRODUCT_CREATED,
+        teamId: team.id,
+        payload: createProductPayload(product),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
+
     return NextResponse.json(response);
   } catch (error) {
     logger.error("Error occurred in 'products' route", error);

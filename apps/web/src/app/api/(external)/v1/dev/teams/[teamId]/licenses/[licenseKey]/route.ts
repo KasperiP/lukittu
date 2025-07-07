@@ -3,13 +3,17 @@ import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
+  deleteLicensePayload,
   generateHMAC,
   logger,
   prisma,
   regex,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -217,6 +221,11 @@ export async function DELETE(
           licenseKeyLookup: hmac,
         },
       },
+      include: {
+        products: true,
+        customers: true,
+        metadata: true,
+      },
     });
 
     if (!license) {
@@ -234,6 +243,8 @@ export async function DELETE(
         },
       );
     }
+
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       await prisma.license.delete({
@@ -265,8 +276,18 @@ export async function DELETE(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_DELETED,
+        teamId: team.id,
+        payload: deleteLicensePayload(license),
+        source: AuditLogSource.API_KEY,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response, {
       status: HttpStatus.OK,

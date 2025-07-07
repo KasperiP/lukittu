@@ -5,6 +5,7 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   BuiltByBitIntegration,
+  createCustomerPayload,
   createLicensePayload,
   createWebhookEvents,
   decryptLicenseKey,
@@ -16,6 +17,7 @@ import {
   prisma,
   Settings,
   Team,
+  updateCustomerPayload,
   WebhookEventType,
 } from '@lukittu/shared';
 import { BuiltByBitMetadataKeys } from '../constants/metadata';
@@ -168,7 +170,7 @@ export const handleBuiltByBitPurchase = async (
         : []),
     ];
 
-    let webhookEventIds: string[] = [];
+    const webhookEventIds: string[] = [];
 
     const license = await prisma.$transaction(async (prisma) => {
       const existingLukittuCustomer = await prisma.customer.findFirst({
@@ -203,6 +205,10 @@ export const handleBuiltByBitPurchase = async (
         update: {
           username: bbbUser.username,
         },
+        include: {
+          metadata: true,
+          address: true,
+        },
       });
 
       await createAuditLog({
@@ -224,6 +230,20 @@ export const handleBuiltByBitPurchase = async (
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
         tx: prisma,
       });
+
+      const customerWebhookEvents = await createWebhookEvents({
+        teamId: team.id,
+        eventType: existingLukittuCustomer?.id
+          ? WebhookEventType.CUSTOMER_UPDATED
+          : WebhookEventType.CUSTOMER_CREATED,
+        payload: existingLukittuCustomer?.id
+          ? updateCustomerPayload(lukittuCustomer)
+          : createCustomerPayload(lukittuCustomer),
+        source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...customerWebhookEvents);
 
       const licenseKey = await generateUniqueLicense(team.id);
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
@@ -304,13 +324,15 @@ export const handleBuiltByBitPurchase = async (
         tx: prisma,
       });
 
-      webhookEventIds = await createWebhookEvents({
+      const licenseWebhookEvents = await createWebhookEvents({
         eventType: WebhookEventType.LICENSE_CREATED,
         teamId: team.id,
         payload: createLicensePayload(license),
         source: AuditLogSource.BUILT_BY_BIT_INTEGRATION,
         tx: prisma,
       });
+
+      webhookEventIds.push(...licenseWebhookEvents);
 
       return license;
     });
