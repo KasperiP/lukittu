@@ -335,16 +335,16 @@
     "select_target": "Valitse kohde",
     "webhook": "Webhook",
     "select_all": "Valitse kaikki",
-    "event_type": "",
-    "attempts": "",
-    "last_attempt_at": "",
-    "delivery_rate": "",
-    "failed": "",
-    "total_events": "",
-    "delivered": "",
-    "pending": "",
-    "hide_secret": "",
-    "show_secret": ""
+    "event_type": "Tapahtuman tyyppi",
+    "attempts": "Yritykset",
+    "last_attempt_at": "Viimeisin yritys",
+    "delivery_rate": "Toimitusaste",
+    "failed": "Epäonnistui",
+    "total_events": "Yhteensä tapahtumia",
+    "delivered": "Toimitettu",
+    "pending": "Odottaa",
+    "hide_secret": "Piilota salaisuus",
+    "show_secret": "Näytä salaisuus"
   },
   "auth": {
     "oauth": {
@@ -857,15 +857,15 @@
       "add_your_first_webhook": "Lisää ensimmäinen webhookisi",
       "webhook_description": "Webhookkeja käytetään reaaliaikaisten ilmoitusten lähettämiseen ulkoisiin palveluihin, kun tiettyjä tapahtumia tapahtuu Lukitussa. Niiden avulla voit integroitua muihin palveluihin tai automatisoida tehtäviä.",
       "discord_webhook_detected": "Discord-webhook havaittu! Payloadiin sovelletaan Discord-muotoilua.",
-      "webhook_events": "",
-      "no_webhook_events_found": "",
-      "event_delivery_trends": "",
-      "event_delivery_trends_description": "",
-      "excellent_delivery_rate": "",
-      "good_delivery_rate": "",
-      "poor_delivery_rate": "",
-      "no_delivery_data": "",
-      "delivery_rate_tooltip": ""
+      "webhook_events": "Webhook-tapahtumat",
+      "no_webhook_events_found": "Ei webhook-tapahtumia löytynyt",
+      "event_delivery_trends": "Tapahtuman toimitustrendit",
+      "event_delivery_trends_description": "Webhook-tapahtumien toimitustilastot viimeisten 30 päivän ajalta",
+      "excellent_delivery_rate": "Erinomainen toimitusprosentti {rate}%",
+      "good_delivery_rate": "Hyvä toimitusprosentti {rate}%",
+      "poor_delivery_rate": "Heikko toimitusprosentti {rate}%",
+      "no_delivery_data": "Tietoja ei ole saatavilla",
+      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden"
     }
   }
 }

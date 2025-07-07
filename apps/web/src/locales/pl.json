@@ -335,16 +335,16 @@
     "select_target": "Wybierz cel",
     "webhook": "Webhook",
     "select_all": "Zaznacz wszystko",
-    "event_type": "",
-    "attempts": "",
-    "last_attempt_at": "",
-    "delivery_rate": "",
-    "failed": "",
-    "total_events": "",
-    "delivered": "",
-    "pending": "",
-    "hide_secret": "",
-    "show_secret": ""
+    "event_type": "Typ zdarzenia",
+    "attempts": "Próby",
+    "last_attempt_at": "Ostatnia próba",
+    "delivery_rate": "Wskaźnik dostarczania",
+    "failed": "Nieudane",
+    "total_events": "Łączna liczba zdarzeń",
+    "delivered": "Dostarczone",
+    "pending": "Oczekujące",
+    "hide_secret": "Ukryj sekret",
+    "show_secret": "Pokaż sekret"
   },
   "auth": {
     "oauth": {
@@ -857,15 +857,14 @@
       "add_your_first_webhook": "Dodaj swój pierwszy webhook",
       "webhook_description": "Webhooki służą do wysyłania powiadomień w czasie rzeczywistym do zewnętrznych usług, gdy w Lukittu wystąpią określone zdarzenia. Możesz ich używać do integracji z innymi usługami lub automatyzacji zadań.",
       "discord_webhook_detected": "Wykryto webhook Discorda! Do ładunku zostanie zastosowane formatowanie Discorda.",
-      "webhook_events": "",
-      "no_webhook_events_found": "",
-      "event_delivery_trends": "",
-      "event_delivery_trends_description": "",
-      "excellent_delivery_rate": "",
-      "good_delivery_rate": "",
-      "poor_delivery_rate": "",
-      "no_delivery_data": "",
-      "delivery_rate_tooltip": ""
+      "no_webhook_events_found": "Nie znaleziono żadnych zdarzeń webhook",
+      "event_delivery_trends": "Trendy dostarczania zdarzeń",
+      "event_delivery_trends_description": "Statystyki dostarczania zdarzeń webhook z ostatnich 30 dni",
+      "excellent_delivery_rate": "Doskonały wskaźnik dostarczania {rate}%",
+      "good_delivery_rate": "Dobry wskaźnik dostarczania {rate}%",
+      "poor_delivery_rate": "Słaby wskaźnik dostarczania {rate}%",
+      "no_delivery_data": "Brak dostępnych danych",
+      "delivery_rate_tooltip": "Wskaźnik dostarczania wskazuje procent pomyślnie dostarczonych zdarzeń webhook"
     }
   }
 }
