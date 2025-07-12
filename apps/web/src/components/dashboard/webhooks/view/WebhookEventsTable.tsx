@@ -16,8 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useTableScroll } from '@/hooks/useTableScroll';
-import { cn } from '@/lib/utils/tailwind-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
 import { WebhookEventStatus } from '@lukittu/shared';
 import {
@@ -94,7 +92,6 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
   const locale = useLocale();
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
-  const { showDropdown, containerRef } = useTableScroll();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -143,10 +140,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {hasEvents ? (
           <>
-            <Table
-              className="relative"
-              containerRef={containerRef as React.RefObject<HTMLDivElement>}
-            >
+            <Table className="relative">
               <TableHeader>
                 <TableRow>
                   <TableHead className="truncate">
@@ -203,14 +197,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                       <ArrowDownUp className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead
-                    className={cn(
-                      'sticky right-0 w-[50px] truncate px-2 text-right',
-                      {
-                        'bg-background drop-shadow-md': showDropdown,
-                      },
-                    )}
-                  >
+                  <TableHead className="truncate">
                     {t('general.last_attempt_at')}
                   </TableHead>
                 </TableRow>
@@ -255,14 +242,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                       >
                         <DateConverter date={event.createdAt} />
                       </TableCell>
-                      <TableCell
-                        className={cn(
-                          'sticky right-0 w-[50px] truncate px-2 py-0 text-right',
-                          {
-                            'bg-background drop-shadow-md': showDropdown,
-                          },
-                        )}
-                      >
+                      <TableCell className="truncate">
                         {event.lastAttemptAt ? (
                           <DateConverter date={event.lastAttemptAt} />
                         ) : (
