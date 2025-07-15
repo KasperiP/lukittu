@@ -347,7 +347,15 @@
     "show_secret": "Pokaż sekret",
     "response_status": "Status odpowiedzi",
     "events": "Zdarzenia",
-    "none": "Brak"
+    "none": "Brak",
+    "event_details": "Szczegóły zdarzenia",
+    "basic_information": "Informacje podstawowe",
+    "timing_information": "Informacje o czasie",
+    "next_retry_at": "Następna próba o",
+    "completed_at": "Zakończono o",
+    "response_information": "Informacje o odpowiedzi",
+    "payload_information": "Informacje o ładunku",
+    "triggered_by": "Wywołane przez"
   },
   "auth": {
     "oauth": {

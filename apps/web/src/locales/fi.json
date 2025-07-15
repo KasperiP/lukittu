@@ -347,7 +347,15 @@
     "show_secret": "Näytä salaisuus",
     "response_status": "Vastauksen tila",
     "events": "Tapahtumat",
-    "none": "Ei mitään"
+    "none": "Ei mitään",
+    "event_details": "Tapahtuman tiedot",
+    "basic_information": "Perustiedot",
+    "timing_information": "Ajoitustiedot",
+    "next_retry_at": "Seuraava uudelleenyritys",
+    "completed_at": "Valmistunut",
+    "response_information": "Vastauksen tiedot",
+    "payload_information": "Lähetyssisällön tiedot",
+    "triggered_by": "Laukaissut"
   },
   "auth": {
     "oauth": {

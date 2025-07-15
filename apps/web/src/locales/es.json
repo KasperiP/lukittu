@@ -347,7 +347,15 @@
     "show_secret": "Mostrar secreto",
     "response_status": "Estado de respuesta",
     "events": "Eventos",
-    "none": "Sin eventos"
+    "none": "Sin eventos",
+    "event_details": "Detalles del evento",
+    "basic_information": "Información básica",
+    "timing_information": "Información de tiempo",
+    "next_retry_at": "Próximo reintento en",
+    "completed_at": "Completado en",
+    "response_information": "Información de respuesta",
+    "payload_information": "Información del contenido",
+    "triggered_by": "Activado por"
   },
   "auth": {
     "oauth": {

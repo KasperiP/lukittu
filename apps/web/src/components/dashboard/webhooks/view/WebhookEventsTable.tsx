@@ -17,19 +17,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TeamContext } from '@/providers/TeamProvider';
-import { WebhookEventStatus } from '@lukittu/shared';
-import {
-  AlertCircle,
-  ArrowDownUp,
-  CheckCircle,
-  Clock,
-  Loader2,
-  XCircle,
-} from 'lucide-react';
+import { User, WebhookEvent } from '@lukittu/shared';
+import { ArrowDownUp } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
+import { WebhookEventDetailsModal } from './WebhookEventDetailsModal';
+import { WebhoookStatusBadge } from './WebhookStatusBadge';
 
 const fetchWebhookEvents = async (url: string) => {
   const response = await fetch(url);
@@ -40,48 +35,6 @@ const fetchWebhookEvents = async (url: string) => {
   }
 
   return data;
-};
-
-const StatusBadge = ({ status }: { status: WebhookEventStatus }) => {
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case WebhookEventStatus.DELIVERED:
-        return 'success';
-      case WebhookEventStatus.FAILED:
-        return 'error';
-      case WebhookEventStatus.IN_PROGRESS:
-        return 'warning';
-      case WebhookEventStatus.PENDING:
-      case WebhookEventStatus.RETRY_SCHEDULED:
-        return 'secondary';
-      default:
-        return 'secondary';
-    }
-  };
-
-  const getStatusIcon = (status: WebhookEventStatus) => {
-    switch (status) {
-      case WebhookEventStatus.DELIVERED:
-        return <CheckCircle className="mr-1 h-3 w-3" />;
-      case WebhookEventStatus.FAILED:
-        return <XCircle className="mr-1 h-3 w-3" />;
-      case WebhookEventStatus.IN_PROGRESS:
-        return <Loader2 className="mr-1 h-3 w-3 animate-spin" />;
-      case WebhookEventStatus.RETRY_SCHEDULED:
-        return <Clock className="mr-1 h-3 w-3" />;
-      case WebhookEventStatus.PENDING:
-        return <AlertCircle className="mr-1 h-3 w-3" />;
-      default:
-        return <AlertCircle className="mr-1 h-3 w-3" />;
-    }
-  };
-
-  return (
-    <Badge className="text-xs" variant={getStatusVariant(status)}>
-      {getStatusIcon(status)}
-      {status}
-    </Badge>
-  );
 };
 
 interface WebhookEventsTableProps {
@@ -101,6 +54,18 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
     null,
   );
+
+  const [selectedEvent, setSelectedEvent] = useState<
+    (WebhookEvent & { user: Omit<User, 'passwordHash'> | null }) | null
+  >(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleRowClick = (
+    event: WebhookEvent & { user: Omit<User, 'passwordHash'> | null },
+  ) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
@@ -131,144 +96,160 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
   const hasEvents = data?.hasResults ?? false;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row flex-wrap items-center gap-2 border-b py-5">
-        <CardTitle className="flex items-center text-xl font-bold">
-          {t('dashboard.webhooks.webhook_events')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        {hasEvents ? (
-          <>
-            <Table className="relative">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="truncate">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setSortColumn('eventType');
-                        setSortDirection(
-                          sortColumn === 'eventType' && sortDirection === 'asc'
-                            ? 'desc'
-                            : 'asc',
-                        );
-                      }}
-                    >
-                      {t('general.event_type')}
-                      <ArrowDownUp className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="truncate">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setSortColumn('status');
-                        setSortDirection(
-                          sortColumn === 'status' && sortDirection === 'asc'
-                            ? 'desc'
-                            : 'asc',
-                        );
-                      }}
-                    >
-                      {t('general.status')}
-                      <ArrowDownUp className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="truncate">
-                    {t('general.attempts')}
-                  </TableHead>
-                  <TableHead className="truncate">
-                    {t('general.status')}
-                  </TableHead>
-                  <TableHead className="truncate">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setSortColumn('createdAt');
-                        setSortDirection(
-                          sortColumn === 'createdAt' && sortDirection === 'asc'
-                            ? 'desc'
-                            : 'asc',
-                        );
-                      }}
-                    >
-                      {t('general.created_at')}
-                      <ArrowDownUp className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="truncate">
-                    {t('general.last_attempt_at')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              {isLoading ? (
-                <TableSkeleton columns={6} rows={7} />
-              ) : (
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="truncate font-medium">
-                        <Badge className="text-xs" variant="outline">
-                          {event.eventType}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="truncate">
-                        <StatusBadge status={event.status} />
-                      </TableCell>
-                      <TableCell className="truncate">
-                        {event.attempts}
-                      </TableCell>
-                      <TableCell className="truncate">
-                        {event.responseCode ? (
-                          <Badge
-                            className="text-xs"
-                            variant={
-                              event.responseCode >= 200 &&
-                              event.responseCode < 300
-                                ? 'success'
-                                : 'error'
-                            }
-                          >
-                            {event.responseCode}
-                          </Badge>
-                        ) : (
-                          '-'
-                        )}
-                      </TableCell>
-                      <TableCell
-                        className="truncate"
-                        title={new Date(event.createdAt).toLocaleString(locale)}
+    <>
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-2 border-b py-5">
+          <CardTitle className="flex items-center text-xl font-bold">
+            {t('dashboard.webhooks.webhook_events')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          {hasEvents ? (
+            <>
+              <Table className="relative">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="truncate">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setSortColumn('eventType');
+                          setSortDirection(
+                            sortColumn === 'eventType' &&
+                              sortDirection === 'asc'
+                              ? 'desc'
+                              : 'asc',
+                          );
+                        }}
                       >
-                        <DateConverter date={event.createdAt} />
-                      </TableCell>
-                      <TableCell className="truncate">
-                        {event.lastAttemptAt ? (
-                          <DateConverter date={event.lastAttemptAt} />
-                        ) : (
-                          '-'
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              )}
-            </Table>
-            <TablePagination
-              page={page}
-              pageSize={pageSize}
-              setPage={setPage}
-              setPageSize={setPageSize}
-              totalItems={totalEvents}
-              totalPages={Math.ceil(totalEvents / pageSize)}
-            />
-          </>
-        ) : (
-          <div className="flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed text-sm text-muted-foreground">
-            {t('dashboard.webhooks.no_webhook_events_found')}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                        {t('general.event_type')}
+                        <ArrowDownUp className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="truncate">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setSortColumn('status');
+                          setSortDirection(
+                            sortColumn === 'status' && sortDirection === 'asc'
+                              ? 'desc'
+                              : 'asc',
+                          );
+                        }}
+                      >
+                        {t('general.status')}
+                        <ArrowDownUp className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="truncate">
+                      {t('general.attempts')}
+                    </TableHead>
+                    <TableHead className="truncate">
+                      {t('general.response_status')}
+                    </TableHead>
+                    <TableHead className="truncate">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setSortColumn('createdAt');
+                          setSortDirection(
+                            sortColumn === 'createdAt' &&
+                              sortDirection === 'asc'
+                              ? 'desc'
+                              : 'asc',
+                          );
+                        }}
+                      >
+                        {t('general.created_at')}
+                        <ArrowDownUp className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="truncate">
+                      {t('general.last_attempt_at')}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                {isLoading ? (
+                  <TableSkeleton columns={6} rows={7} />
+                ) : (
+                  <TableBody>
+                    {events.map((event) => (
+                      <TableRow
+                        key={event.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleRowClick(event)}
+                      >
+                        <TableCell className="truncate font-medium">
+                          <Badge className="text-xs" variant="outline">
+                            {event.eventType}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="truncate">
+                          <WebhoookStatusBadge status={event.status} />
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {event.attempts}
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {event.responseCode ? (
+                            <Badge
+                              className="text-xs"
+                              variant={
+                                event.responseCode >= 200 &&
+                                event.responseCode < 300
+                                  ? 'success'
+                                  : 'error'
+                              }
+                            >
+                              {event.responseCode}
+                            </Badge>
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell
+                          className="truncate"
+                          title={new Date(event.createdAt).toLocaleString(
+                            locale,
+                          )}
+                        >
+                          <DateConverter date={event.createdAt} />
+                        </TableCell>
+                        <TableCell className="truncate">
+                          {event.lastAttemptAt ? (
+                            <DateConverter date={event.lastAttemptAt} />
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                )}
+              </Table>
+              <TablePagination
+                page={page}
+                pageSize={pageSize}
+                setPage={setPage}
+                setPageSize={setPageSize}
+                totalItems={totalEvents}
+                totalPages={Math.ceil(totalEvents / pageSize)}
+              />
+            </>
+          ) : (
+            <div className="flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed text-sm text-muted-foreground">
+              {t('dashboard.webhooks.no_webhook_events_found')}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <WebhookEventDetailsModal
+        event={selectedEvent}
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+      />
+    </>
   );
 }

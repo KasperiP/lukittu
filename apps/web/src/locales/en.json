@@ -347,7 +347,15 @@
     "confirm": "Confirm",
     "sending_email_failed": "Sending email failed",
     "hide_secret": "Hide secret",
-    "show_secret": "Show secret"
+    "show_secret": "Show secret",
+    "event_details": "Event details",
+    "basic_information": "Basic information",
+    "timing_information": "Timing information",
+    "next_retry_at": "Next retry at",
+    "completed_at": "Completed at",
+    "response_information": "Response information",
+    "payload_information": "Payload information",
+    "triggered_by": "Triggered by"
   },
   "auth": {
     "oauth": {

@@ -347,7 +347,15 @@
     "show_secret": "显示密钥",
     "response_status": "响应状态",
     "events": "事件",
-    "none": "无"
+    "none": "无",
+    "event_details": "事件详情",
+    "basic_information": "基本信息",
+    "timing_information": "时间信息",
+    "next_retry_at": "下次重试时间",
+    "completed_at": "完成时间",
+    "response_information": "响应信息",
+    "payload_information": "负载信息",
+    "triggered_by": "触发来源"
   },
   "auth": {
     "oauth": {
