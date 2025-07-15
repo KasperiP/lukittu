@@ -1,5 +1,6 @@
 import { HttpStatus } from '@/types/http-status';
 import { logger, processWebhookRetries } from '@lukittu/shared';
+import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -8,8 +9,17 @@ export async function POST() {
 
   const reqHeaders = await headers();
   const authorizationHeader = reqHeaders.get('authorization');
+  const internalApiKey = process.env.INTERNAL_API_KEY;
 
-  if (authorizationHeader !== process.env.INTERNAL_API_KEY) {
+  const isAuthorized =
+    internalApiKey &&
+    authorizationHeader &&
+    crypto.timingSafeEqual(
+      Buffer.from(authorizationHeader),
+      Buffer.from(internalApiKey),
+    );
+
+  if (!isAuthorized) {
     return NextResponse.json(
       { message: 'Unauthorized' },
       { status: HttpStatus.UNAUTHORIZED },

@@ -2,6 +2,7 @@ import { DEFAULT_LIMITS } from '@/lib/constants/limits';
 import { sendDiscordWebhook } from '@/lib/providers/discord-webhook';
 import { HttpStatus } from '@/types/http-status';
 import { logger, prisma } from '@lukittu/shared';
+import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -10,8 +11,17 @@ export async function GET() {
   try {
     const reqHeaders = await headers();
     const authorizationHeader = reqHeaders.get('authorization');
+    const internalApiKey = process.env.INTERNAL_API_KEY;
 
-    if (authorizationHeader !== process.env.INTERNAL_API_KEY) {
+    const isAuthorized =
+      internalApiKey &&
+      authorizationHeader &&
+      crypto.timingSafeEqual(
+        Buffer.from(authorizationHeader),
+        Buffer.from(internalApiKey),
+      );
+
+    if (!isAuthorized) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: HttpStatus.UNAUTHORIZED },
