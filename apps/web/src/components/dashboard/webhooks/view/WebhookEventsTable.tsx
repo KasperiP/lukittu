@@ -95,6 +95,51 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
   const totalEvents = data?.totalResults ?? 0;
   const hasEvents = data?.hasResults ?? false;
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-2 border-b py-5">
+          <CardTitle className="flex items-center text-xl font-bold">
+            {t('dashboard.webhooks.webhook_events')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="truncate">
+                  <Button variant="ghost" disabled>
+                    {t('general.event_type')}
+                  </Button>
+                </TableHead>
+                <TableHead className="truncate">
+                  <Button variant="ghost" disabled>
+                    {t('general.status')}
+                  </Button>
+                </TableHead>
+                <TableHead className="truncate">
+                  {t('general.attempts')}
+                </TableHead>
+                <TableHead className="truncate">
+                  {t('general.response_status')}
+                </TableHead>
+                <TableHead className="truncate">
+                  <Button variant="ghost" disabled>
+                    {t('general.created_at')}
+                  </Button>
+                </TableHead>
+                <TableHead className="truncate">
+                  {t('general.last_attempt_at')}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableSkeleton columns={6} rows={10} />
+          </Table>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <Card>
@@ -170,63 +215,57 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                     </TableHead>
                   </TableRow>
                 </TableHeader>
-                {isLoading ? (
-                  <TableSkeleton columns={6} rows={7} />
-                ) : (
-                  <TableBody>
-                    {events.map((event) => (
-                      <TableRow
-                        key={event.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleRowClick(event)}
-                      >
-                        <TableCell className="truncate font-medium">
-                          <Badge className="text-xs" variant="outline">
-                            {event.eventType}
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow
+                      key={event.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleRowClick(event)}
+                    >
+                      <TableCell className="truncate font-medium">
+                        <Badge className="text-xs" variant="outline">
+                          {event.eventType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="truncate">
+                        <WebhookStatusBadge status={event.status} />
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {event.attempts}
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {event.responseCode ? (
+                          <Badge
+                            className="text-xs"
+                            variant={
+                              event.responseCode >= 200 &&
+                              event.responseCode < 300
+                                ? 'success'
+                                : 'error'
+                            }
+                          >
+                            {event.responseCode}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="truncate">
-                          <WebhookStatusBadge status={event.status} />
-                        </TableCell>
-                        <TableCell className="truncate">
-                          {event.attempts}
-                        </TableCell>
-                        <TableCell className="truncate">
-                          {event.responseCode ? (
-                            <Badge
-                              className="text-xs"
-                              variant={
-                                event.responseCode >= 200 &&
-                                event.responseCode < 300
-                                  ? 'success'
-                                  : 'error'
-                              }
-                            >
-                              {event.responseCode}
-                            </Badge>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                        <TableCell
-                          className="truncate"
-                          title={new Date(event.createdAt).toLocaleString(
-                            locale,
-                          )}
-                        >
-                          <DateConverter date={event.createdAt} />
-                        </TableCell>
-                        <TableCell className="truncate">
-                          {event.lastAttemptAt ? (
-                            <DateConverter date={event.lastAttemptAt} />
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                )}
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                      <TableCell
+                        className="truncate"
+                        title={new Date(event.createdAt).toLocaleString(locale)}
+                      >
+                        <DateConverter date={event.createdAt} />
+                      </TableCell>
+                      <TableCell className="truncate">
+                        {event.lastAttemptAt ? (
+                          <DateConverter date={event.lastAttemptAt} />
+                        ) : (
+                          '-'
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
               <TablePagination
                 page={page}
