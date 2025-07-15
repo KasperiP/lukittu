@@ -15,10 +15,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-
 import { User, WebhookEvent } from '@lukittu/shared';
 import { Copy, User as UserIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import { WebhoookStatusBadge } from './WebhookStatusBadge';
 
@@ -269,8 +269,13 @@ export function WebhookEventDetailsModal({
                 </h3>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <UserIcon className="h-4 w-4" />
-                    <span className="text-sm">{event.user.fullName}</span>
+                    <UserIcon className="h-4 w-4 shrink-0" />
+                    <Link
+                      className="text-sm text-primary hover:underline"
+                      href={`/dashboard/users/${event.user.id}`}
+                    >
+                      {event.user.fullName}
+                    </Link>
                     <span className="text-xs text-muted-foreground">
                       ({event.user.email})
                     </span>
