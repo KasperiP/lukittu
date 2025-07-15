@@ -876,7 +876,8 @@
       "good_delivery_rate": "Buena tasa de entrega {rate}%",
       "poor_delivery_rate": "Baja tasa de entrega {rate}%",
       "no_delivery_data": "No hay datos disponibles",
-      "delivery_rate_tooltip": "La tasa de entrega indica el porcentaje de eventos de webhook entregados con éxito"
+      "delivery_rate_tooltip": "La tasa de entrega indica el porcentaje de eventos de webhook entregados con éxito",
+      "webhook_deleted_success": "Webhook eliminado con éxito"
     }
   }
 }

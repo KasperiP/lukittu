@@ -876,7 +876,8 @@
       "good_delivery_rate": "投递成功率良好 {rate}%",
       "poor_delivery_rate": "投递成功率较差 {rate}%",
       "no_delivery_data": "暂无可用数据",
-      "delivery_rate_tooltip": "投递成功率表示成功投递的 Webhook 事件所占的百分比"
+      "delivery_rate_tooltip": "投递成功率表示成功投递的 Webhook 事件所占的百分比",
+      "webhook_deleted_success": "Webhook 已删除"
     }
   }
 }

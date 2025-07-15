@@ -24,7 +24,7 @@ import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { WebhookEventDetailsModal } from './WebhookEventDetailsModal';
-import { WebhoookStatusBadge } from './WebhookStatusBadge';
+import { WebhookStatusBadge } from './WebhookStatusBadge';
 
 const fetchWebhookEvents = async (url: string) => {
   const response = await fetch(url);
@@ -186,7 +186,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                           </Badge>
                         </TableCell>
                         <TableCell className="truncate">
-                          <WebhoookStatusBadge status={event.status} />
+                          <WebhookStatusBadge status={event.status} />
                         </TableCell>
                         <TableCell className="truncate">
                           {event.attempts}

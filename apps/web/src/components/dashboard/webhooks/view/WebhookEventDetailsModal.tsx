@@ -20,7 +20,7 @@ import { Copy, User as UserIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { WebhoookStatusBadge } from './WebhookStatusBadge';
+import { WebhookStatusBadge } from './WebhookStatusBadge';
 
 interface WebhookEventDetailsModalProps {
   event: (WebhookEvent & { user: Omit<User, 'passwordHash'> | null }) | null;
@@ -101,7 +101,7 @@ export function WebhookEventDetailsModal({
                   {t('general.status')}
                 </label>
                 <div>
-                  <WebhoookStatusBadge status={event.status} />
+                  <WebhookStatusBadge status={event.status} />
                 </div>
               </div>
 

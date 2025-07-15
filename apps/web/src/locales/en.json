@@ -585,7 +585,8 @@
       "good_delivery_rate": "Good delivery rate {rate}%",
       "poor_delivery_rate": "Poor delivery rate {rate}%",
       "no_delivery_data": "No data available",
-      "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events"
+      "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events",
+      "webhook_deleted_success": "Webhook deleted successfully"
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",

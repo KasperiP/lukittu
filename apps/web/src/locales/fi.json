@@ -876,7 +876,8 @@
       "good_delivery_rate": "Hyvä toimitusprosentti {rate}%",
       "poor_delivery_rate": "Heikko toimitusprosentti {rate}%",
       "no_delivery_data": "Tietoja ei ole saatavilla",
-      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden"
+      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden",
+      "webhook_deleted_success": "Webhook poistettu onnistuneesti"
     }
   }
 }

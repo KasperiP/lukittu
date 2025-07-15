@@ -41,7 +41,7 @@ export default function DeleteWebhookModal() {
       mutate((key) => Array.isArray(key) && key[0] === '/api/webhooks');
 
       handleOpenChange(false);
-      toast.success('Webhook deleted successfully');
+      toast.success(t('dashboard.webhooks.webhook_deleted_success'));
     } catch (error: any) {
       toast.error(error.message ?? t('general.error_occurred'));
     } finally {

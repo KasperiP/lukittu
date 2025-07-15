@@ -8,7 +8,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
-export const WebhoookStatusBadge = ({
+export const WebhookStatusBadge = ({
   status,
 }: {
   status: WebhookEventStatus;
