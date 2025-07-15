@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import {
   AuditLogSource,
+  Prisma,
   WebhookEventStatus,
   WebhookEventType,
 } from '../../prisma/generated/client';
@@ -19,7 +20,7 @@ interface CreateWebhookEventParams {
   source: AuditLogSource;
   userId?: string;
   payload: PayloadType;
-  tx: PrismaTransaction;
+  prisma: PrismaTransaction;
 }
 
 /**
@@ -32,7 +33,7 @@ export async function createWebhookEvents({
   userId,
   source,
   payload,
-  tx,
+  prisma,
 }: CreateWebhookEventParams) {
   try {
     logger.info('Creating webhook events in transaction', {
@@ -41,7 +42,7 @@ export async function createWebhookEvents({
     });
 
     // Find active webhooks for the team that have this event type enabled
-    const webhooks = await tx.webhook.findMany({
+    const webhooks = await prisma.webhook.findMany({
       where: {
         teamId,
         active: true,
@@ -70,7 +71,7 @@ export async function createWebhookEvents({
 
     for (const webhook of webhooks) {
       // Create the webhook event record
-      const webhookEvent = await tx.webhookEvent.create({
+      const webhookEvent = await prisma.webhookEvent.create({
         data: {
           webhookId: webhook.id,
           eventType,
@@ -147,172 +148,171 @@ export async function attemptWebhookDelivery(webhookEventIds: string[]) {
 async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
   logger.info('Sending webhook event', { webhookEventId });
 
-  try {
-    const webhookEvent = await prisma.webhookEvent
-      .update({
-        where: {
-          id: webhookEventId,
-          status: {
-            in: [
-              WebhookEventStatus.PENDING,
-              WebhookEventStatus.RETRY_SCHEDULED,
-            ],
-          },
-        },
-        data: {
-          status: WebhookEventStatus.IN_PROGRESS,
-          attempts: {
-            increment: 1,
-          },
-          lastAttemptAt: new Date(),
-        },
-        include: {
-          webhook: {
-            include: {
-              team: true,
+  return await prisma.$transaction(
+    async (prisma) => {
+      let webhookEvent;
+      try {
+        webhookEvent = await prisma.webhookEvent.update({
+          where: {
+            id: webhookEventId,
+            status: {
+              in: [
+                WebhookEventStatus.PENDING,
+                WebhookEventStatus.RETRY_SCHEDULED,
+              ],
             },
           },
-          user: true,
-        },
-      })
-      .catch((error) => {
-        logger.error('Failed to lock webhook event for processing', {
-          webhookEventId,
-          error: error.message,
+          data: {
+            status: WebhookEventStatus.IN_PROGRESS,
+            attempts: {
+              increment: 1,
+            },
+            lastAttemptAt: new Date(),
+          },
+          include: {
+            webhook: {
+              include: {
+                team: true,
+              },
+            },
+            user: true,
+          },
         });
-        return null;
-      });
-
-    if (!webhookEvent) {
-      logger.info('Webhook event not found or already being processed', {
-        webhookEventId,
-      });
-      return false;
-    }
-
-    const team = webhookEvent.webhook.team;
-    const user = webhookEvent.user;
-
-    logger.info('Processing webhook event', {
-      webhookEventId,
-      webhookId: webhookEvent.webhookId,
-      eventType: webhookEvent.eventType,
-      attempt: webhookEvent.attempts,
-      url: webhookEvent.webhook.url,
-    });
-
-    // Validate webhook URL before attempting to send
-    let url: URL;
-    const isProd = process.env.NODE_ENV === 'production';
-    try {
-      url = new URL(webhookEvent.webhook.url);
-
-      if (isProd) {
-        if (url.protocol !== 'https:') {
-          throw new Error('Only HTTPS URLs are allowed in production');
-        }
-      } else {
-        // In development, allow HTTP but warn
-        if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-          throw new Error(`Unsupported URL protocol: ${url.protocol}`);
-        }
-      }
-    } catch (error) {
-      logger.error('Invalid webhook URL', {
-        webhookEventId,
-        url: webhookEvent.webhook.url,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      await markWebhookAsFailed(webhookEvent.id, 'Invalid webhook URL');
-      return false;
-    }
-
-    try {
-      // Determine if this is a Discord webhook and format payload accordingly
-      const isDiscord = isDiscordWebhook(webhookEvent.webhook.url);
-      let requestBody: string;
-
-      if (isDiscord) {
-        const discordPayload = formatDiscordPayload({
-          eventType: webhookEvent.eventType,
-          payload: webhookEvent.payload as unknown as PayloadType,
-          team,
-          source: webhookEvent.source,
-          user,
-        });
-        requestBody = JSON.stringify(discordPayload);
-        logger.info('Using Discord webhook format', { webhookEventId });
-      } else {
-        requestBody = JSON.stringify(webhookEvent.payload);
-      }
-
-      // Calculate signature for webhook verification (except for Discord)
-      const timestamp = Date.now();
-      const signature = !isDiscord
-        ? generateSignature(
-            webhookEvent.webhook.secret,
-            timestamp.toString(),
-            requestBody,
-          )
-        : 'discord-webhook-no-signature'; // Discord doesn't need our signature
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-      logger.info('Sending webhook request', {
-        webhookEventId,
-        url: webhookEvent.webhook.url,
-        eventType: webhookEvent.eventType,
-        isDiscordFormat: isDiscord,
-      });
-
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Lukittu-Webhook/1.0',
-      };
-
-      // Only add signature headers for non-Discord webhooks
-      if (!isDiscord) {
-        headers['X-Lukittu-Signature'] = signature;
-        headers['X-Lukittu-Timestamp'] = timestamp.toString();
-        headers['X-Lukittu-Event'] = webhookEvent.eventType;
-      }
-
-      const response = await fetch(webhookEvent.webhook.url, {
-        method: 'POST',
-        headers,
-        body: requestBody,
-        signal: controller.signal,
-      }).finally(() => {
-        clearTimeout(timeoutId);
-      });
-
-      // Mark as delivered if successful
-      if (response.ok) {
-        let responseText: string;
-        try {
-          responseText = await response.text();
-        } catch (error) {
-          logger.error('Failed to read response body', {
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2025'
+        ) {
+          logger.info('Webhook event not found or already being processed', {
             webhookEventId,
-            error: error instanceof Error ? error.message : String(error),
           });
-          responseText = '(Failed to read response body)';
+          return false;
         }
+        // Re-throw other errors
+        throw error;
+      }
 
-        logger.info('Webhook delivered successfully', {
+      const team = webhookEvent.webhook.team;
+      const user = webhookEvent.user;
+
+      logger.info('Processing webhook event', {
+        webhookEventId,
+        webhookId: webhookEvent.webhookId,
+        eventType: webhookEvent.eventType,
+        attempt: webhookEvent.attempts,
+        url: webhookEvent.webhook.url,
+      });
+
+      // Validate webhook URL before attempting to send
+      let url: URL;
+      const isProd = process.env.NODE_ENV === 'production';
+      try {
+        url = new URL(webhookEvent.webhook.url);
+
+        if (isProd) {
+          if (url.protocol !== 'https:') {
+            throw new Error('Only HTTPS URLs are allowed in production');
+          }
+        } else {
+          // In development, allow HTTP but warn
+          if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+            throw new Error(`Unsupported URL protocol: ${url.protocol}`);
+          }
+        }
+      } catch (error) {
+        logger.error('Invalid webhook URL', {
           webhookEventId,
-          statusCode: response.status,
-          webhookId: webhookEvent.webhookId,
-          eventType: webhookEvent.eventType,
+          url: webhookEvent.webhook.url,
+          error: error instanceof Error ? error.message : String(error),
         });
 
-        const updateResult = await prisma.webhookEvent
-          .updateMany({
+        await markWebhookAsFailed(webhookEvent.id, 'Invalid webhook URL');
+        return false;
+      }
+
+      try {
+        // Determine if this is a Discord webhook and format payload accordingly
+        const isDiscord = isDiscordWebhook(webhookEvent.webhook.url);
+        let requestBody: string;
+
+        if (isDiscord) {
+          const discordPayload = formatDiscordPayload({
+            eventType: webhookEvent.eventType,
+            payload: webhookEvent.payload as unknown as PayloadType,
+            team,
+            source: webhookEvent.source,
+            user,
+          });
+          requestBody = JSON.stringify(discordPayload);
+          logger.info('Using Discord webhook format', { webhookEventId });
+        } else {
+          requestBody = JSON.stringify(webhookEvent.payload);
+        }
+
+        // Calculate signature for webhook verification (except for Discord)
+        const timestamp = Date.now();
+        const signature = !isDiscord
+          ? generateSignature(
+              webhookEvent.webhook.secret,
+              timestamp.toString(),
+              requestBody,
+            )
+          : 'discord-webhook-no-signature'; // Discord doesn't need our signature
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        logger.info('Sending webhook request', {
+          webhookEventId,
+          url: webhookEvent.webhook.url,
+          eventType: webhookEvent.eventType,
+          isDiscordFormat: isDiscord,
+        });
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Lukittu-Webhook/1.0',
+        };
+
+        // Only add signature headers for non-Discord webhooks
+        if (!isDiscord) {
+          headers['X-Lukittu-Signature'] = signature;
+          headers['X-Lukittu-Timestamp'] = timestamp.toString();
+          headers['X-Lukittu-Event'] = webhookEvent.eventType;
+        }
+
+        const response = await fetch(webhookEvent.webhook.url, {
+          method: 'POST',
+          headers,
+          body: requestBody,
+          signal: controller.signal,
+        }).finally(() => {
+          clearTimeout(timeoutId);
+        });
+
+        // Mark as delivered if successful
+        if (response.ok) {
+          let responseText: string;
+          try {
+            responseText = await response.text();
+          } catch (error) {
+            logger.error('Failed to read response body', {
+              webhookEventId,
+              error: error instanceof Error ? error.message : String(error),
+            });
+            responseText = '(Failed to read response body)';
+          }
+
+          logger.info('Webhook delivered successfully', {
+            webhookEventId,
+            statusCode: response.status,
+            webhookId: webhookEvent.webhookId,
+            eventType: webhookEvent.eventType,
+          });
+
+          await prisma.webhookEvent.update({
             where: {
               id: webhookEvent.id,
-              status: WebhookEventStatus.IN_PROGRESS,
             },
             data: {
               status: WebhookEventStatus.DELIVERED,
@@ -320,136 +320,84 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
               responseBody: responseText.substring(0, 1000), // Limit response size
               completedAt: new Date(),
             },
-          })
-          .catch((error) => {
-            logger.error('Failed to update webhook event status to DELIVERED', {
-              webhookEventId,
-              error: error.message,
-            });
-            return { count: 0 };
           });
 
-        if (updateResult.count === 0) {
-          logger.error(
-            'Webhook event was already processed by another instance',
-            {
+          return true;
+        } else {
+          // Handle non-2xx response
+          let responseText: string;
+          try {
+            responseText = await response.text();
+          } catch (error) {
+            logger.error('Failed to read error response body', {
               webhookEventId,
-            },
+              error: error instanceof Error ? error.message : String(error),
+            });
+            responseText = '(Failed to read error response)';
+          }
+
+          throw new Error(
+            `Webhook responded with status code: ${response.status}, body: ${responseText.substring(0, 200)}`,
           );
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+
+        logger.info('Webhook delivery failed', {
+          webhookEventId,
+          webhookId: webhookEvent.webhookId,
+          attempt: webhookEvent.attempts,
+          error: errorMessage,
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
+        // Calculate next retry time using exponential backoff
+        const maxRetries = 5;
+
+        if (webhookEvent.attempts >= maxRetries) {
+          logger.error('Webhook max retries reached, marking as failed', {
+            webhookEventId,
+            webhookId: webhookEvent.webhookId,
+            attempts: webhookEvent.attempts,
+            maxRetries,
+          });
+
+          await markWebhookAsFailed(webhookEvent.id, errorMessage);
           return false;
         }
 
-        return true;
-      } else {
-        // Handle non-2xx response
-        let responseText: string;
-        try {
-          responseText = await response.text();
-        } catch (error) {
-          logger.error('Failed to read error response body', {
-            webhookEventId,
-            error: error instanceof Error ? error.message : String(error),
-          });
-          responseText = '(Failed to read error response)';
-        }
+        const retryDelay = calculateRetryDelay(webhookEvent.attempts);
+        const nextRetryAt = new Date(Date.now() + retryDelay * 1000);
 
-        throw new Error(
-          `Webhook responded with status code: ${response.status}, body: ${responseText.substring(0, 200)}`,
-        );
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-
-      logger.info('Webhook delivery failed', {
-        webhookEventId,
-        webhookId: webhookEvent.webhookId,
-        attempt: webhookEvent.attempts,
-        error: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-
-      // Calculate next retry time using exponential backoff
-      const maxRetries = 5; // Default max retries
-
-      if (webhookEvent.attempts >= maxRetries) {
-        logger.error('Webhook max retries reached, marking as failed', {
+        logger.info('Scheduling webhook retry', {
           webhookEventId,
           webhookId: webhookEvent.webhookId,
-          attempts: webhookEvent.attempts,
-          maxRetries,
+          attempt: webhookEvent.attempts,
+          nextRetryAt: nextRetryAt.toISOString(),
+          retryDelaySeconds: retryDelay,
         });
 
-        await markWebhookAsFailed(webhookEvent.id, errorMessage);
-        return false;
-      }
-
-      const retryDelay = calculateRetryDelay(webhookEvent.attempts);
-      const nextRetryAt = new Date(Date.now() + retryDelay * 1000);
-
-      logger.info('Scheduling webhook retry', {
-        webhookEventId,
-        webhookId: webhookEvent.webhookId,
-        attempt: webhookEvent.attempts,
-        nextRetryAt: nextRetryAt.toISOString(),
-        retryDelaySeconds: retryDelay,
-      });
-
-      const retryUpdateResult = await prisma.webhookEvent
-        .updateMany({
+        await prisma.webhookEvent.update({
           where: {
             id: webhookEvent.id,
-            status: WebhookEventStatus.IN_PROGRESS,
           },
           data: {
             status: WebhookEventStatus.RETRY_SCHEDULED,
             errorMessage: errorMessage.substring(0, 255),
             nextRetryAt,
           },
-        })
-        .catch((updateError) => {
-          logger.error('Failed to update webhook event status for retry', {
-            webhookEventId,
-            error: updateError.message,
-          });
-          return { count: 0 };
         });
 
-      if (retryUpdateResult.count === 0) {
-        logger.error(
-          'Failed to schedule retry - webhook event was already processed',
-          {
-            webhookEventId,
-          },
-        );
+        return false;
       }
-
-      return false;
-    }
-  } catch (error) {
-    // Handle unexpected errors
-    logger.error('Critical error sending webhook', {
-      webhookEventId,
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-
-    // Try to mark as failed, but don't throw if this fails
-    try {
-      await markWebhookAsFailed(
-        webhookEventId,
-        error instanceof Error ? error.message : 'Unknown error',
-      );
-    } catch (markError) {
-      logger.error('Failed to mark webhook as failed', {
-        webhookEventId,
-        error:
-          markError instanceof Error ? markError.message : String(markError),
-      });
-    }
-
-    return false;
-  }
+    },
+    {
+      maxWait: 15000,
+      timeout: 30000,
+      isolationLevel: 'Serializable',
+    },
+  );
 }
 
 /**
@@ -460,70 +408,87 @@ async function markWebhookAsFailed(
   webhookEventId: string,
   errorMessage: string,
 ): Promise<void> {
-  // First get the webhook event to know which webhook it belongs to
-  const webhookEvent = await prisma.webhookEvent.findUnique({
-    where: { id: webhookEventId },
-    select: { webhookId: true },
-  });
+  await prisma.$transaction(
+    async (prisma) => {
+      let webhookId: string;
+      try {
+        const webhookEvent = await prisma.webhookEvent.update({
+          where: { id: webhookEventId },
+          data: {
+            status: WebhookEventStatus.FAILED,
+            errorMessage: errorMessage.substring(0, 255),
+            nextRetryAt: null,
+          },
+          select: { webhookId: true },
+        });
+        webhookId = webhookEvent.webhookId;
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2025'
+        ) {
+          logger.info('Webhook event not found, cannot mark as failed', {
+            webhookEventId,
+          });
+          return; // The event doesn't exist, so we can't proceed.
+        }
+        // Re-throw other errors to ensure transaction rollback
+        throw error;
+      }
 
-  if (!webhookEvent) {
-    throw new Error(`Webhook event ${webhookEventId} not found`);
-  }
-
-  await prisma.$transaction(async (prisma) => {
-    await prisma.webhookEvent.update({
-      where: { id: webhookEventId },
-      data: {
-        status: WebhookEventStatus.FAILED,
-        errorMessage: errorMessage.substring(0, 255),
-        nextRetryAt: null,
-      },
-    });
-
-    // Count recent failures for this webhook (last 48 hours)
-    const recentFailureCount = await prisma.webhookEvent.count({
-      where: {
-        webhookId: webhookEvent.webhookId,
-        status: WebhookEventStatus.FAILED,
-        updatedAt: {
-          gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+      // Count recent failures for this webhook (last 48 hours)
+      const recentFailureCount = await prisma.webhookEvent.count({
+        where: {
+          webhookId: webhookId,
+          status: WebhookEventStatus.FAILED,
+          updatedAt: {
+            gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+          },
         },
-      },
-    });
+      });
 
-    // Check if there's been any successful delivery in the last 48 hours
-    const recentSuccessCount = await prisma.webhookEvent.count({
-      where: {
-        webhookId: webhookEvent.webhookId,
-        status: WebhookEventStatus.DELIVERED,
-        updatedAt: {
-          gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+      // Check if there's been any successful delivery in the last 48 hours
+      const recentSuccessCount = await prisma.webhookEvent.count({
+        where: {
+          webhookId: webhookId,
+          status: WebhookEventStatus.DELIVERED,
+          updatedAt: {
+            gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+          },
         },
-      },
-    });
-
-    const failureThreshold = 3; // Only deactivate after 3+ failures
-
-    if (recentFailureCount >= failureThreshold && recentSuccessCount === 0) {
-      logger.info('Deactivating webhook due to multiple consecutive failures', {
-        webhookId: webhookEvent.webhookId,
-        recentFailureCount,
-        failureThreshold,
       });
 
-      await prisma.webhook.update({
-        where: { id: webhookEvent.webhookId },
-        data: { active: false },
-      });
-    } else {
-      logger.info('Webhook failure recorded but not deactivating', {
-        webhookId: webhookEvent.webhookId,
-        recentFailureCount,
-        recentSuccessCount,
-        failureThreshold,
-      });
-    }
-  });
+      const failureThreshold = 3; // Only deactivate after 3+ failures
+
+      if (recentFailureCount >= failureThreshold && recentSuccessCount === 0) {
+        logger.info(
+          'Deactivating webhook due to multiple consecutive failures',
+          {
+            webhookId: webhookId,
+            recentFailureCount,
+            failureThreshold,
+          },
+        );
+
+        await prisma.webhook.update({
+          where: { id: webhookId },
+          data: { active: false },
+        });
+      } else {
+        logger.info('Webhook failure recorded but not deactivating', {
+          webhookId: webhookId,
+          recentFailureCount,
+          recentSuccessCount,
+          failureThreshold,
+        });
+      }
+    },
+    {
+      isolationLevel: 'Serializable',
+      maxWait: 15000,
+      timeout: 30000,
+    },
+  );
 }
 
 /**
@@ -534,9 +499,6 @@ export async function processWebhookRetries(): Promise<number> {
   let processedCount = 0;
 
   try {
-    // First, clean up any stuck events before processing retries
-    await cleanupStuckWebhookEvents();
-
     // Find events that are scheduled for retry and are due
     const eventsToRetry = await prisma.webhookEvent
       .findMany({
@@ -633,46 +595,4 @@ function generateSignature(
     .createHmac('sha256', secret)
     .update(signatureData)
     .digest('hex');
-}
-
-/**
-/**
- * Clean up webhook events that are stuck in IN_PROGRESS status
- * These can occur when a process crashes during webhook delivery
- */
-export async function cleanupStuckWebhookEvents(): Promise<number> {
-  logger.info('Cleaning up stuck webhook events');
-
-  try {
-    // Find events that have been IN_PROGRESS for more than 10 minutes
-    const stuckThreshold = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
-
-    const result = await prisma.webhookEvent.updateMany({
-      where: {
-        status: WebhookEventStatus.IN_PROGRESS,
-        lastAttemptAt: {
-          lt: stuckThreshold,
-        },
-      },
-      data: {
-        status: WebhookEventStatus.RETRY_SCHEDULED,
-        nextRetryAt: new Date(Date.now() + 60 * 1000), // Retry in 1 minute
-        errorMessage:
-          'Event was stuck in IN_PROGRESS status - likely due to process crash',
-      },
-    });
-
-    if (result.count > 0) {
-      logger.error(`Cleaned up ${result.count} stuck webhook events`, {
-        count: result.count,
-      });
-    }
-
-    return result.count;
-  } catch (error) {
-    logger.error('Failed to cleanup stuck webhook events', {
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return 0;
-  }
 }
