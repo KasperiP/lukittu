@@ -685,7 +685,7 @@ export async function POST(
       return response;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {

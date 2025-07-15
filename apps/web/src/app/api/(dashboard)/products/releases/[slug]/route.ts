@@ -480,7 +480,7 @@ export async function PUT(
       return response;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
@@ -636,7 +636,7 @@ export async function DELETE(
       },
     );
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {

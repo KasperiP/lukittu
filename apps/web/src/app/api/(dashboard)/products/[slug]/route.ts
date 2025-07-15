@@ -304,7 +304,7 @@ export async function DELETE(
       return response;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
@@ -483,7 +483,7 @@ export async function PUT(
       return response;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {

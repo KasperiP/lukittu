@@ -1967,7 +1967,7 @@ async function finalizeLicenseCreation(
       return license;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('License Created Successfully')

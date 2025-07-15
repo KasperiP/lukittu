@@ -349,7 +349,7 @@ export const handleBuiltByBitPurchase = async (
       };
     }
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     logger.info('BuiltByBit purchase processed successfully', {
       licenseId: license.id,

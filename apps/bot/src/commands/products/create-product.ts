@@ -978,7 +978,7 @@ async function finalizeProductCreation(
       return product;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('Product Created Successfully')

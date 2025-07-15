@@ -1426,7 +1426,7 @@ async function finalizeCustomerCreation(
       return customer;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('Customer Created Successfully')

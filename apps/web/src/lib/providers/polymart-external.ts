@@ -447,7 +447,7 @@ export const handlePolymartPurchase = async (
       };
     }
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     logger.info('Polymart purchase processed successfully', {
       licenseId: license.id,

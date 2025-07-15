@@ -341,7 +341,7 @@ export const handleInvoicePaid = async (
         return license;
       });
 
-      await attemptWebhookDelivery(webhookEventIds);
+      void attemptWebhookDelivery(webhookEventIds);
 
       logger.info('License created for subscription', {
         subscriptionId: subscription.id,
@@ -825,7 +825,7 @@ export const handleCheckoutSessionCompleted = async (
       return license;
     });
 
-    await attemptWebhookDelivery(webhookEventIds);
+    void attemptWebhookDelivery(webhookEventIds);
 
     logger.info('Stripe checkout session completed', {
       sessionId: session.id,
