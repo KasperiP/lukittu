@@ -20,7 +20,7 @@ interface CreateWebhookEventParams {
   source: AuditLogSource;
   userId?: string;
   payload: PayloadType;
-  prisma: PrismaTransaction;
+  tx: PrismaTransaction;
 }
 
 /**
@@ -33,7 +33,7 @@ export async function createWebhookEvents({
   userId,
   source,
   payload,
-  prisma,
+  tx,
 }: CreateWebhookEventParams) {
   try {
     logger.info('Creating webhook events in transaction', {
@@ -42,7 +42,7 @@ export async function createWebhookEvents({
     });
 
     // Find active webhooks for the team that have this event type enabled
-    const webhooks = await prisma.webhook.findMany({
+    const webhooks = await tx.webhook.findMany({
       where: {
         teamId,
         active: true,
@@ -71,7 +71,7 @@ export async function createWebhookEvents({
 
     for (const webhook of webhooks) {
       // Create the webhook event record
-      const webhookEvent = await prisma.webhookEvent.create({
+      const webhookEvent = await tx.webhookEvent.create({
         data: {
           webhookId: webhook.id,
           eventType,
