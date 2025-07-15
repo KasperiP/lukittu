@@ -1,7 +1,7 @@
 services:
   lukittu:
     container_name: lukittu
-    image: kassq/lukittu:latest
+    image: kassq/lukittu:${LUKITTU_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
@@ -13,7 +13,7 @@ services:
 
   lukittuBot:
     container_name: lukittuBot
-    image: kassq/lukittu-bot:latest
+    image: kassq/lukittu-bot:${LUKITTU_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     networks:
