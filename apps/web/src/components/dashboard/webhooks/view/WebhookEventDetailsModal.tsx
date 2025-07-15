@@ -187,15 +187,17 @@ export function WebhookEventDetailsModal({
                     <label className="text-sm font-medium text-muted-foreground">
                       {t('general.response_status')}
                     </label>
-                    <Badge
-                      variant={
-                        event.responseCode >= 200 && event.responseCode < 300
-                          ? 'success'
-                          : 'error'
-                      }
-                    >
-                      {event.responseCode}
-                    </Badge>
+                    <div>
+                      <Badge
+                        variant={
+                          event.responseCode >= 200 && event.responseCode < 300
+                            ? 'success'
+                            : 'error'
+                        }
+                      >
+                        {event.responseCode}
+                      </Badge>
+                    </div>
                   </div>
                 )}
 
