@@ -319,6 +319,8 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
               responseCode: response.status,
               responseBody: responseText.substring(0, 1000), // Limit response size
               completedAt: new Date(),
+              errorMessage: null,
+              nextRetryAt: null,
             },
           });
 
