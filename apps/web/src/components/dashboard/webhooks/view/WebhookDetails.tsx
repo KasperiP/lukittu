@@ -10,14 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { User, Webhook } from '@lukittu/shared';
-import {
-  CheckCircle,
-  Copy,
-  Eye,
-  EyeOff,
-  User as UserIcon,
-  XCircle,
-} from 'lucide-react';
+import { CheckCircle, Copy, User as UserIcon, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -33,7 +26,6 @@ interface WebhookDetailsProps {
 
 export function WebhookDetails({ webhook }: WebhookDetailsProps) {
   const [showMore, setShowMore] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
   const t = useTranslations();
 
   const copyToClipboard = async (text: string) => {
@@ -89,31 +81,6 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
             <div className="text-sm font-semibold">
               {webhook ? (
                 <div className="flex items-center gap-2">
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          className="h-4 w-4 p-0"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setShowSecret(!showSecret)}
-                        >
-                          {showSecret ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {showSecret
-                            ? t('general.hide_secret')
-                            : t('general.show_secret')}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                   <Copy className="h-4 w-4 shrink-0" />
                   <TooltipProvider>
                     <Tooltip delayDuration={0}>
@@ -123,9 +90,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                           role="button"
                           onClick={() => copyToClipboard(webhook.secret)}
                         >
-                          {showSecret
-                            ? webhook.secret
-                            : `${webhook.secret.substring(0, 6)}${'*'.repeat(webhook.secret.length - 6)}`}
+                          {`${webhook.secret.substring(0, 6)}${'•'.repeat(webhook.secret.length - 6)}`}
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -178,11 +143,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                 webhook.enabledEvents.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
                     {webhook.enabledEvents.map((event) => (
-                      <Badge
-                        key={event}
-                        className="text-xs"
-                        variant="secondary"
-                      >
+                      <Badge key={event} className="text-xs" variant="outline">
                         {event}
                       </Badge>
                     ))}
