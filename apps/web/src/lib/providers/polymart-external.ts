@@ -1,8 +1,12 @@
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
+  createLicensePayload,
+  createWebhookEvents,
   decryptLicenseKey,
   encryptLicenseKey,
   generateHMAC,
@@ -13,6 +17,8 @@ import {
   prisma,
   Settings,
   Team,
+  updateCustomerPayload,
+  WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { PolymartMetadataKeys } from '../constants/metadata';
@@ -262,6 +268,8 @@ export const handlePolymartPurchase = async (
 
     const username = polymartUsername;
 
+    const webhookEventIds: string[] = [];
+
     const license = await prisma.$transaction(async (prisma) => {
       const existingLukittuCustomer = await prisma.customer.findFirst({
         where: {
@@ -295,6 +303,10 @@ export const handlePolymartPurchase = async (
         update: {
           username,
         },
+        include: {
+          metadata: true,
+          address: true,
+        },
       });
 
       await createAuditLog({
@@ -316,6 +328,20 @@ export const handlePolymartPurchase = async (
         source: AuditLogSource.POLYMART_INTEGRATION,
         tx: prisma,
       });
+
+      const customerWebhookEvents = await createWebhookEvents({
+        teamId: team.id,
+        eventType: existingLukittuCustomer?.id
+          ? WebhookEventType.CUSTOMER_UPDATED
+          : WebhookEventType.CUSTOMER_CREATED,
+        payload: existingLukittuCustomer?.id
+          ? updateCustomerPayload(lukittuCustomer)
+          : createCustomerPayload(lukittuCustomer),
+        source: AuditLogSource.POLYMART_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...customerWebhookEvents);
 
       const licenseKey = await generateUniqueLicense(team.id);
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
@@ -359,6 +385,8 @@ export const handlePolymartPurchase = async (
         },
         include: {
           products: true,
+          customers: true,
+          metadata: true,
         },
       });
 
@@ -394,6 +422,16 @@ export const handlePolymartPurchase = async (
         tx: prisma,
       });
 
+      const licenseWebhookEvents = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: team.id,
+        payload: createLicensePayload(license),
+        source: AuditLogSource.POLYMART_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...licenseWebhookEvents);
+
       return license;
     });
 
@@ -408,6 +446,8 @@ export const handlePolymartPurchase = async (
         message: 'Failed to create a license',
       };
     }
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     logger.info('Polymart purchase processed successfully', {
       licenseId: license.id,

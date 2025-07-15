@@ -1,10 +1,14 @@
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createProductPayload,
+  createWebhookEvents,
   logger,
   Prisma,
   prisma,
+  WebhookEventType,
 } from '@lukittu/shared';
 import {
   ActionRowBuilder,
@@ -914,6 +918,8 @@ async function finalizeProductCreation(
       return;
     }
 
+    let webhookEventIds: string[] = [];
+
     const product = await prisma.$transaction(async (prisma) => {
       const product = await prisma.product.create({
         data: {
@@ -939,6 +945,9 @@ async function finalizeProductCreation(
             },
           },
         },
+        include: {
+          metadata: true,
+        },
       });
 
       await prisma.auditLog.create({
@@ -957,8 +966,19 @@ async function finalizeProductCreation(
         },
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.PRODUCT_CREATED,
+        teamId,
+        payload: createProductPayload(product),
+        userId,
+        source: AuditLogSource.DISCORD_INTEGRATION,
+        tx: prisma,
+      });
+
       return product;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('Product Created Successfully')

@@ -38,8 +38,10 @@ model User {
     createdBuiltByBitIntegrations BuiltByBitIntegration[]
     createdPolymartIntegrations   PolymartIntegration[]
     createdInvitations            Invitation[]
+    createdWebhookEvents          WebhookEvent[]
     blacklist                     Blacklist[]
     releases                      Release[]
+    webhooks                      Webhook[]
 }
 
 model DiscordAccount {
@@ -94,10 +96,75 @@ model Team {
     settings              Settings?
     keyPair               KeyPair?
     activeDiscordAccounts DiscordAccount[]
+    webhooks              Webhook[]
     deletedAt             DateTime?
     createdAt             DateTime               @default(now())
     updatedAt             DateTime               @updatedAt
     subscription          Subscription?
+}
+
+model Webhook {
+    id              String             @id @default(uuid())
+    teamId          String
+    team            Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    name            String
+    url             String
+    secret          String
+    active          Boolean            @default(true)
+    enabledEvents   WebhookEventType[] @default([])
+    createdByUserId String?
+    createdBy       User?              @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    events          WebhookEvent[]
+    createdAt       DateTime           @default(now())
+    updatedAt       DateTime           @updatedAt
+
+    @@index([teamId])
+}
+
+model WebhookEvent {
+    id            String             @id @default(uuid())
+    webhookId     String
+    webhook       Webhook            @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+    eventType     WebhookEventType
+    payload       Json
+    status        WebhookEventStatus @default(PENDING)
+    attempts      Int                @default(0)
+    lastAttemptAt DateTime?
+    nextRetryAt   DateTime?
+    errorMessage  String?
+    responseCode  Int?
+    responseBody  String?
+    completedAt   DateTime?
+    source        AuditLogSource     @default(DASHBOARD)
+    userId        String?
+    user          User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+    createdAt     DateTime           @default(now())
+    updatedAt     DateTime           @updatedAt
+
+    @@index([status, nextRetryAt])
+}
+
+enum WebhookEventStatus {
+    PENDING // Event created but not yet processed or sent to webhook endpoint
+    IN_PROGRESS // Event is currently being processed or sent
+    DELIVERED // Event was successfully delivered to webhook endpoint (received 2xx response)
+    FAILED // Event delivery failed permanently after all retries were exhausted
+    RETRY_SCHEDULED // Event delivery failed but is scheduled for retry
+}
+
+enum WebhookEventType {
+    LICENSE_CREATED
+    LICENSE_UPDATED
+    LICENSE_DELETED
+    CUSTOMER_CREATED
+    CUSTOMER_UPDATED
+    CUSTOMER_DELETED
+    PRODUCT_CREATED
+    PRODUCT_UPDATED
+    PRODUCT_DELETED
+    RELEASE_CREATED
+    RELEASE_UPDATED
+    RELEASE_DELETED
 }
 
 model Subscription {
@@ -196,6 +263,7 @@ model Limits {
     maxReleasesPerProduct Int      @default(100)
     maxBranchesPerProduct Int      @default(10)
     maxInvitations        Int      @default(10)
+    maxWebhooks           Int      @default(20)
     allowClassloader      Boolean  @default(false)
     allowCustomEmails     Boolean  @default(false)
     allowWatermarking     Boolean  @default(false)
@@ -588,6 +656,9 @@ enum AuditLogAction {
     DELETE_BRANCH
     SET_BUILT_BY_BIT_PLACEHOLDER
     SET_POLYMART_PLACEHOLDER
+    CREATE_WEBHOOK
+    UPDATE_WEBHOOK
+    DELETE_WEBHOOK
 }
 
 enum ReleaseStatus {
@@ -605,6 +676,7 @@ enum AuditLogTargetType {
     BLACKLIST
     RELEASE
     BRANCH
+    WEBHOOK
 }
 
 enum BlacklistType {

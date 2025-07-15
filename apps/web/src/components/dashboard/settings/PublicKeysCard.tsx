@@ -82,7 +82,6 @@ export default function PublicKeysCard({ team }: PublicKeysCardProps) {
     <>
       <ResetPublicKeyConfirmModal
         open={deleteModalOpen}
-        team={team}
         onConfirm={handleResetKey}
         onOpenChange={setDeleteModalOpen}
       />

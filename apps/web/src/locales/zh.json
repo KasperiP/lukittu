@@ -137,7 +137,15 @@
     "polymart_webhook_secret_required": "Polymart webhook 密钥是必需的！",
     "polymart_webhook_secret_invalid": "Polymart webhook 密钥无效！必须为20-255个字符。",
     "polymart_signing_secret_required": "Polymart 签名密钥是必需的！",
-    "polymart_signing_secret_invalid": "Polymart 签名密钥无效！必须为20-255个字符。"
+    "polymart_signing_secret_invalid": "Polymart 签名密钥无效！必须为20-255个字符。",
+    "webhook_name_required": "Webhook 名称为必填项！",
+    "webhook_name_min_length": "Webhook 名称至少需要 3 个字符！",
+    "webhook_name_max_length": "Webhook 名称最多只能有 255 个字符！",
+    "webhook_url_invalid": "Webhook URL 无效！必须是有效的链接。",
+    "webhook_name_already_exists": "该名称的 Webhook 已存在！",
+    "webhook_url_already_exists": "该 URL 的 Webhook 已存在！",
+    "webhook_not_found": "未找到 Webhook！",
+    "webhook_limit_reached": "您的团队已达到当前套餐允许的最大 Webhook 数量。如需添加更多，请升级套餐。"
   },
   "general": {
     "select_source": "选择来源",
@@ -208,6 +216,8 @@
     "published": "已发布",
     "select_status": "选择状态",
     "status": "状态",
+    "select_all": "全选",
+    "webhook": "Webhook",
     "last_seen": "最后查看",
     "never_used": "从未使用",
     "deprecated": "已弃用",
@@ -324,7 +334,28 @@
     "unlock_metadata": "解锁元数据",
     "locked_metadata_warning": "此元数据字段已锁定。这些字段通常被锁定是因为它们是系统生成的。修改此字段可能会导致依赖此数据的集成出现问题。",
     "confirm": "确认",
-    "sending_email_failed": "发送邮件失败"
+    "sending_email_failed": "发送邮件失败",
+    "event_type": "事件类型",
+    "attempts": "尝试次数",
+    "last_attempt_at": "上次尝试时间",
+    "delivery_rate": "投递成功率",
+    "failed": "失败",
+    "total_events": "事件总数",
+    "delivered": "已投递",
+    "pending": "待处理",
+    "hide_secret": "隐藏密钥",
+    "show_secret": "显示密钥",
+    "response_status": "响应状态",
+    "events": "事件",
+    "none": "无",
+    "event_details": "事件详情",
+    "basic_information": "基本信息",
+    "timing_information": "时间信息",
+    "next_retry_at": "下次重试时间",
+    "completed_at": "完成时间",
+    "response_information": "响应信息",
+    "payload_information": "负载信息",
+    "triggered_by": "触发来源"
   },
   "auth": {
     "oauth": {
@@ -472,7 +503,8 @@
       "settings": "设置",
       "releases": "发布",
       "list": "列表",
-      "integrations": "集成"
+      "integrations": "集成",
+      "webhooks": "Webhook"
     },
     "teams": {
       "create_team": "创建团队",
@@ -660,7 +692,10 @@
         "delete_branch": "删除分支",
         "create_branch": "创建分支",
         "set_built_by_bit_placeholder": "设置 BuiltByBit 占位符",
-        "set_polymart_placeholder": "设置 Polymart 占位符"
+        "set_polymart_placeholder": "设置 Polymart 占位符",
+        "update_webhook": "更新Webhook",
+        "delete_webhook": "删除Webhook",
+        "create_webhook": "创建Webhook"
       }
     },
     "members": {
@@ -820,6 +855,29 @@
       "search_blacklist": "搜索黑名单...",
       "delete_blacklist_confirm_title": "删除黑名单",
       "delete_blacklist_confirm_description": "您即将删除黑名单值 <strong>{value}</strong>！这将<strong>永久删除</strong>此黑名单值。此操作无法撤销。"
+    },
+    "webhooks": {
+      "webhook_events": "Webhook 事件",
+      "create_webhook": "创建 Webhook",
+      "webhook_created": "Webhook 已创建",
+      "webhook_updated": "Webhook 已更新",
+      "delete_webhook_confirm_title": "确认删除 Webhook？",
+      "delete_webhook_confirm_description": "此操作无法撤销，是否确认删除该 Webhook？",
+      "enabled_events": "已启用的事件",
+      "edit_webhook": "编辑 Webhook",
+      "search_webhook": "搜索 Webhook",
+      "add_your_first_webhook": "添加您的第一个 Webhook",
+      "webhook_description": "Webhook 描述",
+      "discord_webhook_detected": "检测到 Discord Webhook",
+      "no_webhook_events_found": "未找到 Webhook 事件",
+      "event_delivery_trends": "事件投递趋势",
+      "event_delivery_trends_description": "过去 30 天的 Webhook 事件投递统计",
+      "excellent_delivery_rate": "投递成功率优秀 {rate}%",
+      "good_delivery_rate": "投递成功率良好 {rate}%",
+      "poor_delivery_rate": "投递成功率较差 {rate}%",
+      "no_delivery_data": "暂无可用数据",
+      "delivery_rate_tooltip": "投递成功率表示成功投递的 Webhook 事件所占的百分比",
+      "webhook_deleted_success": "Webhook 已删除"
     }
   }
 }

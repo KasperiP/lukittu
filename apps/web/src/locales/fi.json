@@ -137,7 +137,15 @@
     "polymart_webhook_secret_required": "Polymartin webhook-salaisuus vaaditaan!",
     "polymart_webhook_secret_invalid": "Polymartin webhook-salaisuus on virheellinen! Sen on oltava 20-255 merkkiä pitkä.",
     "polymart_signing_secret_required": "Polymartin allekirjoitussalaisuus vaaditaan!",
-    "polymart_signing_secret_invalid": "Polymartin allekirjoitussalaisuus on virheellinen! Sen on oltava 20-255 merkkiä pitkä."
+    "polymart_signing_secret_invalid": "Polymartin allekirjoitussalaisuus on virheellinen! Sen on oltava 20-255 merkkiä pitkä.",
+    "webhook_limit_reached": "Webhooksien enimmäismäärä on saavutettu.",
+    "webhook_name_required": "Webhookin nimi vaaditaan.",
+    "webhook_name_min_length": "Webhookin nimen on oltava pidempi.",
+    "webhook_name_max_length": "Webhookin nimi on liian pitkä.",
+    "webhook_url_invalid": "Webhookin URL-osoite on virheellinen.",
+    "webhook_name_already_exists": "Webhookin nimi on jo käytössä.",
+    "webhook_url_already_exists": "Webhookin URL-osoite on jo käytössä.",
+    "webhook_not_found": "Webhookia ei löytynyt."
   },
   "general": {
     "select_key": "Valitse avain",
@@ -324,7 +332,30 @@
     "branch": "Haara",
     "source": "Lähde",
     "select_source": "Valitse lähde",
-    "select_target": "Valitse kohde"
+    "select_target": "Valitse kohde",
+    "webhook": "Webhook",
+    "select_all": "Valitse kaikki",
+    "event_type": "Tapahtuman tyyppi",
+    "attempts": "Yritykset",
+    "last_attempt_at": "Viimeisin yritys",
+    "delivery_rate": "Toimitusaste",
+    "failed": "Epäonnistui",
+    "total_events": "Yhteensä tapahtumia",
+    "delivered": "Toimitettu",
+    "pending": "Odottaa",
+    "hide_secret": "Piilota salaisuus",
+    "show_secret": "Näytä salaisuus",
+    "response_status": "Vastauksen tila",
+    "events": "Tapahtumat",
+    "none": "Ei mitään",
+    "event_details": "Tapahtuman tiedot",
+    "basic_information": "Perustiedot",
+    "timing_information": "Ajoitustiedot",
+    "next_retry_at": "Seuraava uudelleenyritys",
+    "completed_at": "Valmistunut",
+    "response_information": "Vastauksen tiedot",
+    "payload_information": "Lähetyssisällön tiedot",
+    "triggered_by": "Laukaissut"
   },
   "auth": {
     "oauth": {
@@ -472,7 +503,8 @@
       "settings": "Asetukset",
       "releases": "Julkaisut",
       "list": "Lista",
-      "integrations": "Integraatiot"
+      "integrations": "Integraatiot",
+      "webhooks": "Webhookit"
     },
     "teams": {
       "create_team": "Luo tiimi",
@@ -660,7 +692,10 @@
         "set_polymart_integration": "asetti Polymart-integraation",
         "delete_polymart_integration": "poisti Polymart-integraation",
         "set_built_by_bit_placeholder": "asetti BuiltByBit-placeholderin",
-        "set_polymart_placeholder": "asetti Polymart-placeholderin"
+        "set_polymart_placeholder": "asetti Polymart-placeholderin",
+        "update_webhook": "päivitti webhookin",
+        "delete_webhook": "poisti webhookin",
+        "create_webhook": "loi webhookin"
       }
     },
     "members": {
@@ -820,6 +855,29 @@
       "search_blacklist": "Etsi mustaa listaa...",
       "delete_blacklist_confirm_title": "Poista musta lista",
       "delete_blacklist_confirm_description": "Olet poistamassa mustan listan arvoa <strong>{value}</strong>! Tämä poistaa <strong>lopullisesti</strong> tämän mustan listan arvon. Tätä toimintoa ei voi peruuttaa."
+    },
+    "webhooks": {
+      "create_webhook": "Luo webhook",
+      "webhook_created": "Webhook luotu",
+      "webhook_updated": "Webhook päivitetty",
+      "delete_webhook_confirm_title": "Poista webhook",
+      "delete_webhook_confirm_description": "Olet poistamassa webhookia <strong>{webhookName}</strong>! Tämä <strong>poistaa pysyvästi</strong> kyseisen webhookin. Tätä toimintoa ei voi peruuttaa.",
+      "enabled_events": "Käytössä olevat tapahtumat",
+      "edit_webhook": "Muokkaa webhookia",
+      "search_webhook": "Etsi webhook...",
+      "add_your_first_webhook": "Lisää ensimmäinen webhookisi",
+      "webhook_description": "Webhookkeja käytetään reaaliaikaisten ilmoitusten lähettämiseen ulkoisiin palveluihin, kun tiettyjä tapahtumia tapahtuu Lukitussa. Niiden avulla voit integroitua muihin palveluihin tai automatisoida tehtäviä.",
+      "discord_webhook_detected": "Discord-webhook havaittu! Payloadiin sovelletaan Discord-muotoilua.",
+      "webhook_events": "Webhook-tapahtumat",
+      "no_webhook_events_found": "Ei webhook-tapahtumia löytynyt",
+      "event_delivery_trends": "Tapahtuman toimitustrendit",
+      "event_delivery_trends_description": "Webhook-tapahtumien toimitustilastot viimeisten 30 päivän ajalta",
+      "excellent_delivery_rate": "Erinomainen toimitusprosentti {rate}%",
+      "good_delivery_rate": "Hyvä toimitusprosentti {rate}%",
+      "poor_delivery_rate": "Heikko toimitusprosentti {rate}%",
+      "no_delivery_data": "Tietoja ei ole saatavilla",
+      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden",
+      "webhook_deleted_success": "Webhook poistettu onnistuneesti"
     }
   }
 }

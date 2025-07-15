@@ -19,14 +19,19 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
+  deleteReleasePayload,
   generateMD5Hash,
   logger,
   prisma,
   regex,
   Release,
+  updateReleasePayload,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -389,6 +394,8 @@ export async function PUT(
       );
     }
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(async (prisma) => {
       const isPublished = status === 'PUBLISHED';
 
@@ -437,6 +444,12 @@ export async function PUT(
               }
             : undefined,
         },
+        include: {
+          metadata: true,
+          product: true,
+          file: true,
+          branch: true,
+        },
       });
 
       const response = {
@@ -455,8 +468,19 @@ export async function PUT(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.RELEASE_UPDATED,
+        teamId: selectedTeam,
+        payload: updateReleasePayload(release),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
@@ -521,6 +545,9 @@ export async function DELETE(
                 },
                 include: {
                   file: true,
+                  metadata: true,
+                  product: true,
+                  branch: true,
                 },
               },
             },
@@ -560,6 +587,8 @@ export async function DELETE(
 
     const release = team.releases[0];
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(
       async (prisma) => {
         await prisma.release.delete({
@@ -591,12 +620,23 @@ export async function DELETE(
           tx: prisma,
         });
 
+        webhookEventIds = await createWebhookEvents({
+          eventType: WebhookEventType.RELEASE_DELETED,
+          teamId: team.id,
+          payload: deleteReleasePayload(release),
+          userId: session.user.id,
+          source: AuditLogSource.DASHBOARD,
+          tx: prisma,
+        });
+
         return response;
       },
       {
         timeout: 20000,
       },
     );
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {

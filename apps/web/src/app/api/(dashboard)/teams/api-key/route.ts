@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = (await request.json()) as CreateApiKeySchema;
-    const validated = await createApiKeySchema(t).safeParseAsync(body);
+    const validated = await createApiKeySchema().safeParseAsync(body);
 
     if (!validated.success) {
       return NextResponse.json(
@@ -128,8 +128,9 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      // We blur the API key in the audit log for security reasons
       const response = {
-        apiKey: `${apiKey.substring(0, 6)}${'*'.repeat(26)}`,
+        apiKey: `${apiKey.substring(0, 6)}${'•'.repeat(26)}`,
       };
 
       await createAuditLog({
@@ -144,7 +145,10 @@ export async function POST(request: NextRequest) {
         tx: prisma,
       });
 
-      return response;
+      // We return the non-blurred API key to the client
+      return {
+        apiKey,
+      };
     });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });

@@ -51,7 +51,7 @@ export const ReleasesActionDropdown = ({
             ),
         );
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
   };

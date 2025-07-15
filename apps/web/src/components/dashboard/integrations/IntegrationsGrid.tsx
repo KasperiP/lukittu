@@ -104,7 +104,7 @@ export default function IntegrationsGrid() {
     }
   }, [error, t]);
 
-  const handleIntegrationModalClose = (open: boolean) => {
+  const handleIntegrationModalClose = () => {
     mutate();
     setOpenSetupModal(null);
   };

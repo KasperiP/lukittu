@@ -1,10 +1,14 @@
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
+  createWebhookEvents,
   logger,
   Prisma,
   prisma,
+  WebhookEventType,
 } from '@lukittu/shared';
 import {
   ActionRowBuilder,
@@ -1358,6 +1362,8 @@ async function finalizeCustomerCreation(
       addressData.postalCode = state.address.postalCode;
     if (state.address.country) addressData.country = state.address.country;
 
+    let webhookEventIds: string[] = [];
+
     const customer = await prisma.$transaction(async (prisma) => {
       const customer = await prisma.customer.create({
         data: {
@@ -1408,8 +1414,19 @@ async function finalizeCustomerCreation(
         },
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.CUSTOMER_CREATED,
+        teamId,
+        payload: createCustomerPayload(customer),
+        userId,
+        source: AuditLogSource.DISCORD_INTEGRATION,
+        tx: prisma,
+      });
+
       return customer;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('Customer Created Successfully')

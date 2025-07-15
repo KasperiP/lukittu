@@ -17,7 +17,7 @@ import { AuthContext } from './AuthProvider';
 export const TeamContext = createContext({
   loading: true,
   selectedTeam: '',
-  selectTeam: (teamId: string) => {},
+  selectTeam: (_teamId: string) => {},
   teams: [] as (Team & {
     subscription: Subscription | null;
     limits: Limits | null;

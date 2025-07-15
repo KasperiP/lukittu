@@ -6,18 +6,18 @@ import { User } from '@lukittu/shared';
 import { createContext, useState } from 'react';
 
 export const MemberModalContext = createContext({
-  setMemberModalOpen: (open: boolean) => {},
-  setMemberToKick: (member: Omit<User, 'passwordHash'> | null) => {},
+  setMemberModalOpen: (_open: boolean) => {},
+  setMemberToKick: (_member: Omit<User, 'passwordHash'> | null) => {},
   setMemberToCancelInvitation: (
-    member: {
+    _member: {
       id: string;
       email: string;
       createdAt: Date;
       isInvitation: true;
     } | null,
   ) => {},
-  setMemberToKickModalOpen: (open: boolean) => {},
-  setMemberToCancelInvitationModalOpen: (open: boolean) => {},
+  setMemberToKickModalOpen: (_open: boolean) => {},
+  setMemberToCancelInvitationModalOpen: (_open: boolean) => {},
   memberModalOpen: false,
   memberToKick: null as Omit<User, 'passwordHash'> | null,
   memberToCancelInvitation: null as {

@@ -9,15 +9,20 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
+  deleteProductPayload,
   logger,
   Metadata,
   prisma,
   Product,
   regex,
+  updateProductPayload,
   User,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -221,6 +226,7 @@ export async function DELETE(
             file: true,
           },
         },
+        metadata: true,
       },
     });
 
@@ -232,6 +238,8 @@ export async function DELETE(
         { status: HttpStatus.NOT_FOUND },
       );
     }
+
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       await prisma.product.delete({
@@ -275,6 +283,15 @@ export async function DELETE(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.PRODUCT_DELETED,
+        teamId: selectedTeam,
+        payload: deleteProductPayload(product),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       const deleteFilePromises = fileIds.map((fileId) =>
         deleteFileFromPrivateS3(
           process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
@@ -286,6 +303,8 @@ export async function DELETE(
 
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
@@ -411,6 +430,8 @@ export async function PUT(
       );
     }
 
+    let webhookEventIds: string[] = [];
+
     const response = await prisma.$transaction(async (prisma) => {
       const product = await prisma.product.update({
         where: {
@@ -428,6 +449,9 @@ export async function PUT(
               })),
             },
           },
+        },
+        include: {
+          metadata: true,
         },
       });
 
@@ -447,8 +471,19 @@ export async function PUT(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.PRODUCT_UPDATED,
+        teamId: selectedTeam,
+        payload: updateProductPayload(product),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {

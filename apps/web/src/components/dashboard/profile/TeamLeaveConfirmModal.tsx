@@ -35,7 +35,7 @@ export function LeaveTeamConfirmModal({
       await onConfirm(team);
       onOpenChange(false);
       setLoading(false);
-    } catch (error) {
+    } catch (_error) {
       setLoading(false);
     }
   };

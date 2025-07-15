@@ -134,10 +134,18 @@
     "branch_name_exists": "El nombre de la sucursal ya existe!",
     "branch_has_releases": "La sucursal tiene versiones y no se puede eliminar.",
     "polymart_integration_not_found": "Integración de Polymart no encontrada.",
-    "polymart_webhook_secret_required": "¡Se requiere el secreto del webhook de Polymart!",
-    "polymart_webhook_secret_invalid": "¡El secreto del webhook de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
-    "polymart_signing_secret_required": "¡Se requiere el secreto de firma de Polymart!",
-    "polymart_signing_secret_invalid": "¡El secreto de firma de Polymart no es válido! Debe tener entre 20 y 255 caracteres."
+    "polymart_webhook_secret_required": "Se requiere el secreto del webhook de Polymart!",
+    "polymart_webhook_secret_invalid": "El secreto del webhook de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
+    "polymart_signing_secret_required": "Se requiere el secreto de firma de Polymart!",
+    "polymart_signing_secret_invalid": "El secreto de firma de Polymart no es válido! Debe tener entre 20 y 255 caracteres.",
+    "webhook_limit_reached": "Se ha alcanzado el límite de webhooks.",
+    "webhook_name_required": "Se requiere un nombre para el webhook.",
+    "webhook_name_min_length": "El nombre del webhook es demasiado corto.",
+    "webhook_name_max_length": "El nombre del webhook es demasiado largo.",
+    "webhook_url_invalid": "La URL del webhook no es válida.",
+    "webhook_name_already_exists": "El nombre del webhook ya existe.",
+    "webhook_url_already_exists": "La URL del webhook ya existe.",
+    "webhook_not_found": "No se encontró el webhook."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -324,7 +332,30 @@
     "branch": "Sucursal",
     "source": "Fuente",
     "select_source": "Seleccionar fuente",
-    "select_target": "Seleccionar objetivo"
+    "select_target": "Seleccionar objetivo",
+    "webhook": "Webhook",
+    "select_all": "Seleccionar todo",
+    "event_type": "Tipo de evento",
+    "attempts": "Intentos",
+    "last_attempt_at": "Último intento en",
+    "delivery_rate": "Tasa de entrega",
+    "failed": "Fallidos",
+    "total_events": "Eventos totales",
+    "delivered": "Entregados",
+    "pending": "Pendientes",
+    "hide_secret": "Ocultar secreto",
+    "show_secret": "Mostrar secreto",
+    "response_status": "Estado de respuesta",
+    "events": "Eventos",
+    "none": "Sin eventos",
+    "event_details": "Detalles del evento",
+    "basic_information": "Información básica",
+    "timing_information": "Información de tiempo",
+    "next_retry_at": "Próximo reintento en",
+    "completed_at": "Completado en",
+    "response_information": "Información de respuesta",
+    "payload_information": "Información del contenido",
+    "triggered_by": "Activado por"
   },
   "auth": {
     "oauth": {
@@ -472,7 +503,8 @@
       "settings": "Configuraciones",
       "releases": "Versiones",
       "list": "Lista",
-      "integrations": "Integraciones"
+      "integrations": "Integraciones",
+      "webhooks": "Webhooks"
     },
     "teams": {
       "create_team": "Crear un equipo",
@@ -660,7 +692,10 @@
         "set_polymart_integration": "estableció integración de Polymart",
         "delete_polymart_integration": "eliminó integración de Polymart",
         "set_built_by_bit_placeholder": "estableció marcador de BuiltByBit",
-        "set_polymart_placeholder": "estableció marcador de Polymart"
+        "set_polymart_placeholder": "estableció marcador de Polymart",
+        "update_webhook": "actualizó webhook",
+        "delete_webhook": "eliminó webhook",
+        "create_webhook": "creó webhook"
       }
     },
     "members": {
@@ -820,6 +855,29 @@
       "search_blacklist": "Buscar en la lista negra...",
       "delete_blacklist_confirm_title": "Eliminar lista negra",
       "delete_blacklist_confirm_description": "Estás a punto de eliminar el valor de la lista negra <strong>{value}</strong>! Esto <strong>eliminará permanentemente</strong> este valor de la lista negra. Esta acción no se puede deshacer."
+    },
+    "webhooks": {
+      "create_webhook": "Crear webhook",
+      "webhook_created": "Webhook creado",
+      "webhook_updated": "Webhook actualizado",
+      "delete_webhook_confirm_title": "Eliminar webhook",
+      "delete_webhook_confirm_description": "Estás a punto de eliminar el webhook <strong>{webhookName}</strong>. Esto <strong>eliminará permanentemente</strong> este webhook. Esta acción no se puede deshacer.",
+      "enabled_events": "Eventos habilitados",
+      "edit_webhook": "Editar webhook",
+      "search_webhook": "Buscar webhook...",
+      "add_your_first_webhook": "Agrega tu primer webhook",
+      "webhook_description": "Los webhooks se utilizan para enviar notificaciones en tiempo real a servicios externos cuando ocurren ciertos eventos en Lukittu. Puedes usarlos para integrarte con otros servicios o automatizar tareas.",
+      "discord_webhook_detected": "Webhook de Discord detectado! Se aplicará el formato de Discord al contenido enviado.",
+      "webhook_events": "Eventos de webhook",
+      "no_webhook_events_found": "No se encontraron eventos de webhook",
+      "event_delivery_trends": "Tendencias de entrega de eventos",
+      "event_delivery_trends_description": "Estadísticas de entrega de eventos de webhook durante los últimos 30 días",
+      "excellent_delivery_rate": "Tasa de entrega excelente {rate}%",
+      "good_delivery_rate": "Buena tasa de entrega {rate}%",
+      "poor_delivery_rate": "Baja tasa de entrega {rate}%",
+      "no_delivery_data": "No hay datos disponibles",
+      "delivery_rate_tooltip": "La tasa de entrega indica el porcentaje de eventos de webhook entregados con éxito",
+      "webhook_deleted_success": "Webhook eliminado con éxito"
     }
   }
 }

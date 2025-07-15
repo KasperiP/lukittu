@@ -39,13 +39,11 @@ import { useSWRConfig } from 'swr';
 interface CreateApiKeyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  team: any;
 }
 
 export function CreateApiKeyModal({
   open,
   onOpenChange,
-  team,
 }: CreateApiKeyModalProps) {
   const t = useTranslations();
   const [loading, setLoading] = useState(false);
@@ -54,7 +52,7 @@ export function CreateApiKeyModal({
   const { mutate } = useSWRConfig();
 
   const form = useForm<CreateApiKeySchema>({
-    resolver: zodResolver(createApiKeySchema(t)),
+    resolver: zodResolver(createApiKeySchema()),
     defaultValues: {
       expiresAt: null,
     },

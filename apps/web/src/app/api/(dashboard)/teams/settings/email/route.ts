@@ -33,7 +33,7 @@ export async function PUT(
 
   try {
     const body = (await request.json()) as SetTeamEmailSettingsSchema;
-    const validated = await setTeamEmailSettingsSchema(t).safeParseAsync(body);
+    const validated = await setTeamEmailSettingsSchema().safeParseAsync(body);
 
     if (!validated.success) {
       return NextResponse.json(

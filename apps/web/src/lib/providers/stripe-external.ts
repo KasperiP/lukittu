@@ -1,7 +1,11 @@
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
+  createLicensePayload,
+  createWebhookEvents,
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
@@ -12,6 +16,8 @@ import {
   Settings,
   StripeIntegration,
   Team,
+  updateCustomerPayload,
+  WebhookEventType,
 } from '@lukittu/shared';
 import 'server-only';
 import Stripe from 'stripe';
@@ -153,6 +159,8 @@ export const handleInvoicePaid = async (
         },
       ];
 
+      const webhookEventIds: string[] = [];
+
       const license = await prisma.$transaction(async (prisma) => {
         // TODO: There might be multiple customers with same email. This should be handled.
         const existingLukittuCustomer = await prisma.customer.findFirst({
@@ -181,6 +189,10 @@ export const handleInvoicePaid = async (
             },
           },
           update: {},
+          include: {
+            metadata: true,
+            address: true,
+          },
         });
 
         await createAuditLog({
@@ -203,6 +215,20 @@ export const handleInvoicePaid = async (
           source: AuditLogSource.STRIPE_INTEGRATION,
           tx: prisma,
         });
+
+        const customerWebhookEvents = await createWebhookEvents({
+          teamId: team.id,
+          eventType: existingLukittuCustomer?.id
+            ? WebhookEventType.CUSTOMER_UPDATED
+            : WebhookEventType.CUSTOMER_CREATED,
+          payload: existingLukittuCustomer?.id
+            ? updateCustomerPayload(lukittuCustomer)
+            : createCustomerPayload(lukittuCustomer),
+          source: AuditLogSource.STRIPE_INTEGRATION,
+          tx: prisma,
+        });
+
+        webhookEventIds.push(...customerWebhookEvents);
 
         const licenseKey = await generateUniqueLicense(team.id);
         const hmac = generateHMAC(`${licenseKey}:${team.id}`);
@@ -244,6 +270,8 @@ export const handleInvoicePaid = async (
           },
           include: {
             products: true,
+            customers: true,
+            metadata: true,
           },
         });
 
@@ -278,6 +306,16 @@ export const handleInvoicePaid = async (
           tx: prisma,
         });
 
+        const licenseWebhookEvents = await createWebhookEvents({
+          eventType: WebhookEventType.LICENSE_CREATED,
+          teamId: team.id,
+          payload: createLicensePayload(license),
+          source: AuditLogSource.STRIPE_INTEGRATION,
+          tx: prisma,
+        });
+
+        webhookEventIds.push(...licenseWebhookEvents);
+
         const success = await sendLicenseDistributionEmail({
           customer: lukittuCustomer,
           licenseKey,
@@ -302,6 +340,8 @@ export const handleInvoicePaid = async (
 
         return license;
       });
+
+      await attemptWebhookDelivery(webhookEventIds);
 
       logger.info('License created for subscription', {
         subscriptionId: subscription.id,
@@ -588,6 +628,8 @@ export const handleCheckoutSessionCompleted = async (
       },
     ];
 
+    const webhookEventIds: string[] = [];
+
     const license = await prisma.$transaction(async (prisma) => {
       // TODO: There might be multiple customers with same email. This should be handled.
       const existingLukittuCustomer = await prisma.customer.findFirst({
@@ -628,6 +670,10 @@ export const handleCheckoutSessionCompleted = async (
           },
         },
         update: {},
+        include: {
+          metadata: true,
+          address: true,
+        },
       });
 
       await createAuditLog({
@@ -650,6 +696,20 @@ export const handleCheckoutSessionCompleted = async (
         source: AuditLogSource.STRIPE_INTEGRATION,
         tx: prisma,
       });
+
+      const customerWebhookEvents = await createWebhookEvents({
+        teamId: team.id,
+        eventType: existingLukittuCustomer?.id
+          ? WebhookEventType.CUSTOMER_UPDATED
+          : WebhookEventType.CUSTOMER_CREATED,
+        payload: existingLukittuCustomer?.id
+          ? updateCustomerPayload(lukittuCustomer)
+          : createCustomerPayload(lukittuCustomer),
+        source: AuditLogSource.STRIPE_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...customerWebhookEvents);
 
       const licenseKey = await generateUniqueLicense(team.id);
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
@@ -693,6 +753,8 @@ export const handleCheckoutSessionCompleted = async (
         },
         include: {
           products: true,
+          customers: true,
+          metadata: true,
         },
       });
 
@@ -728,6 +790,16 @@ export const handleCheckoutSessionCompleted = async (
         tx: prisma,
       });
 
+      const licenseWebhookEvents = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_CREATED,
+        teamId: team.id,
+        payload: createLicensePayload(license),
+        source: AuditLogSource.STRIPE_INTEGRATION,
+        tx: prisma,
+      });
+
+      webhookEventIds.push(...licenseWebhookEvents);
+
       const success = await sendLicenseDistributionEmail({
         customer: lukittuCustomer,
         licenseKey,
@@ -752,6 +824,8 @@ export const handleCheckoutSessionCompleted = async (
 
       return license;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     logger.info('Stripe checkout session completed', {
       sessionId: session.id,

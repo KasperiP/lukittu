@@ -8,11 +8,14 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createWebhookEvents,
   Customer,
   decryptLicenseKey,
+  deleteLicensePayload,
   encryptLicenseKey,
   generateHMAC,
   License,
@@ -21,7 +24,9 @@ import {
   prisma,
   Product,
   regex,
+  updateLicensePayload,
   User,
+  WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -323,6 +328,7 @@ export async function PUT(
     }
 
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       const updatedLicense = await prisma.license.update({
@@ -355,6 +361,8 @@ export async function PUT(
         },
         include: {
           metadata: true,
+          products: true,
+          customers: true,
         },
       });
 
@@ -378,8 +386,19 @@ export async function PUT(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_UPDATED,
+        teamId: team.id,
+        payload: updateLicensePayload(updatedLicense),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
@@ -467,6 +486,11 @@ export async function DELETE(
         id: licenseId,
         teamId: selectedTeam,
       },
+      include: {
+        products: true,
+        customers: true,
+        metadata: true,
+      },
     });
 
     if (!license) {
@@ -477,6 +501,8 @@ export async function DELETE(
         { status: HttpStatus.NOT_FOUND },
       );
     }
+
+    let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
       await prisma.license.delete({
@@ -501,8 +527,19 @@ export async function DELETE(
         tx: prisma,
       });
 
+      webhookEventIds = await createWebhookEvents({
+        eventType: WebhookEventType.LICENSE_DELETED,
+        teamId: selectedTeam,
+        payload: deleteLicensePayload(license),
+        userId: session.user.id,
+        source: AuditLogSource.DASHBOARD,
+        tx: prisma,
+      });
+
       return response;
     });
+
+    await attemptWebhookDelivery(webhookEventIds);
 
     return NextResponse.json(response);
   } catch (error) {
