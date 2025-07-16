@@ -2,13 +2,13 @@
 import { IWebhookDeleteResponse } from '@/app/api/(dashboard)/webhooks/[slug]/route';
 import LoadingButton from '@/components/shared/LoadingButton';
 import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from '@/components/ui/responsive-dialog';
 import { WebhookModalContext } from '@/providers/WebhookModalProvider';
 import { useTranslations } from 'next-intl';
 import { useContext, useState } from 'react';
@@ -41,7 +41,7 @@ export default function DeleteWebhookModal() {
       mutate((key) => Array.isArray(key) && key[0] === '/api/webhooks');
 
       handleOpenChange(false);
-      toast.success(t('dashboard.webhooks.webhook_deleted_success'));
+      toast.success(t('validation.webhook_deleted'));
     } catch (error: any) {
       toast.error(error.message ?? t('general.error_occurred'));
     } finally {
@@ -57,24 +57,25 @@ export default function DeleteWebhookModal() {
   };
 
   return (
-    <AlertDialog
+    <ResponsiveDialog
       open={ctx.webhookDeleteModalOpen}
       onOpenChange={handleOpenChange}
     >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
             {t('dashboard.webhooks.delete_webhook_confirm_title')}
-          </AlertDialogTitle>
-          <AlertDialogDescription>
+          </ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             {t.rich('dashboard.webhooks.delete_webhook_confirm_description', {
               webhookName: ctx.webhookToDelete?.name,
               strong: (children) => <strong>{children}</strong>,
             })}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <ResponsiveDialogFooter>
           <LoadingButton
+            size="sm"
             variant="outline"
             onClick={() => handleOpenChange(false)}
           >
@@ -82,13 +83,14 @@ export default function DeleteWebhookModal() {
           </LoadingButton>
           <LoadingButton
             pending={deleting}
+            size="sm"
             variant="destructive"
             onClick={handleDelete}
           >
             {t('general.delete')}
           </LoadingButton>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

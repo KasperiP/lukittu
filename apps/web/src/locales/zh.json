@@ -145,7 +145,8 @@
     "webhook_name_already_exists": "该名称的 Webhook 已存在！",
     "webhook_url_already_exists": "该 URL 的 Webhook 已存在！",
     "webhook_not_found": "未找到 Webhook！",
-    "webhook_limit_reached": "您的团队已达到当前套餐允许的最大 Webhook 数量。如需添加更多，请升级套餐。"
+    "webhook_limit_reached": "您的团队已达到当前套餐允许的最大 Webhook 数量。如需添加更多，请升级套餐。",
+    "webhook_deleted": "Webhook 已删除！"
   },
   "general": {
     "select_source": "选择来源",
@@ -876,8 +877,7 @@
       "good_delivery_rate": "投递成功率良好 {rate}%",
       "poor_delivery_rate": "投递成功率较差 {rate}%",
       "no_delivery_data": "暂无可用数据",
-      "delivery_rate_tooltip": "投递成功率表示成功投递的 Webhook 事件所占的百分比",
-      "webhook_deleted_success": "Webhook 已删除"
+      "delivery_rate_tooltip": "投递成功率表示成功投递的 Webhook 事件所占的百分比"
     }
   }
 }

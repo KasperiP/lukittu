@@ -145,7 +145,8 @@
     "webhook_url_invalid": "Webhook URL is invalid! It must be a valid URL.",
     "webhook_name_already_exists": "Webhook with this name already exists!",
     "webhook_url_already_exists": "Webhook with this URL already exists!",
-    "webhook_not_found": "Webhook not found!"
+    "webhook_not_found": "Webhook not found!",
+    "webhook_deleted": "Webhook has been deleted successfully!"
   },
   "general": {
     "response_status": "Response status",
@@ -585,8 +586,7 @@
       "good_delivery_rate": "Good delivery rate {rate}%",
       "poor_delivery_rate": "Poor delivery rate {rate}%",
       "no_delivery_data": "No data available",
-      "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events",
-      "webhook_deleted_success": "Webhook deleted successfully"
+      "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events"
     },
     "licenses": {
       "no_ip_addresses": "No IP-addresses",

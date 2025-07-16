@@ -145,7 +145,8 @@
     "webhook_url_invalid": "Nieprawidłowy adres URL webhooka.",
     "webhook_name_already_exists": "Nazwa webhooka już istnieje.",
     "webhook_url_already_exists": "Adres URL webhooka już istnieje.",
-    "webhook_not_found": "Webhook nie został znaleziony."
+    "webhook_not_found": "Webhook nie został znaleziony.",
+    "webhook_deleted": "Webhook został pomyślnie usunięty."
   },
   "general": {
     "add": "Dodaj",
@@ -876,8 +877,7 @@
       "poor_delivery_rate": "Słaby wskaźnik dostarczania {rate}%",
       "no_delivery_data": "Brak dostępnych danych",
       "webhook_events": "Zdarzenia webhook",
-      "delivery_rate_tooltip": "Wskaźnik dostarczania wskazuje procent pomyślnie dostarczonych zdarzeń webhook",
-      "webhook_deleted_success": "Webhook usunięty pomyślnie"
+      "delivery_rate_tooltip": "Wskaźnik dostarczania wskazuje procent pomyślnie dostarczonych zdarzeń webhook"
     }
   }
 }

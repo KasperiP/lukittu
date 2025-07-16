@@ -145,7 +145,8 @@
     "webhook_url_invalid": "Webhookin URL-osoite on virheellinen.",
     "webhook_name_already_exists": "Webhookin nimi on jo käytössä.",
     "webhook_url_already_exists": "Webhookin URL-osoite on jo käytössä.",
-    "webhook_not_found": "Webhookia ei löytynyt."
+    "webhook_not_found": "Webhookia ei löytynyt.",
+    "webhook_deleted": "Webhook poistettu onnistuneesti."
   },
   "general": {
     "select_key": "Valitse avain",
@@ -876,8 +877,7 @@
       "good_delivery_rate": "Hyvä toimitusprosentti {rate}%",
       "poor_delivery_rate": "Heikko toimitusprosentti {rate}%",
       "no_delivery_data": "Tietoja ei ole saatavilla",
-      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden",
-      "webhook_deleted_success": "Webhook poistettu onnistuneesti"
+      "delivery_rate_tooltip": "Toimitusprosentti kertoo onnistuneesti toimitettujen webhook-tapahtumien osuuden"
     }
   }
 }

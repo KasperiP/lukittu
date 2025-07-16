@@ -145,7 +145,8 @@
     "webhook_url_invalid": "La URL del webhook no es válida.",
     "webhook_name_already_exists": "El nombre del webhook ya existe.",
     "webhook_url_already_exists": "La URL del webhook ya existe.",
-    "webhook_not_found": "No se encontró el webhook."
+    "webhook_not_found": "No se encontró el webhook.",
+    "webhook_deleted": "Webhook eliminado con éxito."
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -876,8 +877,7 @@
       "good_delivery_rate": "Buena tasa de entrega {rate}%",
       "poor_delivery_rate": "Baja tasa de entrega {rate}%",
       "no_delivery_data": "No hay datos disponibles",
-      "delivery_rate_tooltip": "La tasa de entrega indica el porcentaje de eventos de webhook entregados con éxito",
-      "webhook_deleted_success": "Webhook eliminado con éxito"
+      "delivery_rate_tooltip": "La tasa de entrega indica el porcentaje de eventos de webhook entregados con éxito"
     }
   }
 }
