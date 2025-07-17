@@ -58,52 +58,72 @@ export default function SetWebhookModal() {
 
   const getWebhookEvents = () => [
     {
-      value: WebhookEventType.LICENSE_CREATED,
-      label: t('dashboard.licenses.license_created'),
+      group: t('general.license'),
+      events: [
+        {
+          value: WebhookEventType.LICENSE_CREATED,
+          label: t('dashboard.licenses.license_created'),
+        },
+        {
+          value: WebhookEventType.LICENSE_UPDATED,
+          label: t('dashboard.licenses.license_updated'),
+        },
+        {
+          value: WebhookEventType.LICENSE_DELETED,
+          label: t('dashboard.licenses.license_deleted'),
+        },
+      ],
     },
     {
-      value: WebhookEventType.LICENSE_UPDATED,
-      label: t('dashboard.licenses.license_updated'),
+      group: t('general.customer'),
+      events: [
+        {
+          value: WebhookEventType.CUSTOMER_CREATED,
+          label: t('dashboard.customers.customer_created'),
+        },
+        {
+          value: WebhookEventType.CUSTOMER_UPDATED,
+          label: t('dashboard.customers.customer_updated'),
+        },
+        {
+          value: WebhookEventType.CUSTOMER_DELETED,
+          label: t('dashboard.customers.customer_deleted'),
+        },
+      ],
     },
     {
-      value: WebhookEventType.LICENSE_DELETED,
-      label: t('dashboard.licenses.license_deleted'),
+      group: t('general.product'),
+      events: [
+        {
+          value: WebhookEventType.PRODUCT_CREATED,
+          label: t('dashboard.products.product_created'),
+        },
+        {
+          value: WebhookEventType.PRODUCT_UPDATED,
+          label: t('dashboard.products.product_updated'),
+        },
+        {
+          value: WebhookEventType.PRODUCT_DELETED,
+          label: t('dashboard.products.product_deleted'),
+        },
+      ],
     },
     {
-      value: WebhookEventType.CUSTOMER_CREATED,
-      label: t('dashboard.customers.customer_created'),
-    },
-    {
-      value: WebhookEventType.CUSTOMER_UPDATED,
-      label: t('dashboard.customers.customer_updated'),
-    },
-    {
-      value: WebhookEventType.CUSTOMER_DELETED,
-      label: t('dashboard.customers.customer_deleted'),
-    },
-    {
-      value: WebhookEventType.PRODUCT_CREATED,
-      label: t('dashboard.products.product_created'),
-    },
-    {
-      value: WebhookEventType.PRODUCT_UPDATED,
-      label: t('dashboard.products.product_updated'),
-    },
-    {
-      value: WebhookEventType.PRODUCT_DELETED,
-      label: t('dashboard.products.product_deleted'),
-    },
-    {
-      value: WebhookEventType.RELEASE_CREATED,
-      label: t('dashboard.releases.release_created'),
-    },
-    {
-      value: WebhookEventType.RELEASE_UPDATED,
-      label: t('dashboard.releases.release_updated'),
-    },
-    {
-      value: WebhookEventType.RELEASE_DELETED,
-      label: t('dashboard.releases.release_deleted'),
+      group: t('general.release'),
+      events: [
+        {
+          value: WebhookEventType.RELEASE_CREATED,
+          label: t('dashboard.releases.release_created'),
+        },
+        {
+          value: WebhookEventType.RELEASE_UPDATED,
+          label: t('dashboard.releases.release_updated'),
+        },
+        {
+          value: WebhookEventType.RELEASE_DELETED,
+          label: t('dashboard.releases.release_deleted'),
+        },
+      ],
     },
   ];
 
@@ -215,7 +235,10 @@ export default function SetWebhookModal() {
     }
   };
 
-  const getAllEvents = () => getWebhookEvents().map((e) => e.value);
+  const getAllEvents = () =>
+    getWebhookEvents()
+      .map((group) => group.events.map((e) => e.value))
+      .flat();
 
   return (
     <ResponsiveDialog
@@ -311,27 +334,56 @@ export default function SetWebhookModal() {
                   <FormLabel>
                     {t('dashboard.webhooks.enabled_events')}
                   </FormLabel>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {getWebhookEvents().map((event) => (
-                      <div
-                        key={event.value}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          checked={getValues('enabledEvents').includes(
-                            event.value,
-                          )}
-                          id={`event-${event.value}`}
-                          onCheckedChange={(checked) =>
-                            handleEventToggle(event.value, checked as boolean)
-                          }
-                        />
-                        <label
-                          className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          htmlFor={`event-${event.value}`}
-                        >
-                          {event.label}
-                        </label>
+                  <div className="space-y-4">
+                    {getWebhookEvents().map((group) => (
+                      <div key={group.group} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium">{group.group}</h4>
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="link"
+                            onClick={() => {
+                              const currentEvents = getValues('enabledEvents');
+                              const groupEvents = group.events.map(
+                                (e) => e.value,
+                              );
+                              const newEvents = [
+                                ...new Set([...currentEvents, ...groupEvents]),
+                              ];
+                              setValue('enabledEvents', newEvents);
+                            }}
+                          >
+                            {t('general.select_all')}
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {group.events.map((event) => (
+                            <div
+                              key={event.value}
+                              className="flex items-center space-x-2"
+                            >
+                              <Checkbox
+                                checked={getValues('enabledEvents').includes(
+                                  event.value,
+                                )}
+                                id={`event-${event.value}`}
+                                onCheckedChange={(checked) =>
+                                  handleEventToggle(
+                                    event.value,
+                                    checked as boolean,
+                                  )
+                                }
+                              />
+                              <label
+                                className="cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                htmlFor={`event-${event.value}`}
+                              >
+                                {event.label}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     ))}
                   </div>
