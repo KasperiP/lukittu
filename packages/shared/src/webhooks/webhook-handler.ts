@@ -501,19 +501,36 @@ export async function processWebhookRetries(): Promise<number> {
   let processedCount = 0;
 
   try {
-    // Find events that are scheduled for retry and are due
+    // Find events that are scheduled for retry and are due, plus stuck PENDING events
     const eventsToRetry = await prisma.webhookEvent
       .findMany({
         where: {
-          status: WebhookEventStatus.RETRY_SCHEDULED,
-          nextRetryAt: {
-            lte: new Date(),
-          },
+          OR: [
+            {
+              status: WebhookEventStatus.RETRY_SCHEDULED,
+              nextRetryAt: {
+                lte: new Date(),
+              },
+            },
+            {
+              // Include PENDING events that are stuck (older than 5 minutes with 0 attempts)
+              status: WebhookEventStatus.PENDING,
+              attempts: 0,
+              createdAt: {
+                lte: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+              },
+            },
+          ],
         },
         take: 50, // Process in batches
-        orderBy: {
-          nextRetryAt: 'asc', // Process oldest first
-        },
+        orderBy: [
+          {
+            nextRetryAt: 'asc', // Process scheduled retries first
+          },
+          {
+            createdAt: 'asc', // Then oldest stuck events
+          },
+        ],
       })
       .catch((error) => {
         logger.error('Failed to fetch webhook events for retry', {
