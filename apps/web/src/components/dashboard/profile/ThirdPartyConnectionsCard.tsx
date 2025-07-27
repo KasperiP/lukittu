@@ -33,7 +33,7 @@ export default function ThirdPartyConnectionsCard() {
       process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
     );
     const scopes = encodeURIComponent('identify');
-    const state = crypto.randomUUID();
+    const state = Math.random().toString(36).substring(2, 15);
 
     const expirationDate = new Date();
     expirationDate.setTime(expirationDate.getTime() + 10 * 60 * 1000);
