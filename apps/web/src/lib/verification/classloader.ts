@@ -756,7 +756,7 @@ export const handleClassloader = async ({
     const embedFormData = new FormData();
     embedFormData.append(
       'file',
-      new Blob([fileStream as Uint8Array<ArrayBufferLike>], {
+      new Blob([fileStream as Uint8Array<ArrayBuffer>], {
         type: 'application/java-archive',
       }),
       'file.jar',
