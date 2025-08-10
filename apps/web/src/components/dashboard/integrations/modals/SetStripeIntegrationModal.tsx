@@ -144,10 +144,10 @@ export default function SetStripeIntegrationModal({
     }
   };
 
-  const copyToClipboard = async (text: string, fieldName: string) => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(t('general.copied_to_clipboard', { field: fieldName }));
+      toast.success(t('general.copied_to_clipboard'));
     } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
@@ -192,9 +192,7 @@ export default function SetStripeIntegrationModal({
                           title={t('general.click_to_copy')}
                           type="button"
                           variant="ghost"
-                          onClick={() =>
-                            copyToClipboard(field.value, t('general.api_key'))
-                          }
+                          onClick={() => copyToClipboard(field.value)}
                         >
                           <CopyIcon className="h-5 w-5" />
                         </Button>
@@ -241,12 +239,7 @@ export default function SetStripeIntegrationModal({
                           title={t('general.click_to_copy')}
                           type="button"
                           variant="ghost"
-                          onClick={() =>
-                            copyToClipboard(
-                              field.value,
-                              t('dashboard.integrations.webhook_secret'),
-                            )
-                          }
+                          onClick={() => copyToClipboard(field.value)}
                         >
                           <CopyIcon className="h-5 w-5" />
                         </Button>

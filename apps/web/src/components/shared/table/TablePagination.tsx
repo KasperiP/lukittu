@@ -47,9 +47,9 @@ export default function TablePagination({
         <div className="flex items-center gap-4">
           <p className="text-sm font-medium">
             {t('general.showing_of_results', {
-              start: (page - 1) * pageSize + 1,
-              end: Math.min(page * pageSize, totalItems),
-              total: totalItems,
+              start: ((page - 1) * pageSize + 1).toString(),
+              end: Math.min(page * pageSize, totalItems).toString(),
+              total: totalItems.toString(),
             })}
           </p>
         </div>
@@ -77,8 +77,8 @@ export default function TablePagination({
           <div>
             <p className="text-sm font-medium">
               {t('general.page_of', {
-                page,
-                pages: totalPages,
+                page: page.toString(),
+                pages: totalPages.toString(),
               })}
             </p>
           </div>

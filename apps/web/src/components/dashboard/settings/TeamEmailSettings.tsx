@@ -208,10 +208,7 @@ export default function TeamEmailSettings({ team }: TeamEmailSettingsProps) {
                   {t('dashboard.settings.email_header_image')}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {t('dashboard.settings.recommended_dimensions', {
-                    width: 512,
-                    height: 128,
-                  })}
+                  {t('dashboard.settings.recommended_dimensions')}
                 </div>
               </div>
               <div

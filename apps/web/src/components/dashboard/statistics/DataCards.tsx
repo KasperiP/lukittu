@@ -104,7 +104,7 @@ export default function DataCards() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.dashboard.new_in_last_7_days', {
-                  count: data?.trends.licensesLastWeek ?? 0,
+                  count: (data?.trends.licensesLastWeek ?? 0).toString(),
                 }).toLowerCase()}
               </p>
             </>
@@ -133,7 +133,7 @@ export default function DataCards() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.dashboard.new_in_last_7_days', {
-                  count: data?.trends.productsLastWeek ?? 0,
+                  count: (data?.trends.productsLastWeek ?? 0).toString(),
                 }).toLowerCase()}
               </p>
             </>
@@ -162,7 +162,7 @@ export default function DataCards() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {t('dashboard.dashboard.new_in_last_7_days', {
-                  count: data?.trends.customersLastWeek ?? 0,
+                  count: (data?.trends.customersLastWeek ?? 0).toString(),
                 }).toLowerCase()}
               </p>
             </>

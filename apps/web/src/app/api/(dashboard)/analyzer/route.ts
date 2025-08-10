@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           message: t('validation.file_too_large', {
-            size: MAX_FILE_SIZE,
+            size: MAX_FILE_SIZE.toString(),
           }),
         },
         { status: HttpStatus.BAD_REQUEST },

@@ -68,7 +68,7 @@ export default function DeleteWebhookModal() {
           </ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
             {t.rich('dashboard.webhooks.delete_webhook_confirm_description', {
-              webhookName: ctx.webhookToDelete?.name,
+              webhookName: ctx.webhookToDelete?.name?.toString() || '',
               strong: (children) => <strong>{children}</strong>,
             })}
           </ResponsiveDialogDescription>

@@ -178,10 +178,10 @@ export default function SetBuiltByBitIntegrationModal({
     }
   };
 
-  const copyToClipboard = async (text: string, fieldName: string) => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(t('general.copied_to_clipboard', { field: fieldName }));
+      toast.success(t('general.copied_to_clipboard'));
     } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
@@ -262,12 +262,7 @@ export default function SetBuiltByBitIntegrationModal({
                             title={t('general.click_to_copy')}
                             type="button"
                             variant="ghost"
-                            onClick={() =>
-                              copyToClipboard(
-                                generatedApiSecret,
-                                t('general.api_secret'),
-                              )
-                            }
+                            onClick={() => copyToClipboard(generatedApiSecret)}
                           >
                             <CopyIcon className="h-5 w-5" />
                           </Button>

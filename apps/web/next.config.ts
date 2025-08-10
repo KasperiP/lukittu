@@ -4,7 +4,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 import path from 'path';
 import pkg from './package.json' with { type: 'json' };
 
-const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
+const withNextIntl = createNextIntlPlugin({
+  requestConfig: './src/i18n.ts',
+  experimental: {
+    createMessagesDeclaration: './src/locales/en.json',
+  },
+});
 
 const nextConfig: NextConfig = {
   reactStrictMode: false, // TODO: Enable, fixes react-leaflet for nextjs 15

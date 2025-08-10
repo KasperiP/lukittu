@@ -183,7 +183,7 @@ export default function GeneralSettingsCard() {
         if (file.size > 1048576) {
           return toast.error(
             t('validation.file_too_large', {
-              bytesToSize: bytesToSize(1048576),
+              size: bytesToSize(1048576).toString(),
             }),
           );
         }

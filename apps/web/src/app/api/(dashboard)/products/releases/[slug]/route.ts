@@ -338,9 +338,7 @@ export async function PUT(
       if (newTotalStorageUsedMb > maxStorage) {
         return NextResponse.json(
           {
-            message: t('validation.storage_limit_reached', {
-              maxStorage,
-            }),
+            message: t('validation.storage_limit_reached'),
           },
           { status: HttpStatus.BAD_REQUEST },
         );

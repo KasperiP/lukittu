@@ -1,12 +1,11 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable lines-around-comment */
-import en from './src/locales/en.json';
+import messages from './src/locales/en.json';
 
-type Messages = typeof en;
-
-declare global {
-  // Use type safe message keys with `next-intl`
-  interface IntlMessages extends Messages {}
+declare module 'next-intl' {
+  interface AppConfig {
+    Locale: (typeof routing.locales)[number];
+    Messages: typeof messages;
+    Formats: typeof formats;
+  }
 }
 
 declare module '*.svg' {

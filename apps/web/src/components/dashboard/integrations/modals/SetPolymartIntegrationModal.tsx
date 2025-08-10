@@ -140,10 +140,10 @@ export default function SetPolymartIntegrationModal({
     }
   };
 
-  const copyToClipboard = async (text: string, fieldName: string) => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(t('general.copied_to_clipboard', { field: fieldName }));
+      toast.success(t('general.copied_to_clipboard'));
     } catch (_error) {
       toast.error(t('general.error_occurred'));
     }
@@ -191,11 +191,7 @@ export default function SetPolymartIntegrationModal({
                           type="button"
                           variant="ghost"
                           onClick={() =>
-                            field.value &&
-                            copyToClipboard(
-                              field.value,
-                              t('dashboard.integrations.webhook_secret'),
-                            )
+                            field.value && copyToClipboard(field.value)
                           }
                         >
                           <CopyIcon className="h-5 w-5" />
@@ -246,11 +242,7 @@ export default function SetPolymartIntegrationModal({
                           type="button"
                           variant="ghost"
                           onClick={() =>
-                            field.value &&
-                            copyToClipboard(
-                              field.value,
-                              t('dashboard.integrations.signing_secret'),
-                            )
+                            field.value && copyToClipboard(field.value)
                           }
                         >
                           <CopyIcon className="h-5 w-5" />

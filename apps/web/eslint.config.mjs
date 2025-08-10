@@ -17,6 +17,7 @@ const config = [
       'src/components/ui',
       '**/checkTranslations.js',
       '**/syncTranslations.js',
+      '**/*.d.json.ts',
     ],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),

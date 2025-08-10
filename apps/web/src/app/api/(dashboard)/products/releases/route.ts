@@ -313,9 +313,7 @@ export async function POST(request: NextRequest) {
       if (totalStorageUsedMb + uploadeReleaseSizeMb > maxStorage) {
         return NextResponse.json(
           {
-            message: t('validation.storage_limit_reached', {
-              maxStorage,
-            }),
+            message: t('validation.storage_limit_reached'),
           },
           { status: HttpStatus.BAD_REQUEST },
         );

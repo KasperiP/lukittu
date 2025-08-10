@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 'use client';
 import ConfettiButton from '@/components/shared/ConfettiButton';
 import LoadingButton from '@/components/shared/LoadingButton';
@@ -45,11 +44,10 @@ import {
   Rocket,
   Search,
 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Messages, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
-import { Messages } from '../../../../global';
 import { CollapseMenuButton } from './CollapseMenuButton';
 
 export const HighlightText = ({

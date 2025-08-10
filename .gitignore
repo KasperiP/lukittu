@@ -42,5 +42,8 @@ next-env.d.ts
 # OpenAPI
 bundled-openapi.json
 
+# i18n
+*d.json.ts
+
 # Sentry Config File
 .env.sentry-build-plugin

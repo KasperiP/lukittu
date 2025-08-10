@@ -292,21 +292,21 @@ export function WebhookStatsChart({ webhookId }: WebhookStatsChartProps) {
                         data.summary.deliveryRate >= 95 ? (
                           <>
                             {t('dashboard.webhooks.excellent_delivery_rate', {
-                              rate: data.summary.deliveryRate,
+                              rate: data.summary.deliveryRate.toString(),
                             })}
                             <TrendingUp className="h-4 w-4" />
                           </>
                         ) : data.summary.deliveryRate >= 80 ? (
                           <>
                             {t('dashboard.webhooks.good_delivery_rate', {
-                              rate: data.summary.deliveryRate,
+                              rate: data.summary.deliveryRate.toString(),
                             })}
                             <TrendingUp className="h-4 w-4" />
                           </>
                         ) : (
                           <>
                             {t('dashboard.webhooks.poor_delivery_rate', {
-                              rate: data.summary.deliveryRate,
+                              rate: data.summary.deliveryRate.toString(),
                             })}
                             <TrendingDown className="h-4 w-4" />
                           </>

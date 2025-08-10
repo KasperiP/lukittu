@@ -91,7 +91,8 @@ export function DeleteCustomerConfirmModal() {
               {t.rich(
                 'dashboard.customers.delete_customer_confirm_description',
                 {
-                  name: customer.fullName ?? customer[confirmationField],
+                  name:
+                    (customer.fullName ?? customer[confirmationField]) || '',
                   strong: (child) => <strong>{child}</strong>,
                 },
               )}

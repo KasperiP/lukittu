@@ -13,7 +13,7 @@ import {
   Users,
   Webhook,
 } from 'lucide-react';
-import { Messages } from '../../../global';
+import { Messages } from 'next-intl';
 
 type Submenu = {
   href: string;
