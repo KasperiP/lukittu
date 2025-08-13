@@ -127,15 +127,18 @@ export async function GET(
         }
 
         if (havingClause) {
-          const filteredProductIds = await prisma.$queryRaw<{ id: string }[]>`
+          const baseQuery = Prisma.sql`
             SELECT p.id
             FROM "Product" p
             LEFT JOIN "_LicenseToProduct" lp ON p.id = lp."B"
             LEFT JOIN "License" l ON lp."A" = l.id
             WHERE p."teamId" = ${selectedTeam}
             GROUP BY p.id
-            ${havingClause}
           `;
+
+          const filteredProductIds = await prisma.$queryRaw<{ id: string }[]>(
+            Prisma.sql`${baseQuery} ${havingClause}`,
+          );
 
           licenseCountFilter = {
             id: {

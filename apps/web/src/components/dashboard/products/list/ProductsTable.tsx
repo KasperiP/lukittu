@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useDebouncedQueryState } from '@/hooks/useDebouncedQueryState';
 import { useTableScroll } from '@/hooks/useTableScroll';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { ProductModalProvider } from '@/providers/ProductModalProvider';
@@ -39,6 +40,12 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringEnum,
+  useQueryState,
+} from 'nuqs';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -63,22 +70,44 @@ export function ProductsTable() {
   const teamCtx = useContext(TeamContext);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [debounceSearch, setDebounceSearch] = useState('');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [sortColumn, setSortColumn] = useState<
-    'createdAt' | 'updatedAt' | 'name' | null
-  >(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
-    null,
+  const [debouncedSearch, search, setDebouncedSearch, setSearch] =
+    useDebouncedQueryState<string>('search', parseAsString.withDefault(''), {
+      debounceMs: 500,
+    });
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [pageSize, setPageSize] = useQueryState(
+    'pageSize',
+    parseAsInteger.withDefault(25),
   );
-  const [licenseCountMin, setLicenseCountMin] = useState('');
-  const [licenseCountMax, setLicenseCountMax] = useState('');
+  const [sortColumn, setSortColumn] = useQueryState(
+    'sortColumn',
+    parseAsString.withDefault(''),
+  );
+  const [sortDirection, setSortDirection] = useQueryState(
+    'sortDirection',
+    parseAsString.withDefault(''),
+  );
+  const [licenseCountMin, setLicenseCountMin] = useQueryState(
+    'licenseCountMin',
+    parseAsString.withDefault(''),
+  );
+  const [licenseCountMax, setLicenseCountMax] = useQueryState(
+    'licenseCountMax',
+    parseAsString.withDefault(''),
+  );
   const [tempLicenseCountMin, setTempLicenseCountMin] = useState('');
   const [tempLicenseCountMax, setTempLicenseCountMax] = useState('');
   const [licenseCountComparisonMode, setLicenseCountComparisonMode] =
-    useState<ComparisonMode>('');
+    useQueryState<ComparisonMode>(
+      'licenseCountComparisonMode',
+      parseAsStringEnum([
+        '',
+        'equals',
+        'greater',
+        'less',
+        'between',
+      ] as const).withDefault(''),
+    );
   const [tempLicenseCountComparisonMode, setTempLicenseCountComparisonMode] =
     useState<ComparisonMode>('equals');
 
@@ -87,7 +116,7 @@ export function ProductsTable() {
     pageSize: pageSize.toString(),
     ...(sortColumn && { sortColumn }),
     ...(sortDirection && { sortDirection }),
-    ...(search && { search }),
+    ...(debouncedSearch && { search: debouncedSearch }),
     ...(licenseCountMin && { licenseCountMin }),
     ...(licenseCountMax &&
       licenseCountComparisonMode === 'between' && { licenseCountMax }),
@@ -111,16 +140,6 @@ export function ProductsTable() {
   const totalProducts = data?.totalResults ?? 0;
   const hasProducts = data?.hasResults ?? true;
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setSearch(debounceSearch);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [debounceSearch]);
-
   const renderFilters = () => (
     <div className="mb-4 flex flex-wrap items-center gap-4 max-lg:hidden">
       <div className="relative flex w-full min-w-[33%] max-w-xs items-center">
@@ -128,9 +147,9 @@ export function ProductsTable() {
         <Input
           className="pl-8"
           placeholder={t('dashboard.licenses.search_product')}
-          value={debounceSearch}
+          value={search}
           onChange={(e) => {
-            setDebounceSearch(e.target.value);
+            setDebouncedSearch(e.target.value);
           }}
         />
       </div>
@@ -150,12 +169,11 @@ export function ProductsTable() {
         tempLicenseCountMin={tempLicenseCountMin}
       />
 
-      {(search || licenseCountMin) && (
+      {(debouncedSearch || licenseCountMin) && (
         <Button
           className="h-7 rounded-full text-xs"
           size="sm"
           onClick={() => {
-            setDebounceSearch('');
             setSearch('');
             setLicenseCountMin('');
             setLicenseCountMax('');
@@ -163,6 +181,10 @@ export function ProductsTable() {
             setTempLicenseCountMax('');
             setLicenseCountComparisonMode('');
             setTempLicenseCountComparisonMode('equals');
+            setPage(1);
+            setPageSize(25);
+            setSortColumn('');
+            setSortDirection('');
           }}
         >
           {t('general.clear_all')}
@@ -181,10 +203,12 @@ export function ProductsTable() {
             placeholder: t('dashboard.licenses.search_product'),
           },
         ]}
-        initialFilters={{ search }}
+        initialFilters={{ search: debouncedSearch }}
         open={mobileFiltersOpen}
         title={t('general.filters')}
-        onApply={(filters) => setSearch(filters.search)}
+        onApply={(filters) => {
+          setDebouncedSearch(filters.search);
+        }}
         onOpenChange={setMobileFiltersOpen}
       />
       <Card>
