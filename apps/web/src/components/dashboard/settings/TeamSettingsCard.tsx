@@ -6,6 +6,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TeamContext } from '@/providers/TeamProvider';
 import { useTranslations } from 'next-intl';
+import { parseAsStringEnum, useQueryState } from 'nuqs';
 import { useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -34,6 +35,13 @@ export default function TeamSettingsCard() {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
 
+  const [selectedTab, setSelectedTab] = useQueryState(
+    'tab',
+    parseAsStringEnum(['settings', 'security', 'limits'] as const).withDefault(
+      'settings',
+    ),
+  );
+
   const { data, error } = useSWR<ITeamGetSuccessResponse>(
     teamCtx.selectedTeam ? ['/api/teams', teamCtx.selectedTeam] : null,
     ([url, selectedTeam]) => fetchTeams(`${url}/${selectedTeam}`),
@@ -55,7 +63,13 @@ export default function TeamSettingsCard() {
       <div className="flex w-full gap-4 max-xl:flex-col-reverse">
         <>
           <div className="flex w-full max-w-full flex-col gap-4 overflow-auto">
-            <Tabs className="w-full" defaultValue="settings">
+            <Tabs
+              className="w-full"
+              value={selectedTab}
+              onValueChange={(value) =>
+                setSelectedTab(value as 'settings' | 'security' | 'limits')
+              }
+            >
               <TabsList className="mb-4 grid h-auto w-full grid-cols-3">
                 <TabsTrigger value="settings">
                   {t('general.settings')}
