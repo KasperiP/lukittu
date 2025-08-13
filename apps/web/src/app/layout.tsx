@@ -10,6 +10,7 @@ import { getLocale, getMessages, getTranslations } from 'next-intl/server';
 import PlausibleProvider from 'next-plausible';
 import { Roboto } from 'next/font/google';
 import NextTopLoader from 'nextjs-toploader';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 
 const roboto = Roboto({
   weight: ['100', '300', '400', '500', '700', '900'],
@@ -48,20 +49,22 @@ export default async function RootLayout({
           roboto.variable,
         )}
       >
-        <SWRProvider>
-          <NextTopLoader color="#4153af" showSpinner={false} />
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            disableTransitionOnChange
-            enableSystem
-          >
-            <Toaster />
-            <NextIntlClientProvider messages={messages}>
-              {children}
-            </NextIntlClientProvider>
-          </ThemeProvider>
-        </SWRProvider>
+        <NuqsAdapter>
+          <SWRProvider>
+            <NextTopLoader color="#4153af" showSpinner={false} />
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              disableTransitionOnChange
+              enableSystem
+            >
+              <Toaster />
+              <NextIntlClientProvider messages={messages}>
+                {children}
+              </NextIntlClientProvider>
+            </ThemeProvider>
+          </SWRProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

@@ -1,4 +1,3 @@
-import { LicenseStatus } from '@/lib/licenses/license-badge-variant';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
@@ -20,6 +19,7 @@ import {
   encryptLicenseKey,
   generateHMAC,
   License,
+  LicenseStatus,
   logger,
   Metadata,
   prisma,
@@ -176,14 +176,14 @@ export async function GET(
         const uniqueIpCounts = await prisma.$queryRaw<
           { id: string; ipCount: number }[]
         >`
-        SELECT l.id, COUNT(DISTINCT rl."ipAddress") as "ipCount" 
-        FROM "License" l
-        LEFT JOIN "RequestLog" rl ON l.id = rl."licenseId"
-        WHERE l."teamId" = ${Prisma.sql`${selectedTeam}`}
-        AND rl."ipAddress" IS NOT NULL
-        AND rl."createdAt" >= ${Prisma.sql`${startDate}`}
-        GROUP BY l.id
-      `;
+          SELECT l.id, COUNT(DISTINCT rl."ipAddress")::int as "ipCount"
+          FROM "License" l
+          LEFT JOIN "RequestLog" rl ON l.id = rl."licenseId"
+          WHERE l."teamId" = ${selectedTeam}
+            AND rl."ipAddress" IS NOT NULL
+            AND rl."createdAt" >= ${startDate}
+          GROUP BY l.id
+        `;
 
         const filteredLicenseIds = uniqueIpCounts
           .filter((license) => {
@@ -222,7 +222,7 @@ export async function GET(
 
     if (status) {
       switch (status) {
-        case 'ACTIVE':
+        case LicenseStatus.ACTIVE:
           statusFilter = {
             suspended: false,
             lastActiveAt: {
@@ -258,7 +258,7 @@ export async function GET(
             ],
           };
           break;
-        case 'INACTIVE':
+        case LicenseStatus.INACTIVE:
           statusFilter = {
             suspended: false,
             lastActiveAt: {
@@ -290,7 +290,7 @@ export async function GET(
             ],
           };
           break;
-        case 'EXPIRING':
+        case LicenseStatus.EXPIRING:
           statusFilter = {
             suspended: false,
             expirationType: {
@@ -302,7 +302,7 @@ export async function GET(
             },
           };
           break;
-        case 'EXPIRED':
+        case LicenseStatus.EXPIRED:
           statusFilter = {
             suspended: false,
             expirationType: {
@@ -313,7 +313,7 @@ export async function GET(
             },
           };
           break;
-        case 'SUSPENDED':
+        case LicenseStatus.SUSPENDED:
           statusFilter = {
             suspended: true,
           };

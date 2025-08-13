@@ -1,12 +1,6 @@
 import { badgeVariants } from '@/components/ui/badge';
+import { LicenseStatus } from '@lukittu/shared';
 import { VariantProps } from 'class-variance-authority';
-
-export type LicenseStatus =
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'EXPIRING'
-  | 'EXPIRED'
-  | 'SUSPENDED';
 
 type Variant = VariantProps<typeof badgeVariants>['variant'];
 
@@ -14,15 +8,15 @@ export const getLicenseStatusBadgeVariant = (
   status: LicenseStatus,
 ): Variant => {
   switch (status) {
-    case 'ACTIVE':
+    case LicenseStatus.ACTIVE:
       return 'success';
-    case 'INACTIVE':
+    case LicenseStatus.INACTIVE:
       return 'secondary';
-    case 'EXPIRING':
+    case LicenseStatus.EXPIRING:
       return 'warning';
-    case 'EXPIRED':
+    case LicenseStatus.EXPIRED:
       return 'error';
-    case 'SUSPENDED':
+    case LicenseStatus.SUSPENDED:
       return 'error';
   }
 };

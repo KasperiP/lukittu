@@ -31,15 +31,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useDebouncedQueryState } from '@/hooks/useDebouncedQueryState';
 import { useTableScroll } from '@/hooks/useTableScroll';
-import {
-  getLicenseStatusBadgeVariant,
-  LicenseStatus,
-} from '@/lib/licenses/license-badge-variant';
+import { getLicenseStatusBadgeVariant } from '@/lib/licenses/license-badge-variant';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { LicenseModalProvider } from '@/providers/LicenseModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
-import { getLicenseStatus } from '@lukittu/shared';
+import { getLicenseStatus, LicenseStatus } from '@lukittu/shared';
 import {
   AlertTriangle,
   ArrowDownUp,
@@ -55,6 +53,13 @@ import {
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringEnum,
+  useQueryState,
+} from 'nuqs';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -97,33 +102,72 @@ export function LicensesTable() {
   const teamCtx = useContext(TeamContext);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [debounceSearch, setDebounceSearch] = useState('');
-  const [search, setSearch] = useState('');
-  const [productIds, setProductIds] = useState<string[]>([]);
-  const [customerIds, setCustomerIds] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [sortColumn, setSortColumn] = useState<
-    'createdAt' | 'updatedAt' | null
-  >(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
-    null,
+  const [debouncedSearch, search, setDebouncedSearch, setSearch] =
+    useDebouncedQueryState<string>('search', parseAsString.withDefault(''), {
+      debounceMs: 500,
+    });
+  const [productIds, setProductIds] = useQueryState<string[]>(
+    'productIds',
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [customerIds, setCustomerIds] = useQueryState<string[]>(
+    'customerIds',
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [pageSize, setPageSize] = useQueryState(
+    'pageSize',
+    parseAsInteger.withDefault(25),
+  );
+  const [sortColumn, setSortColumn] = useQueryState(
+    'sortColumn',
+    parseAsString.withDefault(''),
+  );
+  const [sortDirection, setSortDirection] = useQueryState(
+    'sortDirection',
+    parseAsString.withDefault(''),
   );
   const [tempProductIds, setTempProductIds] = useState<string[]>([]);
   const [tempCustomerIds, setTempCustomerIds] = useState<string[]>([]);
-  const [metadataKey, setMetadataKey] = useState('');
-  const [metadataValue, setMetadataValue] = useState('');
+  const [metadataKey, setMetadataKey] = useQueryState(
+    'metadataKey',
+    parseAsString.withDefault(''),
+  );
+  const [metadataValue, setMetadataValue] = useQueryState(
+    'metadataValue',
+    parseAsString.withDefault(''),
+  );
   const [tempMetadataKey, setTempMetadataKey] = useState('');
   const [tempMetadataValue, setTempMetadataValue] = useState('');
-  const [ipCountMin, setIpCountMin] = useState('');
-  const [ipCountMax, setIpCountMax] = useState('');
+  const [ipCountMin, setIpCountMin] = useQueryState(
+    'ipCountMin',
+    parseAsString.withDefault(''),
+  );
+  const [ipCountMax, setIpCountMax] = useQueryState(
+    'ipCountMax',
+    parseAsString.withDefault(''),
+  );
   const [tempIpCountMin, setTempIpCountMin] = useState('');
   const [tempIpCountMax, setTempIpCountMax] = useState('');
-  const [ipCountComparisonMode, setIpCountComparisonMode] =
-    useState<ComparisonMode>('');
+  const [ipCountComparisonMode, setIpCountComparisonMode] = useQueryState(
+    'ipCountComparisonMode',
+    parseAsStringEnum([
+      '',
+      'equals',
+      'greater',
+      'less',
+      'between',
+    ] as const).withDefault(''),
+  );
   const [tempIpCountComparisonMode, setTempIpCountComparisonMode] =
     useState<ComparisonMode>('equals');
-  const [status, setStatus] = useState<LicenseStatus | 'all'>('all');
+  const [status, setStatus] = useQueryState(
+    'status',
+    parseAsStringEnum([
+      ...Object.values(LicenseStatus),
+      'all',
+    ] as const).withDefault('all'),
+  );
   const [tempStatus, setTempStatus] = useState<LicenseStatus | 'all'>('all');
 
   const searchParams = new URLSearchParams({
@@ -131,7 +175,7 @@ export function LicensesTable() {
     pageSize: pageSize.toString(),
     ...(sortColumn && { sortColumn }),
     ...(sortDirection && { sortDirection }),
-    ...(search && { search }),
+    ...(debouncedSearch && { search: debouncedSearch }),
     ...(productIds.length && { productIds: productIds.join(',') }),
     ...(customerIds.length && { customerIds: customerIds.join(',') }),
     ...(metadataKey && { metadataKey }),
@@ -159,16 +203,6 @@ export function LicensesTable() {
   const totalLicenses = data?.totalResults ?? 0;
   const hasLicenses = data?.hasResults ?? true;
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setSearch(debounceSearch);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [debounceSearch]);
-
   const renderFilters = () => (
     <div className="mb-4 flex flex-wrap items-center gap-4 max-lg:hidden">
       <div className="relative flex w-full min-w-[33%] max-w-xs items-center">
@@ -176,9 +210,9 @@ export function LicensesTable() {
         <Input
           className="pl-8"
           placeholder={t('dashboard.licenses.search_license')}
-          value={debounceSearch}
+          value={search}
           onChange={(e) => {
-            setDebounceSearch(e.target.value);
+            setDebouncedSearch(e.target.value);
           }}
         />
       </div>
@@ -230,7 +264,7 @@ export function LicensesTable() {
         tempStatus={tempStatus}
       />
 
-      {(search ||
+      {(debouncedSearch ||
         productIds.length > 0 ||
         customerIds.length > 0 ||
         status !== 'all' ||
@@ -239,7 +273,6 @@ export function LicensesTable() {
           className="h-7 rounded-full text-xs"
           size="sm"
           onClick={() => {
-            setDebounceSearch('');
             setSearch('');
             setProductIds([]);
             setTempProductIds([]);
@@ -249,6 +282,16 @@ export function LicensesTable() {
             setMetadataValue('');
             setTempMetadataKey('');
             setTempMetadataValue('');
+            setIpCountMin('');
+            setIpCountMax('');
+            setTempIpCountMin('');
+            setTempIpCountMax('');
+            setIpCountComparisonMode('');
+            setTempIpCountComparisonMode('equals');
+            setPage(1);
+            setPageSize(25);
+            setSortColumn('');
+            setSortDirection('');
             setStatus('all');
             setTempStatus('all');
           }}
@@ -284,14 +327,14 @@ export function LicensesTable() {
           },
         ]}
         initialFilters={{
-          search,
+          search: debouncedSearch,
           products: productIds,
           customers: customerIds,
         }}
         open={mobileFiltersOpen}
         title={t('general.filters')}
         onApply={(filters) => {
-          setSearch(filters.search);
+          setDebouncedSearch(filters.search);
           setProductIds(filters.products);
           setCustomerIds(filters.customers);
         }}

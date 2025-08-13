@@ -44,9 +44,9 @@ export function FilterChip({
   const [open, setOpen] = useState(false);
 
   const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      onClear?.();
-    }
+    // Sync temp state with committed values whenever the popover opens
+    // and also when it closes (to discard any un-applied changes).
+    onClear?.();
     setOpen(open);
     onPopoverOpenChange?.(open);
   };
