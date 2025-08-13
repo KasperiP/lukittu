@@ -34,12 +34,6 @@ import {
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import {
-  parseAsArrayOf,
-  parseAsIsoDate,
-  parseAsString,
-  useQueryState,
-} from 'nuqs';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
@@ -63,55 +57,20 @@ export default function LogViewer() {
     ILogsGetSuccessResponse['logs'][number] | null
   >(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [statusFilter, setStatusFilter] = useQueryState(
-    'status',
-    parseAsString.withDefault('all'),
-  );
-  const [typeFilter, setTypeFilter] = useQueryState(
-    'type',
-    parseAsString.withDefault('all'),
-  );
-  const [customerIds, setCustomerIds] = useQueryState(
-    'customerIds',
-    parseAsArrayOf(parseAsString).withDefault([]),
-  );
-  const [productIds, setProductIds] = useQueryState(
-    'productIds',
-    parseAsArrayOf(parseAsString).withDefault([]),
-  );
-  const [licenseSearch, setLicenseSearch] = useQueryState(
-    'licenseSearch',
-    parseAsString.withDefault(''),
-  );
-  const [ipSearch, setIpSearch] = useQueryState(
-    'ipSearch',
-    parseAsString.withDefault(''),
-  );
-  const [dateRangeFrom, setDateRangeFrom] = useQueryState(
-    'dateFrom',
-    parseAsIsoDate.withDefault(addDays(new Date(), -7)),
-  );
-  const [dateRangeTo, setDateRangeTo] = useQueryState(
-    'dateTo',
-    parseAsIsoDate.withDefault(new Date()),
-  );
-  const dateRange: DateRange | undefined = useMemo(
-    () => ({
-      from: dateRangeFrom,
-      to: dateRangeTo,
-    }),
-    [dateRangeFrom, dateRangeTo],
-  );
-  const setDateRange = (range: DateRange | undefined) => {
-    setDateRangeFrom(range?.from || null);
-    setDateRangeTo(range?.to || null);
-  };
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [customerIds, setCustomerIds] = useState<string[]>([]);
+  const [productIds, setProductIds] = useState<string[]>([]);
+  const [licenseSearch, setLicenseSearch] = useState('');
+  const [ipSearch, setIpSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  });
 
   const [tempStatus, setTempStatus] = useState(statusFilter);
   const [tempType, setTempType] = useState(typeFilter);
-  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
-    dateRange,
-  );
+  const [tempDateRange, setTempDateRange] = useState(dateRange);
   const [tempLicenseSearch, setTempLicenseSearch] = useState(licenseSearch);
   const [tempIpSearch, setTempIpSearch] = useState(ipSearch);
   const [tempProductIds, setTempProductIds] = useState(productIds);
@@ -134,7 +93,7 @@ export default function LogViewer() {
     if (productIds.length > 0) count++;
     if (licenseSearch) count++;
     if (ipSearch) count++;
-    if (dateRangeFrom || dateRangeTo) count++;
+    if (dateRange?.from || dateRange?.to) count++;
     return count;
   }, [
     statusFilter,
@@ -143,8 +102,7 @@ export default function LogViewer() {
     productIds,
     licenseSearch,
     ipSearch,
-    dateRangeFrom,
-    dateRangeTo,
+    dateRange,
   ]);
 
   const getKey = (
@@ -267,8 +225,7 @@ export default function LogViewer() {
     productIds,
     licenseSearch,
     ipSearch,
-    dateRangeFrom,
-    dateRangeTo,
+    dateRange,
   ]);
 
   const handleResetToDefault = () => {
@@ -284,8 +241,7 @@ export default function LogViewer() {
     setTempLicenseSearch(DEFAULT_SEARCH);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRangeFrom(DEFAULT_DATE_RANGE.from);
-    setDateRangeTo(DEFAULT_DATE_RANGE.to);
+    setDateRange(DEFAULT_DATE_RANGE);
     setTempDateRange(DEFAULT_DATE_RANGE);
   };
 
@@ -302,9 +258,7 @@ export default function LogViewer() {
         dateRange={dateRange}
         retentionDays={selectedTeam?.limits?.logRetention || 30}
         setDateRange={setDateRange}
-        setTempDateRange={(range: DateRange | undefined) =>
-          setTempDateRange(range)
-        }
+        setTempDateRange={setTempDateRange}
         tempDateRange={tempDateRange}
       />
 
@@ -368,8 +322,7 @@ export default function LogViewer() {
               setTempLicenseSearch(DEFAULT_SEARCH);
               setIpSearch(DEFAULT_SEARCH);
               setTempIpSearch(DEFAULT_SEARCH);
-              setDateRangeFrom(null);
-              setDateRangeTo(null);
+              setDateRange(undefined);
               setTempDateRange(undefined);
             }}
           >

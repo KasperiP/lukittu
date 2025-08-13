@@ -53,13 +53,6 @@ import { useLocale, useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  parseAsInteger,
-  parseAsIsoDate,
-  parseAsString,
-  parseAsStringEnum,
-  useQueryState,
-} from 'nuqs';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
@@ -231,89 +224,45 @@ export default function AuditLogTable() {
     IAuditLogsGetSuccessResponse['auditLogs'][number] | null
   >(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [pageSize, setPageSize] = useQueryState(
-    'pageSize',
-    parseAsInteger.withDefault(25),
-  );
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
-  const [sortColumn, setSortColumn] = useQueryState(
-    'sortColumn',
-    parseAsString.withDefault(''),
-  );
-  const [sortDirection, setSortDirection] = useQueryState(
-    'sortDirection',
-    parseAsString.withDefault(''),
+  const [pageSize, setPageSize] = useState(25);
+  const [page, setPage] = useState(1);
+  const [sortColumn, setSortColumn] = useState<'createdAt' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
+    null,
   );
   const [animatingRows, setAnimatingRows] = useState<Set<string>>(new Set());
 
-  const [sourceFilter, setSourceFilter] = useQueryState(
-    'source',
-    parseAsStringEnum([
-      ...Object.values(AuditLogSource),
-      'all',
-    ] as const).withDefault('all'),
+  const [sourceFilter, setSourceFilter] = useState<AuditLogSource | 'all'>(
+    'all',
   );
-  const [targetTypeFilter, setTargetTypeFilter] = useQueryState(
-    'targetType',
-    parseAsString.withDefault('all'),
-  );
-  const [ipSearch, setIpSearch] = useQueryState(
-    'ipSearch',
-    parseAsString.withDefault(''),
-  );
-  const [dateRangeFrom, setDateRangeFrom] = useQueryState(
-    'dateFrom',
-    parseAsIsoDate,
-  );
-  const [dateRangeTo, setDateRangeTo] = useQueryState('dateTo', parseAsIsoDate);
-
-  const DEFAULT_FILTER = 'all';
-  const DEFAULT_SEARCH = '';
-  const DEFAULT_DATE_RANGE = useMemo(
-    () => ({
-      from: addDays(new Date(), -7),
-      to: new Date(),
-    }),
-    [],
-  );
-
-  const dateRange: DateRange | undefined = useMemo(() => {
-    if (!dateRangeFrom && !dateRangeTo) {
-      return undefined;
-    }
-
-    if (!dateRangeFrom || !dateRangeTo) {
-      return undefined;
-    }
-    return {
-      from: dateRangeFrom,
-      to: dateRangeTo,
-    };
-  }, [dateRangeFrom, dateRangeTo]);
-
-  const apiDateRange = dateRange || DEFAULT_DATE_RANGE;
-  const setDateRange = (range: DateRange | undefined) => {
-    setDateRangeFrom(range?.from || null);
-    setDateRangeTo(range?.to || null);
-  };
+  const [targetTypeFilter, setTargetTypeFilter] = useState<string>('all');
+  const [ipSearch, setIpSearch] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  });
 
   const [tempSourceFilter, setTempSourceFilter] = useState(sourceFilter);
   const [tempTargetTypeFilter, setTempTargetTypeFilter] =
     useState(targetTypeFilter);
   const [tempIpSearch, setTempIpSearch] = useState(ipSearch);
-  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
-    dateRange,
-  );
+  const [tempDateRange, setTempDateRange] = useState(dateRange);
+
+  const DEFAULT_FILTER = 'all';
+  const DEFAULT_SEARCH = '';
+  const DEFAULT_DATE_RANGE = {
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  };
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (sourceFilter !== 'all') count++;
     if (targetTypeFilter !== 'all') count++;
     if (ipSearch) count++;
-
-    if (dateRangeFrom || dateRangeTo) count++;
+    if (dateRange?.from || dateRange?.to) count++;
     return count;
-  }, [sourceFilter, targetTypeFilter, ipSearch, dateRangeFrom, dateRangeTo]);
+  }, [sourceFilter, targetTypeFilter, ipSearch, dateRange]);
 
   const handleResetToDefault = () => {
     setSourceFilter(DEFAULT_FILTER);
@@ -322,8 +271,7 @@ export default function AuditLogTable() {
     setTempTargetTypeFilter(DEFAULT_FILTER);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRangeFrom(DEFAULT_DATE_RANGE.from);
-    setDateRangeTo(DEFAULT_DATE_RANGE.to);
+    setDateRange(DEFAULT_DATE_RANGE);
     setTempDateRange(DEFAULT_DATE_RANGE);
   };
 
@@ -343,13 +291,13 @@ export default function AuditLogTable() {
   if (ipSearch) {
     searchParams.append('ipSearch', ipSearch);
   }
-  if (apiDateRange?.from) {
-    const dateRangeStartOfDay = new Date(apiDateRange.from);
+  if (dateRange?.from) {
+    const dateRangeStartOfDay = new Date(dateRange.from);
     dateRangeStartOfDay.setHours(0, 0, 0, 0);
     searchParams.append('rangeStart', dateRangeStartOfDay.toISOString());
   }
-  if (apiDateRange?.to) {
-    const dateRangeEndOfDay = new Date(apiDateRange.to);
+  if (dateRange?.to) {
+    const dateRangeEndOfDay = new Date(dateRange.to);
     dateRangeEndOfDay.setHours(23, 59, 59, 999);
     searchParams.append('rangeEnd', dateRangeEndOfDay.toISOString());
   }
@@ -375,8 +323,7 @@ export default function AuditLogTable() {
     sourceFilter,
     targetTypeFilter,
     ipSearch,
-    setPage,
-    apiDateRange,
+    dateRange,
   ]);
 
   useEffect(() => {
@@ -419,8 +366,7 @@ export default function AuditLogTable() {
     setTempTargetTypeFilter(DEFAULT_FILTER);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRangeFrom(null);
-    setDateRangeTo(null);
+    setDateRange(undefined);
     setTempDateRange(undefined);
   };
 
@@ -444,9 +390,7 @@ export default function AuditLogTable() {
         dateRange={dateRange}
         retentionDays={selectedTeam?.limits?.logRetention || 30}
         setDateRange={setDateRange}
-        setTempDateRange={(range: DateRange | undefined) =>
-          setTempDateRange(range)
-        }
+        setTempDateRange={setTempDateRange}
         tempDateRange={tempDateRange}
       />
 
