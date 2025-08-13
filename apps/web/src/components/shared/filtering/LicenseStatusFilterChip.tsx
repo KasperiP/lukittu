@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { LicenseStatus } from '@/lib/licenses/license-badge-variant';
+import { LicenseStatus } from '@lukittu/shared';
 import {
   AlertTriangle,
   Ban,
@@ -27,15 +27,15 @@ export function LicenseStatusFilterChip({
 
   const getStatusIcon = (status: LicenseStatus) => {
     switch (status) {
-      case 'ACTIVE':
+      case LicenseStatus.ACTIVE:
         return <CheckCircle className="h-4 w-4 text-[#22c55e]" />;
-      case 'INACTIVE':
+      case LicenseStatus.INACTIVE:
         return <MinusCircle className="h-4 w-4 text-gray-500" />;
-      case 'EXPIRING':
+      case LicenseStatus.EXPIRING:
         return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'EXPIRED':
+      case LicenseStatus.EXPIRED:
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'SUSPENDED':
+      case LicenseStatus.SUSPENDED:
         return <Ban className="h-4 w-4 text-red-500" />;
     }
   };
@@ -62,9 +62,7 @@ export function LicenseStatusFilterChip({
           >
             {t('general.all')}
           </Button>
-          {(
-            ['ACTIVE', 'INACTIVE', 'EXPIRING', 'EXPIRED', 'SUSPENDED'] as const
-          ).map((statusOption) => (
+          {Object.values(LicenseStatus).map((statusOption) => (
             <Button
               key={statusOption}
               className="flex items-center justify-start gap-2"

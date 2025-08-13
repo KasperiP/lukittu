@@ -1,11 +1,16 @@
+import { LicenseStatus } from '@lukittu/shared';
 import { getLicenseStatusBadgeVariant } from './license-badge-variant';
 
 describe('getLicenseStatusBadgeVariant', () => {
   test('returns correct badge variants for each status', () => {
-    expect(getLicenseStatusBadgeVariant('ACTIVE')).toBe('success');
-    expect(getLicenseStatusBadgeVariant('INACTIVE')).toBe('secondary');
-    expect(getLicenseStatusBadgeVariant('EXPIRING')).toBe('warning');
-    expect(getLicenseStatusBadgeVariant('EXPIRED')).toBe('error');
-    expect(getLicenseStatusBadgeVariant('SUSPENDED')).toBe('error');
+    expect(getLicenseStatusBadgeVariant(LicenseStatus.ACTIVE)).toBe('success');
+    expect(getLicenseStatusBadgeVariant(LicenseStatus.INACTIVE)).toBe(
+      'secondary',
+    );
+    expect(getLicenseStatusBadgeVariant(LicenseStatus.EXPIRING)).toBe(
+      'warning',
+    );
+    expect(getLicenseStatusBadgeVariant(LicenseStatus.EXPIRED)).toBe('error');
+    expect(getLicenseStatusBadgeVariant(LicenseStatus.SUSPENDED)).toBe('error');
   });
 });

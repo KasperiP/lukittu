@@ -1,11 +1,12 @@
 import { License } from '../../prisma/generated/client';
 
-export type LicenseStatus =
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'EXPIRING'
-  | 'EXPIRED'
-  | 'SUSPENDED';
+export enum LicenseStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  EXPIRING = 'EXPIRING',
+  EXPIRED = 'EXPIRED',
+  SUSPENDED = 'SUSPENDED',
+}
 
 export const getLicenseStatus = (
   license: Omit<License, 'licenseKeyLookup'>,
@@ -13,7 +14,7 @@ export const getLicenseStatus = (
   const currentDate = new Date();
 
   if (license.suspended) {
-    return 'SUSPENDED';
+    return LicenseStatus.SUSPENDED;
   }
 
   const lastActiveDate = new Date(license.lastActiveAt);
@@ -24,46 +25,46 @@ export const getLicenseStatus = (
       currentDate.getTime() - lastActiveDate.getTime() >
       30 * 24 * 60 * 60 * 1000
     ) {
-      return 'INACTIVE';
+      return LicenseStatus.INACTIVE;
     }
 
-    return 'ACTIVE';
+    return LicenseStatus.ACTIVE;
   }
 
   if (license.expirationType === 'DATE') {
     if (currentDate.getTime() > new Date(license.expirationDate!).getTime()) {
-      return 'EXPIRED';
+      return LicenseStatus.EXPIRED;
     }
 
     if (
       currentDate.getTime() >
       new Date(license.expirationDate!).getTime() - 30 * 24 * 60 * 60 * 1000
     ) {
-      return 'EXPIRING';
+      return LicenseStatus.EXPIRING;
     }
 
     if (
       currentDate.getTime() - lastActiveDate.getTime() >
       30 * 24 * 60 * 60 * 1000
     ) {
-      return 'INACTIVE';
+      return LicenseStatus.INACTIVE;
     }
 
-    return 'ACTIVE';
+    return LicenseStatus.ACTIVE;
   }
 
   const hasStartedExpiring = Boolean(license.expirationDate);
 
   if (hasStartedExpiring) {
     if (currentDate.getTime() > new Date(license.expirationDate!).getTime()) {
-      return 'EXPIRED';
+      return LicenseStatus.EXPIRED;
     }
 
     if (
       currentDate.getTime() >
       new Date(license.expirationDate!).getTime() - 30 * 24 * 60 * 60 * 1000
     ) {
-      return 'EXPIRING';
+      return LicenseStatus.EXPIRING;
     }
   }
 
@@ -71,8 +72,8 @@ export const getLicenseStatus = (
     currentDate.getTime() - lastActiveDate.getTime() >
     30 * 24 * 60 * 60 * 1000
   ) {
-    return 'INACTIVE';
+    return LicenseStatus.INACTIVE;
   }
 
-  return 'ACTIVE';
+  return LicenseStatus.ACTIVE;
 };

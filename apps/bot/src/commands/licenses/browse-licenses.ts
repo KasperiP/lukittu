@@ -3,6 +3,7 @@ import {
   generateHMAC,
   getLicenseStatus,
   License,
+  LicenseStatus,
   logger,
   prisma,
   regex,
@@ -19,13 +20,6 @@ import {
   MessageFlags,
 } from 'discord.js';
 import { Command } from '../../structures/command';
-
-type LicenseStatus =
-  | 'ACTIVE'
-  | 'INACTIVE'
-  | 'EXPIRING'
-  | 'EXPIRED'
-  | 'SUSPENDED';
 
 type ExtendedLicense = Omit<License, 'licenseKeyLookup'> & {
   products: { id: string; name: string; url: string | null }[];
@@ -46,26 +40,26 @@ interface StatusOption {
 const PAGE_SIZE = 1;
 const STATUS_OPTIONS: StatusOption[] = [
   { name: 'All', value: 'ALL' },
-  { name: 'Active', value: 'ACTIVE' },
-  { name: 'Inactive', value: 'INACTIVE' },
-  { name: 'Expiring', value: 'EXPIRING' },
-  { name: 'Expired', value: 'EXPIRED' },
-  { name: 'Suspended', value: 'SUSPENDED' },
+  { name: 'Active', value: LicenseStatus.ACTIVE },
+  { name: 'Inactive', value: LicenseStatus.INACTIVE },
+  { name: 'Expiring', value: LicenseStatus.EXPIRING },
+  { name: 'Expired', value: LicenseStatus.EXPIRED },
+  { name: 'Suspended', value: LicenseStatus.SUSPENDED },
 ];
 
 function getLicenseStatusInfo(license: ExtendedLicense) {
   const licenseStatus = getLicenseStatus(license);
 
   switch (licenseStatus) {
-    case 'ACTIVE':
+    case LicenseStatus.ACTIVE:
       return { text: 'Active', color: Colors.Green };
-    case 'INACTIVE':
+    case LicenseStatus.INACTIVE:
       return { text: 'Inactive', color: Colors.Yellow };
-    case 'EXPIRING':
+    case LicenseStatus.EXPIRING:
       return { text: 'Expiring', color: Colors.Orange };
-    case 'EXPIRED':
+    case LicenseStatus.EXPIRED:
       return { text: 'Expired', color: Colors.Red };
-    case 'SUSPENDED':
+    case LicenseStatus.SUSPENDED:
       return { text: 'Suspended', color: Colors.Red };
     default:
       return { text: 'Unknown', color: Colors.Grey };
@@ -490,7 +484,7 @@ export default Command({
         );
 
         switch (status) {
-          case 'ACTIVE':
+          case LicenseStatus.ACTIVE:
             statusFilter = {
               suspended: false,
               lastActiveAt: { gt: thirtyDaysAgo },
@@ -512,7 +506,7 @@ export default Command({
               ],
             };
             break;
-          case 'INACTIVE':
+          case LicenseStatus.INACTIVE:
             statusFilter = {
               suspended: false,
               lastActiveAt: { lte: thirtyDaysAgo },
@@ -534,7 +528,7 @@ export default Command({
               ],
             };
             break;
-          case 'EXPIRING':
+          case LicenseStatus.EXPIRING:
             statusFilter = {
               suspended: false,
               expirationType: { in: ['DATE', 'DURATION'] },
@@ -544,14 +538,14 @@ export default Command({
               },
             };
             break;
-          case 'EXPIRED':
+          case LicenseStatus.EXPIRED:
             statusFilter = {
               suspended: false,
               expirationType: { in: ['DATE', 'DURATION'] },
               expirationDate: { lt: currentDate },
             };
             break;
-          case 'SUSPENDED':
+          case LicenseStatus.SUSPENDED:
             statusFilter = { suspended: true };
             break;
         }

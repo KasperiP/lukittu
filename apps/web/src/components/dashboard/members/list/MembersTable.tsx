@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useDebouncedQueryState } from '@/hooks/useDebouncedQueryState';
 import { useTableScroll } from '@/hooks/useTableScroll';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { getInitials } from '@/lib/utils/text-helpers';
@@ -31,6 +32,7 @@ import { TeamContext } from '@/providers/TeamProvider';
 import { ChevronsUp, ChevronUp, Filter, Search, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -55,15 +57,20 @@ export function MembersTable() {
   const teamCtx = useContext(TeamContext);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [debounceSearch, setDebounceSearch] = useState('');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [debouncedSearch, search, setDebouncedSearch, setSearch] =
+    useDebouncedQueryState<string>('search', parseAsString.withDefault(''), {
+      debounceMs: 500,
+    });
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [pageSize, setPageSize] = useQueryState(
+    'pageSize',
+    parseAsInteger.withDefault(25),
+  );
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
     pageSize: pageSize.toString(),
-    ...(search && { search }),
+    ...(debouncedSearch && { search: debouncedSearch }),
   });
 
   const { data, error, isLoading } = useSWR<ITeamsMembersGetSuccessResponse>(
@@ -82,16 +89,6 @@ export function MembersTable() {
   const members = data?.members ?? [];
   const totalMembers = data?.totalResults ?? 1;
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setSearch(debounceSearch);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [debounceSearch]);
-
   const isTeamOwner = members.some(
     (member) =>
       'isOwner' in member &&
@@ -109,10 +106,12 @@ export function MembersTable() {
             placeholder: t('dashboard.licenses.search_product'),
           },
         ]}
-        initialFilters={{ search }}
+        initialFilters={{ search: debouncedSearch }}
         open={mobileFiltersOpen}
         title={t('general.filters')}
-        onApply={(filters) => setSearch(filters.search)}
+        onApply={(filters) => {
+          setDebouncedSearch(filters.search);
+        }}
         onOpenChange={setMobileFiltersOpen}
       />
       <Card>
@@ -135,16 +134,32 @@ export function MembersTable() {
         <CardContent>
           {teamCtx.selectedTeam ? (
             <>
-              <div className="relative mb-4 flex min-w-[33%] max-w-xs items-center max-lg:hidden">
-                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                <Input
-                  className="pl-8"
-                  placeholder={t('dashboard.members.search_member')}
-                  value={debounceSearch}
-                  onChange={(e) => {
-                    setDebounceSearch(e.target.value);
-                  }}
-                />
+              <div className="mb-4 flex flex-wrap items-center gap-4 max-lg:hidden">
+                <div className="relative flex w-full min-w-[33%] max-w-xs items-center">
+                  <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+                  <Input
+                    className="pl-8"
+                    placeholder={t('dashboard.members.search_member')}
+                    value={search}
+                    onChange={(e) => {
+                      setDebouncedSearch(e.target.value);
+                    }}
+                  />
+                </div>
+
+                {debouncedSearch && (
+                  <Button
+                    className="h-7 rounded-full text-xs"
+                    size="sm"
+                    onClick={() => {
+                      setSearch('');
+                      setPage(1);
+                      setPageSize(25);
+                    }}
+                  >
+                    {t('general.clear_all')}
+                  </Button>
+                )}
               </div>
               <div className="flex flex-col md:hidden">
                 {isLoading

@@ -86,8 +86,8 @@ export function IpCountFilterChip({
         setTempIpCountMax(ipCountMax);
       }}
       onReset={() => {
-        setComparisonMode('equals');
-        setTempComparisonMode('equals');
+        setComparisonMode('');
+        setTempComparisonMode('');
         setIpCountMin('');
         setIpCountMax('');
         setTempIpCountMin('');

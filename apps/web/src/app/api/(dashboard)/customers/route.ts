@@ -158,15 +158,18 @@ export async function GET(
         }
 
         if (havingClause) {
-          const filteredCustomerIds = await prisma.$queryRaw<{ id: string }[]>`
-        SELECT c.id
-        FROM "Customer" c
-        LEFT JOIN "_CustomerToLicense" cl ON c.id = cl."A"
-        LEFT JOIN "License" l ON cl."B" = l.id
-        WHERE c."teamId" = ${selectedTeam}
-        GROUP BY c.id
-        ${havingClause}
-        `;
+          const baseQuery = Prisma.sql`
+            SELECT c.id
+            FROM "Customer" c
+            LEFT JOIN "_CustomerToLicense" cl ON c.id = cl."A"
+            LEFT JOIN "License" l ON cl."B" = l.id
+            WHERE c."teamId" = ${selectedTeam}
+            GROUP BY c.id
+          `;
+
+          const filteredCustomerIds = await prisma.$queryRaw<{ id: string }[]>(
+            Prisma.sql`${baseQuery} ${havingClause}`,
+          );
 
           licenseCountFilter = {
             id: {
@@ -197,6 +200,12 @@ export async function GET(
             },
             {
               fullName: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              username: {
                 contains: search,
                 mode: 'insensitive',
               },
