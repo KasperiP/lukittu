@@ -176,7 +176,7 @@ export async function GET(
         const uniqueIpCounts = await prisma.$queryRaw<
           { id: string; ipCount: number }[]
         >`
-          SELECT l.id, COUNT(DISTINCT rl."ipAddress")::int as "ipCount"
+          SELECT l.id, COUNT(DISTINCT rl."ipAddress") as "ipCount"
           FROM "License" l
           LEFT JOIN "RequestLog" rl ON l.id = rl."licenseId"
           WHERE l."teamId" = ${selectedTeam}

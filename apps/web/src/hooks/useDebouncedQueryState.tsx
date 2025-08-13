@@ -1,5 +1,5 @@
 'use client';
-import { useQueryState } from 'nuqs';
+import { ParserBuilder, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 type Timeout = ReturnType<typeof setTimeout>;
@@ -7,6 +7,13 @@ type Timeout = ReturnType<typeof setTimeout>;
 type DebounceOptions = {
   debounceMs?: number;
 };
+
+type DebouncedQueryStateReturn<T> = [
+  urlValue: T | null,
+  localValue: T,
+  setValueDebounced: (value: T) => void,
+  setValueInstant: (value: T) => void,
+];
 
 /**
  * Debounced wrapper around nuqs useQueryState.
@@ -24,21 +31,38 @@ type DebounceOptions = {
  */
 export function useDebouncedQueryState<T>(
   key: string,
-  parser: any,
+  parser: ParserBuilder<T>,
   options: DebounceOptions = {},
-): [T, T, (value: T) => void, (value: T) => void] {
+): DebouncedQueryStateReturn<T> {
   const { debounceMs = 500 } = options;
 
   const [urlValue, setUrlValue] = useQueryState<T>(key, parser);
-  const [localValue, setLocalValue] = useState<T>(() => urlValue as T);
+
+  // Initialize local value with URL value or parser's default value
+  const [localValue, setLocalValue] = useState<T>(() => {
+    if (urlValue !== null) {
+      return urlValue;
+    }
+
+    // Try to extract default value from parser
+    const defaultValue = (parser as any).defaultValue;
+    if (defaultValue !== undefined) {
+      return defaultValue;
+    }
+
+    // Fallback - this should match the parser's expected type
+    throw new Error(
+      `useDebouncedQueryState: No initial value available for key "${key}". Consider using a parser with a default value.`,
+    );
+  });
 
   const timerRef = useRef<Timeout | null>(null);
   const isUpdatingFromUrlRef = useRef(false);
 
   // Sync local state with URL when URL changes (e.g., navigation back/forward)
   useEffect(() => {
-    if (!isUpdatingFromUrlRef.current) {
-      setLocalValue(urlValue as T);
+    if (!isUpdatingFromUrlRef.current && urlValue !== null) {
+      setLocalValue(urlValue);
     }
     isUpdatingFromUrlRef.current = false;
   }, [urlValue]);
@@ -56,7 +80,7 @@ export function useDebouncedQueryState<T>(
       // Debounce URL updates
       timerRef.current = setTimeout(() => {
         isUpdatingFromUrlRef.current = true;
-        setUrlValue(next as any);
+        setUrlValue(next as Parameters<typeof setUrlValue>[0]);
       }, debounceMs);
     },
     [debounceMs, setUrlValue],
@@ -72,7 +96,7 @@ export function useDebouncedQueryState<T>(
       // Update both local and URL state immediately
       setLocalValue(next);
       isUpdatingFromUrlRef.current = true;
-      setUrlValue(next as any);
+      setUrlValue(next as Parameters<typeof setUrlValue>[0]);
     },
     [setUrlValue],
   );
@@ -87,5 +111,5 @@ export function useDebouncedQueryState<T>(
     [],
   );
 
-  return [urlValue as T, localValue, setValueDebounced, setValueInstant];
+  return [urlValue, localValue, setValueDebounced, setValueInstant];
 }

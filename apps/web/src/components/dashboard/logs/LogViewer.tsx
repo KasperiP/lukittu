@@ -370,7 +370,7 @@ export default function LogViewer() {
               setTempIpSearch(DEFAULT_SEARCH);
               setDateRangeFrom(null);
               setDateRangeTo(null);
-              setTempDateRange(undefined as DateRange | undefined);
+              setTempDateRange(undefined);
             }}
           >
             {t('general.clear_all')}

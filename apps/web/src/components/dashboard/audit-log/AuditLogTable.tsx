@@ -421,7 +421,7 @@ export default function AuditLogTable() {
     setTempIpSearch(DEFAULT_SEARCH);
     setDateRangeFrom(null);
     setDateRangeTo(null);
-    setTempDateRange(undefined as DateRange | undefined);
+    setTempDateRange(undefined);
   };
 
   const renderFilterChips = () => (
