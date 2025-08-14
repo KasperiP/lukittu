@@ -85,8 +85,8 @@ export function LicenseCountFilterChip({
         setTempLicenseCountMax(licenseCountMax);
       }}
       onReset={() => {
-        setComparisonMode('equals');
-        setTempComparisonMode('equals');
+        setComparisonMode('');
+        setTempComparisonMode('');
         setLicenseCountMin('');
         setLicenseCountMax('');
         setTempLicenseCountMin('');

@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { parseAsLocalDate } from '@/lib/utils/date-helpers';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
 import { addDays } from 'date-fns';
@@ -34,6 +35,7 @@ import {
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { parseAsArrayOf, parseAsString, useQueryState } from 'nuqs';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
@@ -53,37 +55,69 @@ export default function LogViewer() {
     (team) => team.id === teamCtx.selectedTeam,
   );
 
+  const DEFAULT_STATUS = 'all';
+  const DEFAULT_TYPE = 'all';
+  const DEFAULT_DATE_RANGE_FROM = addDays(new Date(), -7);
+  const DEFAULT_DATE_RANGE_TO = new Date();
+  const DEFAULT_SEARCH = '';
+  const DEFAULT_IDS: string[] = [];
+
   const [selectedLog, setSelectedLog] = useState<
     ILogsGetSuccessResponse['logs'][number] | null
   >(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [customerIds, setCustomerIds] = useState<string[]>([]);
-  const [productIds, setProductIds] = useState<string[]>([]);
-  const [licenseSearch, setLicenseSearch] = useState('');
-  const [ipSearch, setIpSearch] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
+  const [statusFilter, setStatusFilter] = useQueryState(
+    'status',
+    parseAsString.withDefault('all'),
+  );
+  const [typeFilter, setTypeFilter] = useQueryState(
+    'type',
+    parseAsString.withDefault('all'),
+  );
+  const [customerIds, setCustomerIds] = useQueryState<string[]>(
+    'customerIds',
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [productIds, setProductIds] = useQueryState<string[]>(
+    'productIds',
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
+  const [licenseSearch, setLicenseSearch] = useQueryState(
+    'licenseSearch',
+    parseAsString.withDefault(''),
+  );
+  const [ipSearch, setIpSearch] = useQueryState(
+    'ipSearch',
+    parseAsString.withDefault(''),
+  );
+  const [dateRangeFrom, setDateRangeFrom] = useQueryState(
+    'dateRangeFrom',
+    parseAsLocalDate,
+  );
+  const [dateRangeTo, setDateRangeTo] = useQueryState(
+    'dateRangeTo',
+    parseAsLocalDate,
+  );
+
+  const dateRange = useMemo(
+    () => ({
+      from: dateRangeFrom || undefined,
+      to: dateRangeTo || undefined,
+    }),
+    [dateRangeFrom, dateRangeTo],
+  );
 
   const [tempStatus, setTempStatus] = useState(statusFilter);
   const [tempType, setTempType] = useState(typeFilter);
-  const [tempDateRange, setTempDateRange] = useState(dateRange);
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
+    dateRange.from || dateRange.to
+      ? dateRange
+      : { from: DEFAULT_DATE_RANGE_FROM, to: DEFAULT_DATE_RANGE_TO },
+  );
   const [tempLicenseSearch, setTempLicenseSearch] = useState(licenseSearch);
   const [tempIpSearch, setTempIpSearch] = useState(ipSearch);
   const [tempProductIds, setTempProductIds] = useState(productIds);
   const [tempCustomerIds, setTempCustomerIds] = useState(customerIds);
-
-  const DEFAULT_STATUS = 'all';
-  const DEFAULT_TYPE = 'all';
-  const DEFAULT_DATE_RANGE = {
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  };
-  const DEFAULT_SEARCH = '';
-  const DEFAULT_IDS: string[] = [];
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -93,7 +127,7 @@ export default function LogViewer() {
     if (productIds.length > 0) count++;
     if (licenseSearch) count++;
     if (ipSearch) count++;
-    if (dateRange?.from || dateRange?.to) count++;
+    if (dateRangeFrom || dateRangeTo) count++;
     return count;
   }, [
     statusFilter,
@@ -102,7 +136,8 @@ export default function LogViewer() {
     productIds,
     licenseSearch,
     ipSearch,
-    dateRange,
+    dateRangeFrom,
+    dateRangeTo,
   ]);
 
   const getKey = (
@@ -136,16 +171,16 @@ export default function LogViewer() {
     if (ipSearch) {
       params.append('ipSearch', ipSearch);
     }
-    if (dateRange?.from) {
-      const dateRangeStartOfDay = new Date(dateRange.from);
-      dateRangeStartOfDay.setHours(0, 0, 0, 0);
-      params.append('rangeStart', dateRangeStartOfDay.toISOString());
-    }
-    if (dateRange?.to) {
-      const dateRangeEndOfDay = new Date(dateRange.to);
-      dateRangeEndOfDay.setHours(23, 59, 59, 999);
-      params.append('rangeEnd', dateRangeEndOfDay.toISOString());
-    }
+    const effectiveDateRangeFrom = dateRangeFrom || DEFAULT_DATE_RANGE_FROM;
+    const effectiveDateRangeTo = dateRangeTo || DEFAULT_DATE_RANGE_TO;
+
+    const dateRangeStartOfDay = new Date(effectiveDateRangeFrom);
+    dateRangeStartOfDay.setHours(0, 0, 0, 0);
+    params.append('rangeStart', dateRangeStartOfDay.toISOString());
+
+    const dateRangeEndOfDay = new Date(effectiveDateRangeTo);
+    dateRangeEndOfDay.setHours(23, 59, 59, 999);
+    params.append('rangeEnd', dateRangeEndOfDay.toISOString());
 
     return `/api/logs?${params.toString()}`;
   };
@@ -210,23 +245,17 @@ export default function LogViewer() {
 
   useEffect(() => {
     if (isFirstLoad.current) {
+      if (!dateRange.from && !dateRange.to) {
+        setDateRangeFrom(DEFAULT_DATE_RANGE_FROM);
+        setDateRangeTo(DEFAULT_DATE_RANGE_TO);
+      }
       isFirstLoad.current = false;
       return;
     }
     setSelectedLog(null);
     setShowDetails(false);
     setSize(1);
-  }, [
-    teamCtx.selectedTeam,
-    setSize,
-    statusFilter,
-    typeFilter,
-    customerIds,
-    productIds,
-    licenseSearch,
-    ipSearch,
-    dateRange,
-  ]);
+  }, [setSize, teamCtx.selectedTeam]);
 
   const handleResetToDefault = () => {
     setStatusFilter(DEFAULT_STATUS);
@@ -241,8 +270,12 @@ export default function LogViewer() {
     setTempLicenseSearch(DEFAULT_SEARCH);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRange(DEFAULT_DATE_RANGE);
-    setTempDateRange(DEFAULT_DATE_RANGE);
+    setDateRangeFrom(DEFAULT_DATE_RANGE_FROM);
+    setDateRangeTo(DEFAULT_DATE_RANGE_TO);
+    setTempDateRange({
+      from: DEFAULT_DATE_RANGE_FROM,
+      to: DEFAULT_DATE_RANGE_TO,
+    });
   };
 
   const renderFilterChips = () => (
@@ -257,7 +290,10 @@ export default function LogViewer() {
       <DateRangeFilterChip
         dateRange={dateRange}
         retentionDays={selectedTeam?.limits?.logRetention || 30}
-        setDateRange={setDateRange}
+        setDateRange={(range) => {
+          setDateRangeFrom(range?.from || null);
+          setDateRangeTo(range?.to || null);
+        }}
         setTempDateRange={setTempDateRange}
         tempDateRange={tempDateRange}
       />
@@ -322,7 +358,8 @@ export default function LogViewer() {
               setTempLicenseSearch(DEFAULT_SEARCH);
               setIpSearch(DEFAULT_SEARCH);
               setTempIpSearch(DEFAULT_SEARCH);
-              setDateRange(undefined);
+              setDateRangeFrom(null);
+              setDateRangeTo(null);
               setTempDateRange(undefined);
             }}
           >

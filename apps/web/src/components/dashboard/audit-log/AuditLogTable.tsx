@@ -34,6 +34,7 @@ import {
   getSourceBadgeVariant,
   getSourceDisplayName,
 } from '@/lib/utils/audit-helpers';
+import { parseAsLocalDate } from '@/lib/utils/date-helpers';
 import { getInitials } from '@/lib/utils/text-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
 import { AuditLogSource } from '@lukittu/shared';
@@ -53,6 +54,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
@@ -224,36 +226,64 @@ export default function AuditLogTable() {
     IAuditLogsGetSuccessResponse['auditLogs'][number] | null
   >(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [pageSize, setPageSize] = useState(25);
-  const [page, setPage] = useState(1);
-  const [sortColumn, setSortColumn] = useState<'createdAt' | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
-    null,
+  const [pageSize, setPageSize] = useQueryState(
+    'pageSize',
+    parseAsInteger.withDefault(25),
+  );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [sortColumn, setSortColumn] = useQueryState(
+    'sortColumn',
+    parseAsString.withDefault(''),
+  );
+  const [sortDirection, setSortDirection] = useQueryState(
+    'sortDirection',
+    parseAsString.withDefault(''),
   );
   const [animatingRows, setAnimatingRows] = useState<Set<string>>(new Set());
 
-  const [sourceFilter, setSourceFilter] = useState<AuditLogSource | 'all'>(
-    'all',
+  const [sourceFilter, setSourceFilter] = useQueryState(
+    'source',
+    parseAsString.withDefault('all'),
   );
-  const [targetTypeFilter, setTargetTypeFilter] = useState<string>('all');
-  const [ipSearch, setIpSearch] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  });
+  const [targetTypeFilter, setTargetTypeFilter] = useQueryState(
+    'targetType',
+    parseAsString.withDefault('all'),
+  );
+  const [ipSearch, setIpSearch] = useQueryState(
+    'ipSearch',
+    parseAsString.withDefault(''),
+  );
+  const [dateRangeFrom, setDateRangeFrom] = useQueryState(
+    'dateRangeFrom',
+    parseAsLocalDate,
+  );
+  const [dateRangeTo, setDateRangeTo] = useQueryState(
+    'dateRangeTo',
+    parseAsLocalDate,
+  );
+
+  const dateRange = useMemo(
+    () => ({
+      from: dateRangeFrom || undefined,
+      to: dateRangeTo || undefined,
+    }),
+    [dateRangeFrom, dateRangeTo],
+  );
 
   const [tempSourceFilter, setTempSourceFilter] = useState(sourceFilter);
   const [tempTargetTypeFilter, setTempTargetTypeFilter] =
     useState(targetTypeFilter);
   const [tempIpSearch, setTempIpSearch] = useState(ipSearch);
-  const [tempDateRange, setTempDateRange] = useState(dateRange);
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
+    dateRange.from || dateRange.to
+      ? dateRange
+      : { from: addDays(new Date(), -7), to: new Date() },
+  );
 
   const DEFAULT_FILTER = 'all';
   const DEFAULT_SEARCH = '';
-  const DEFAULT_DATE_RANGE = {
-    from: addDays(new Date(), -7),
-    to: new Date(),
-  };
+  const DEFAULT_DATE_RANGE_FROM = useMemo(() => addDays(new Date(), -7), []);
+  const DEFAULT_DATE_RANGE_TO = useMemo(() => new Date(), []);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -271,15 +301,19 @@ export default function AuditLogTable() {
     setTempTargetTypeFilter(DEFAULT_FILTER);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRange(DEFAULT_DATE_RANGE);
-    setTempDateRange(DEFAULT_DATE_RANGE);
+    setDateRangeFrom(DEFAULT_DATE_RANGE_FROM);
+    setDateRangeTo(DEFAULT_DATE_RANGE_TO);
+    setTempDateRange({
+      from: DEFAULT_DATE_RANGE_FROM,
+      to: DEFAULT_DATE_RANGE_TO,
+    });
   };
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
     pageSize: pageSize.toString(),
-    ...(sortColumn && { sortColumn }),
-    ...(sortDirection && { sortDirection }),
+    ...(sortColumn && sortColumn !== '' && { sortColumn }),
+    ...(sortDirection && sortDirection !== '' && { sortDirection }),
   });
 
   if (sourceFilter !== 'all') {
@@ -314,16 +348,25 @@ export default function AuditLogTable() {
 
   useEffect(() => {
     if (isFirstLoad.current) {
+      if (!dateRange.from && !dateRange.to) {
+        setDateRangeFrom(DEFAULT_DATE_RANGE_FROM);
+        setDateRangeTo(DEFAULT_DATE_RANGE_TO);
+      }
       isFirstLoad.current = false;
       return;
     }
     setPage(1);
   }, [
+    setPage,
     teamCtx.selectedTeam,
     sourceFilter,
     targetTypeFilter,
     ipSearch,
     dateRange,
+    setDateRangeFrom,
+    setDateRangeTo,
+    DEFAULT_DATE_RANGE_FROM,
+    DEFAULT_DATE_RANGE_TO,
   ]);
 
   useEffect(() => {
@@ -366,7 +409,8 @@ export default function AuditLogTable() {
     setTempTargetTypeFilter(DEFAULT_FILTER);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
-    setDateRange(undefined);
+    setDateRangeFrom(null);
+    setDateRangeTo(null);
     setTempDateRange(undefined);
   };
 
@@ -375,8 +419,8 @@ export default function AuditLogTable() {
       <SourceFilterChip
         setSource={setSourceFilter}
         setTempSource={setTempSourceFilter}
-        source={sourceFilter}
-        tempSource={tempSourceFilter}
+        source={sourceFilter as AuditLogSource | 'all'}
+        tempSource={tempSourceFilter as AuditLogSource | 'all'}
       />
 
       <TargetFilterChip
@@ -389,7 +433,10 @@ export default function AuditLogTable() {
       <DateRangeFilterChip
         dateRange={dateRange}
         retentionDays={selectedTeam?.limits?.logRetention || 30}
-        setDateRange={setDateRange}
+        setDateRange={(range) => {
+          setDateRangeFrom(range?.from || null);
+          setDateRangeTo(range?.to || null);
+        }}
         setTempDateRange={setTempDateRange}
         tempDateRange={tempDateRange}
       />

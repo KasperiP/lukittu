@@ -109,7 +109,7 @@ export function ProductsTable() {
       ] as const).withDefault(''),
     );
   const [tempLicenseCountComparisonMode, setTempLicenseCountComparisonMode] =
-    useState<ComparisonMode>('equals');
+    useState<ComparisonMode>('');
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
@@ -180,7 +180,7 @@ export function ProductsTable() {
             setTempLicenseCountMin('');
             setTempLicenseCountMax('');
             setLicenseCountComparisonMode('');
-            setTempLicenseCountComparisonMode('equals');
+            setTempLicenseCountComparisonMode('');
             setPage(1);
             setPageSize(25);
             setSortColumn('');

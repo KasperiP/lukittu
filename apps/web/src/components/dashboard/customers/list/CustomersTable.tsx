@@ -111,7 +111,7 @@ export function CustomersTable() {
       ] as const).withDefault(''),
     );
   const [tempLicenseCountComparisonMode, setTempLicenseCountComparisonMode] =
-    useState<ComparisonMode>('equals');
+    useState<ComparisonMode>('');
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
@@ -201,7 +201,7 @@ export function CustomersTable() {
             setTempLicenseCountMin('');
             setTempLicenseCountMax('');
             setLicenseCountComparisonMode('');
-            setTempLicenseCountComparisonMode('equals');
+            setTempLicenseCountComparisonMode('');
             setPage(1);
             setPageSize(25);
             setSortColumn('');

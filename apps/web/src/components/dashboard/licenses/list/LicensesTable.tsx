@@ -160,7 +160,7 @@ export function LicensesTable() {
     ] as const).withDefault(''),
   );
   const [tempIpCountComparisonMode, setTempIpCountComparisonMode] =
-    useState<ComparisonMode>('equals');
+    useState<ComparisonMode>('');
   const [status, setStatus] = useQueryState(
     'status',
     parseAsStringEnum([
@@ -287,7 +287,7 @@ export function LicensesTable() {
             setTempIpCountMin('');
             setTempIpCountMax('');
             setIpCountComparisonMode('');
-            setTempIpCountComparisonMode('equals');
+            setTempIpCountComparisonMode('');
             setPage(1);
             setPageSize(25);
             setSortColumn('');
