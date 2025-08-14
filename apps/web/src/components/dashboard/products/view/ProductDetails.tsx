@@ -59,7 +59,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   </TooltipProvider>
                 </span>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               )}
             </div>
           </div>
@@ -79,7 +82,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   t('general.unknown')
                 )
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-32" />
               )}
             </div>
           </div>
@@ -93,7 +96,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   {product ? (
                     <DateConverter date={product.createdAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -105,7 +108,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                   {product ? (
                     <DateConverter date={product.updatedAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -129,7 +132,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                       t('general.unknown')
                     )
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
                   )}
                 </div>
               </div>

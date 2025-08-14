@@ -62,7 +62,10 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                   </TooltipProvider>
                 </span>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               )}
             </div>
           </div>
@@ -89,7 +92,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                   )}
                 </Badge>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-5 w-20" />
               )}
             </div>
           </div>
@@ -101,7 +104,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
               {license ? (
                 t(`general.${license.expirationType.toLowerCase()}` as any)
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-24" />
               )}
             </div>
           </div>
@@ -117,7 +120,12 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
               </div>
             )
           ) : (
-            <Skeleton className="h-4 w-full" />
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold">
+                {t('dashboard.licenses.expiration_date')}
+              </h3>
+              <Skeleton className="h-4 w-28" />
+            </div>
           )}
           {license ? (
             license.expirationType === 'DURATION' && (
@@ -155,7 +163,20 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
               </>
             )
           ) : (
-            <Skeleton className="h-4 w-full" />
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-semibold">
+                  {t('dashboard.licenses.expiration_start')}
+                </h3>
+                <Skeleton className="h-4 w-32" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-semibold">
+                  {t('dashboard.licenses.expiration_days')}
+                </h3>
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
           )}
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">
@@ -165,7 +186,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
               {license ? (
                 (license.ipLimit ?? <Infinity className="h-4 w-4 shrink-0" />)
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-8" />
               )}
             </div>
           </div>
@@ -177,7 +198,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
               {license ? (
                 (license.seats ?? <Infinity className="h-4 w-4 shrink-0" />)
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-8" />
               )}
             </div>
           </div>
@@ -191,7 +212,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                   {license ? (
                     <DateConverter date={license.createdAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -203,7 +224,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                   {license ? (
                     <DateConverter date={license.updatedAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -227,7 +248,10 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                       t('general.unknown')
                     )
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
                   )}
                 </div>
               </div>

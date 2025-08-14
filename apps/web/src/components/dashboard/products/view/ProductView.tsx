@@ -60,7 +60,11 @@ export default function ProductView() {
         ) : (
           <h1 className="truncate text-2xl font-bold">{product?.name}</h1>
         )}
-        <ProductsActionDropdown product={product!} variant="outline" />
+        {isLoading ? (
+          <Skeleton className="h-10 w-10 max-sm:w-12" />
+        ) : (
+          <ProductsActionDropdown product={product!} variant="outline" />
+        )}
       </div>
       <Separator className="mt-2" />
       <div className="mt-6">

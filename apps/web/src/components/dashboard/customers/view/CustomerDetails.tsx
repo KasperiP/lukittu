@@ -59,14 +59,17 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                   </TooltipProvider>
                 </span>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               )}
             </div>
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">{t('general.email')}</h3>
             <div className="text-sm text-muted-foreground">
-              {customer ? customer.email : <Skeleton className="h-4 w-full" />}
+              {customer ? customer.email : <Skeleton className="h-4 w-56" />}
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -79,7 +82,7 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                   t('general.unknown')
                 )
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-40" />
               )}
             </div>
           </div>
@@ -93,7 +96,7 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                   {customer ? (
                     <DateConverter date={customer.createdAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -105,7 +108,7 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                   {customer ? (
                     <DateConverter date={customer.updatedAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -129,7 +132,10 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                       t('general.unknown')
                     )
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
                   )}
                 </div>
               </div>

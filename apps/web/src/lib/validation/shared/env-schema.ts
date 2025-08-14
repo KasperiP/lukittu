@@ -295,7 +295,9 @@ export function validateEnv(): Env {
       logger.error(
         `Failed to validate environment variables: ${issues.join(', ')}`,
       );
-      process.exit(1);
+      throw new Error(
+        `Failed to validate environment variables: ${issues.join(', ')}`,
+      );
     }
     throw new Error('Failed to validate environment variables');
   }

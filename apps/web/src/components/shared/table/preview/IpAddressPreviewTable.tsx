@@ -106,7 +106,7 @@ export default function IpAddressPreviewTable({
                 </TableRow>
               </TableHeader>
               {isLoading ? (
-                <TableSkeleton columns={3} rows={3} />
+                <TableSkeleton columns={3} height={4} rows={3} />
               ) : (
                 <TableBody>
                   {ipAddresses.map((ip) => (

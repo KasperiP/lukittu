@@ -61,7 +61,11 @@ export default function CustomerView() {
             {customer?.fullName ?? customer?.email}
           </h1>
         )}
-        <CustomersActionDropdown customer={customer!} variant="outline" />
+        {isLoading ? (
+          <Skeleton className="h-10 w-10 max-sm:w-12" />
+        ) : (
+          <CustomersActionDropdown customer={customer!} variant="outline" />
+        )}
       </div>
       <Separator className="mt-2" />
       <div className="mt-6">

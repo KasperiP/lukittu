@@ -281,7 +281,7 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                       </TableRow>
                     </TableHeader>
                     {releasesLoading ? (
-                      <TableSkeleton columns={6} rows={6} />
+                      <TableSkeleton columns={7} height={4} rows={4} />
                     ) : (
                       <TableBody>
                         {releases.map((release) => (
@@ -440,7 +440,7 @@ export function ReleasesTable({ productId }: ReleasesTableProps) {
                     </TableRow>
                   </TableHeader>
                   {branchesLoading ? (
-                    <TableSkeleton columns={4} rows={6} />
+                    <TableSkeleton columns={4} height={4} rows={4} />
                   ) : (
                     <TableBody>
                       {branches.map((branch) => (

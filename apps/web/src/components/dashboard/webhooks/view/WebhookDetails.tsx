@@ -70,7 +70,10 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   </TooltipProvider>
                 </span>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               )}
             </div>
           </div>
@@ -100,7 +103,10 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   </TooltipProvider>
                 </div>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
               )}
             </div>
           </div>
@@ -120,7 +126,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   {webhook.active ? t('general.active') : t('general.inactive')}
                 </Badge>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-5 w-16" />
               )}
             </div>
           </div>
@@ -152,7 +158,11 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   'None'
                 )
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex flex-wrap gap-1">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-14" />
+                </div>
               )}
             </div>
           </div>
@@ -166,7 +176,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   {webhook ? (
                     <DateConverter date={webhook.createdAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -178,7 +188,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                   {webhook ? (
                     <DateConverter date={webhook.updatedAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -202,7 +212,10 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                       t('general.unknown')
                     )
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4 shrink-0" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
                   )}
                 </div>
               </div>

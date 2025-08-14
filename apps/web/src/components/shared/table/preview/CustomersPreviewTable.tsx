@@ -237,7 +237,7 @@ export default function CustomersPreviewTable({
                   </TableRow>
                 </TableHeader>
                 {isLoading ? (
-                  <TableSkeleton columns={4} rows={3} />
+                  <TableSkeleton columns={4} height={4} rows={3} />
                 ) : (
                   <TableBody>
                     {customers.map((customer) => (

@@ -65,7 +65,11 @@ export default function LicenseView() {
         ) : (
           <h1 className="truncate text-2xl font-bold">{license?.licenseKey}</h1>
         )}
-        <LicensesActionDropdown license={license!} variant="outline" />
+        {isLoading ? (
+          <Skeleton className="h-10 w-10 max-sm:w-12" />
+        ) : (
+          <LicensesActionDropdown license={license!} variant="outline" />
+        )}
       </div>
       <Separator className="mt-2" />
       <div className="mt-6">

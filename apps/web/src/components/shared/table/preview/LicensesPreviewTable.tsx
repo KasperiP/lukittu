@@ -144,7 +144,7 @@ export default function LicensesPreviewTable({
                   </TableRow>
                 </TableHeader>
                 {isLoading ? (
-                  <TableSkeleton columns={3} rows={3} />
+                  <TableSkeleton columns={4} height={4} rows={3} />
                 ) : (
                   <TableBody>
                     {licenses.map((license) => (

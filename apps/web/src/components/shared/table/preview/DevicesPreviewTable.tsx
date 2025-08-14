@@ -116,7 +116,7 @@ export default function DevicesPreviewTable({
                 </TableRow>
               </TableHeader>
               {isLoading ? (
-                <TableSkeleton columns={4} rows={3} />
+                <TableSkeleton columns={4} height={4} rows={3} />
               ) : (
                 <TableBody>
                   {devices.map((device) => (

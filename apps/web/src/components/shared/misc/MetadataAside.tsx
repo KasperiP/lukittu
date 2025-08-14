@@ -38,7 +38,16 @@ export default function MetadataAside({ metadata }: MetadataAsideProps) {
                 </div>
               )
             ) : (
-              <Skeleton className="h-8 w-full" />
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              </div>
             )}
           </div>
         </CardContent>

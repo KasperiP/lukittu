@@ -59,14 +59,17 @@ export function TeamDetails({ team }: TeamDetailsProps) {
                   </TooltipProvider>
                 </span>
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4 shrink-0" />
+                  <Skeleton className="h-4 w-48" />
+                </div>
               )}
             </div>
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">{t('general.name')}</h3>
             <div className="text-sm text-muted-foreground">
-              {team?.name ? team.name : <Skeleton className="h-4 w-full" />}
+              {team?.name ? team.name : <Skeleton className="h-4 w-32" />}
             </div>
           </div>
           <div className="flex flex-col gap-2">
@@ -77,7 +80,7 @@ export function TeamDetails({ team }: TeamDetailsProps) {
               {team?.counts.memberCount ? (
                 team.counts.memberCount
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-8" />
               )}
             </div>
           </div>
@@ -87,7 +90,7 @@ export function TeamDetails({ team }: TeamDetailsProps) {
               {team?.owner ? (
                 team.owner.email
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-56" />
               )}
             </div>
           </div>
@@ -109,7 +112,7 @@ export function TeamDetails({ team }: TeamDetailsProps) {
                   </Badge>
                 )
               ) : (
-                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-5 w-20" />
               )}
             </div>
           </div>
@@ -149,7 +152,7 @@ export function TeamDetails({ team }: TeamDetailsProps) {
                   {team ? (
                     <DateConverter date={team.createdAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>
@@ -161,7 +164,7 @@ export function TeamDetails({ team }: TeamDetailsProps) {
                   {team ? (
                     <DateConverter date={team.updatedAt} />
                   ) : (
-                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-28" />
                   )}
                 </div>
               </div>

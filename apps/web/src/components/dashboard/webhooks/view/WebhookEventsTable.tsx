@@ -133,7 +133,7 @@ export function WebhookEventsTable({ webhookId }: WebhookEventsTableProps) {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableSkeleton columns={6} rows={10} />
+            <TableSkeleton columns={6} height={4} rows={8} />
           </Table>
         </CardContent>
       </Card>
