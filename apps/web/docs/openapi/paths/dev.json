@@ -89,7 +89,7 @@
                     }
                   }
                 },
-                "seats": {
+                "hwidLimit": {
                   "type": "integer",
                   "minimum": 1,
                   "nullable": true
@@ -302,7 +302,7 @@
                               "type": "integer",
                               "nullable": true
                             },
-                            "seats": {
+                            "hwidLimit": {
                               "type": "integer",
                               "nullable": true
                             },

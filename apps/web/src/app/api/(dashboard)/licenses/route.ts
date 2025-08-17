@@ -480,7 +480,7 @@ export async function POST(
       licenseKey,
       metadata,
       productIds,
-      seats,
+      hwidLimit,
       suspended,
     } = body;
 
@@ -637,7 +637,7 @@ export async function POST(
           },
           suspended,
           teamId: team.id,
-          seats,
+          hwidLimit,
           products: productIds.length
             ? { connect: productIds.map((id) => ({ id })) }
             : undefined,

@@ -81,7 +81,7 @@ export const handleInvoicePaid = async (
 
       const lukittuProductId = product.metadata.product_id;
       const ipLimit = product.metadata.ip_limit as string | undefined;
-      const seats = product.metadata.seats as string | undefined;
+      const hwidLimit = product.metadata.hwid_limit as string | undefined;
 
       if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
         logger.info('Skipping: Invalid or missing product_id in metadata', {
@@ -135,9 +135,9 @@ export const handleInvoicePaid = async (
         return;
       }
 
-      const parsedSeats = parseInt(seats || '');
-      if (seats && (isNaN(parsedSeats) || parsedSeats < 0)) {
-        logger.info('Skipping: Invalid seats');
+      const parsedHwidLimit = parseInt(hwidLimit || '');
+      if (hwidLimit && (isNaN(parsedHwidLimit) || parsedHwidLimit < 0)) {
+        logger.info('Skipping: Invalid hwid_limit');
         return;
       }
 
@@ -264,7 +264,7 @@ export const handleInvoicePaid = async (
               },
             },
             ipLimit: ipLimit ? parsedIpLimit : null,
-            seats: seats ? parsedSeats : null,
+            hwidLimit: hwidLimit ? parsedHwidLimit : null,
             expirationType: 'DATE',
             expirationDate: new Date(subscription.current_period_end * 1000),
           },
@@ -291,7 +291,7 @@ export const handleInvoicePaid = async (
               locked: m.locked,
             })),
             ipLimit,
-            seats,
+            hwidLimit,
             expirationType: 'DATE',
             expirationDate: new Date(subscription.current_period_end * 1000),
           },
@@ -531,7 +531,7 @@ export const handleCheckoutSessionCompleted = async (
     );
     const lukittuProductId = product.metadata.product_id;
     const ipLimit = product.metadata.ip_limit as string | undefined;
-    const seats = product.metadata.seats as string | undefined;
+    const hwidLimit = product.metadata.hwid_limit as string | undefined;
     const expirationDays = product.metadata.expiration_days as
       | string
       | undefined;
@@ -566,9 +566,9 @@ export const handleCheckoutSessionCompleted = async (
       return;
     }
 
-    const parsedSeats = parseInt(seats || '');
-    if (seats && (isNaN(parsedSeats) || parsedSeats < 0)) {
-      logger.info('Skipping: Invalid seats.');
+    const parsedHwidLimit = parseInt(hwidLimit || '');
+    if (hwidLimit && (isNaN(parsedHwidLimit) || parsedHwidLimit < 0)) {
+      logger.info('Skipping: Invalid hwid_limit.');
       return;
     }
 
@@ -745,7 +745,7 @@ export const handleCheckoutSessionCompleted = async (
             },
           },
           ipLimit: ipLimit ? parsedIpLimit : null,
-          seats: seats ? parsedSeats : null,
+          hwidLimit: hwidLimit ? parsedHwidLimit : null,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays ? parsedExpirationDays : null,
           expirationStart: expirationStartFormatted,
@@ -774,7 +774,7 @@ export const handleCheckoutSessionCompleted = async (
             locked: m.locked,
           })),
           ipLimit,
-          seats,
+          hwidLimit,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays || null,
           expirationStart: expirationStartFormatted,

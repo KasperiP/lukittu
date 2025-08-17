@@ -71,7 +71,7 @@ export async function POST(
       ipLimit,
       metadata,
       productIds,
-      seats,
+      hwidLimit,
       suspended,
       sendEmailDelivery,
     } = body;
@@ -210,7 +210,7 @@ export async function POST(
             },
             suspended,
             teamId: team.id,
-            seats,
+            hwidLimit,
             products: productIds.length
               ? { connect: productIds.map((id) => ({ id })) }
               : undefined,

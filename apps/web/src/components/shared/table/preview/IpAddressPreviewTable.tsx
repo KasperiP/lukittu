@@ -88,9 +88,6 @@ export default function IpAddressPreviewTable({
                     {t('general.ip_address')}
                   </TableHead>
                   <TableHead className="truncate">
-                    {t('general.request_count')}
-                  </TableHead>
-                  <TableHead className="truncate">
                     <Button
                       variant="ghost"
                       onClick={() =>
@@ -106,11 +103,11 @@ export default function IpAddressPreviewTable({
                 </TableRow>
               </TableHeader>
               {isLoading ? (
-                <TableSkeleton columns={3} height={4} rows={3} />
+                <TableSkeleton columns={2} height={4} rows={3} />
               ) : (
                 <TableBody>
                   {ipAddresses.map((ip) => (
-                    <TableRow key={ip.ipAddress}>
+                    <TableRow key={ip.ip}>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {ip.alpha2 && (
@@ -121,12 +118,11 @@ export default function IpAddressPreviewTable({
                               />
                             </span>
                           )}
-                          <span>{ip.ipAddress}</span>
+                          <span>{ip.ip}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{ip.requestCount}</TableCell>
                       <TableCell>
-                        <DateConverter date={ip.lastSeen} />
+                        <DateConverter date={ip.lastSeenAt} />
                       </TableCell>
                     </TableRow>
                   ))}

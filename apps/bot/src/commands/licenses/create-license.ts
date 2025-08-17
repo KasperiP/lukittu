@@ -61,7 +61,7 @@ interface LicenseCreationState {
   expirationDate?: Date;
   expirationDays?: number;
   ipLimit?: number;
-  seats?: number;
+  hwidLimit?: number;
   suspended: boolean;
   productIds: string[];
   customerIds: string[];
@@ -689,8 +689,8 @@ async function showLimitsStep(
         inline: true,
       },
       {
-        name: 'Concurrent users',
-        value: state.seats ? state.seats.toString() : 'No limit',
+        name: 'Hardware identifier limit',
+        value: state.hwidLimit ? state.hwidLimit.toString() : 'No limit',
         inline: true,
       },
     )
@@ -885,10 +885,10 @@ async function showReviewStep(
     });
   }
 
-  if (state.seats) {
+  if (state.hwidLimit) {
     limitsFields.push({
-      name: 'Concurrent users',
-      value: state.seats.toString(),
+      name: 'HWID Limit',
+      value: state.hwidLimit.toString(),
       inline: true,
     });
   }
@@ -1609,25 +1609,25 @@ async function handleLimitsModal(
     ipLimitInput.setValue(state.ipLimit.toString());
   }
 
-  const seatsInput = new TextInputBuilder()
-    .setCustomId('seats')
-    .setLabel('Concurrent users (leave empty for no limit)')
+  const hwidInput = new TextInputBuilder()
+    .setCustomId('hwid_limit')
+    .setLabel('HWID Limit (leave empty for no limit)')
     .setStyle(TextInputStyle.Short)
     .setPlaceholder('e.g., 5')
     .setRequired(false);
 
-  if (state.seats) {
-    seatsInput.setValue(state.seats.toString());
+  if (state.hwidLimit) {
+    hwidInput.setValue(state.hwidLimit.toString());
   }
 
   const ipRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
     ipLimitInput,
   );
-  const seatsRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
-    seatsInput,
+  const hwidRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+    hwidInput,
   );
 
-  modal.addComponents(ipRow, seatsRow);
+  modal.addComponents(ipRow, hwidRow);
   await interaction.showModal(modal);
 
   try {
@@ -1636,7 +1636,7 @@ async function handleLimitsModal(
     });
 
     const ipLimitStr = modalResponse.fields.getTextInputValue('ip_limit');
-    const seatsStr = modalResponse.fields.getTextInputValue('seats');
+    const hwidLimitStr = modalResponse.fields.getTextInputValue('hwid_limit');
 
     if (ipLimitStr) {
       const ipLimit = parseInt(ipLimitStr);
@@ -1653,9 +1653,9 @@ async function handleLimitsModal(
       state.ipLimit = undefined;
     }
 
-    if (seatsStr) {
-      const seats = parseInt(seatsStr);
-      const validation = validateNumericLimit(seats, 'Concurrent users');
+    if (hwidLimitStr) {
+      const hwidLimit = parseInt(hwidLimitStr);
+      const validation = validateNumericLimit(hwidLimit, 'HWID limit');
       if (!validation.isValid) {
         await modalResponse.reply({
           content: validation.message,
@@ -1663,9 +1663,9 @@ async function handleLimitsModal(
         });
         return;
       }
-      state.seats = seats;
+      state.hwidLimit = hwidLimit;
     } else {
-      state.seats = undefined;
+      state.hwidLimit = undefined;
     }
 
     await modalResponse.deferUpdate();
@@ -1688,8 +1688,8 @@ async function handleLimitsModal(
           inline: true,
         },
         {
-          name: 'Concurrent users',
-          value: state.seats ? state.seats.toString() : 'No limit',
+          name: 'HWID Limit',
+          value: state.hwidLimit ? state.hwidLimit.toString() : 'No limit',
           inline: true,
         },
       )
@@ -1903,7 +1903,7 @@ async function finalizeLicenseCreation(
           expirationStart: expirationStart,
           expirationDate: expirationDate,
           expirationDays: expirationDays,
-          seats: state.seats || null,
+          hwidLimit: state.hwidLimit || null,
           suspended: state.suspended,
           teamId: state.teamId,
           createdByUserId: userId,

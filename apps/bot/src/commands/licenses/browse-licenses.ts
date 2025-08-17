@@ -204,10 +204,10 @@ function createLicenseEmbed(
     });
   }
 
-  if (license.seats) {
+  if (license.hwidLimit) {
     limitsFields.push({
-      name: 'Concurrent users',
-      value: license.seats.toString(),
+      name: 'HWID Limit',
+      value: license.hwidLimit.toString(),
       inline: true,
     });
   }

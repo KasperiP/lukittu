@@ -29,7 +29,17 @@ export async function POST(
   const ipAddress = await getIp();
 
   try {
-    const body = (await request.json()) as LicenseHeartbeatSchema;
+    const rawBody = await request.json();
+
+    /**
+     * @deprecated use hardwareIdentifier. Only for backward compatibility.
+     */
+    const legacyDeviceIdentifier = rawBody.deviceIdentifier;
+
+    const body = {
+      ...rawBody,
+      hardwareIdentifier: rawBody.hardwareIdentifier || legacyDeviceIdentifier,
+    } as LicenseHeartbeatSchema;
 
     const result = await handleHeartbeat({
       teamId,

@@ -47,7 +47,7 @@ export const handleBuiltByBitPurchase = async (
 ): Promise<BuiltByBitPurchaseResult> => {
   try {
     const { resource: bbbResource, user: bbbUser } = builtByBitData;
-    const { productId, seats, expirationStart, expirationDays, ipLimit } =
+    const { productId, hwidLimit, expirationStart, expirationDays, ipLimit } =
       lukittuData;
 
     logger.info('Processing BuiltByBit purchase', {
@@ -279,7 +279,7 @@ export const handleBuiltByBitPurchase = async (
             },
           },
           ipLimit,
-          seats,
+          hwidLimit,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays || null,
           expirationStart: expirationStartFormatted,
@@ -308,7 +308,7 @@ export const handleBuiltByBitPurchase = async (
             locked: m.locked,
           })),
           ipLimit,
-          seats,
+          hwidLimit,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays || null,
           expirationStart: expirationStartFormatted,
@@ -359,7 +359,7 @@ export const handleBuiltByBitPurchase = async (
       bbbResourceTitle: bbbResource.title,
       bbbUserId: bbbUser.id,
       bbbUsername: bbbUser.username,
-      seats: seats || null,
+      hwidLimit: hwidLimit || null,
       ipLimit: ipLimit || null,
       expirationDays: expirationDays || null,
       expirationStart: expirationStartFormatted,

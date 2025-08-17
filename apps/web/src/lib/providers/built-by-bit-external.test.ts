@@ -98,7 +98,7 @@ describe('BuiltByBit Integration', () => {
   const mockLukittuData = {
     productId: '123e4567-e89b-12d3-a456-426614174000',
     ipLimit: 5,
-    seats: 10,
+    hwidLimit: 10,
     expirationDays: 365,
     expirationStart: 'CREATION' as const,
   };

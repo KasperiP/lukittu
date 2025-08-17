@@ -92,8 +92,8 @@ export async function PUT(
     const {
       strictCustomers,
       strictProducts,
-      deviceTimeout,
-      ipLimitPeriod,
+      hwidTimeout,
+      ipTimeout,
       strictReleases,
     } = validated.data;
 
@@ -106,8 +106,8 @@ export async function PUT(
           strictCustomers,
           strictProducts,
           strictReleases,
-          deviceTimeout,
-          ipLimitPeriod,
+          ipTimeout,
+          hwidTimeout,
         },
       });
 

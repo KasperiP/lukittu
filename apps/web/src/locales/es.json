@@ -61,7 +61,6 @@
     "invitation_for_different_email": "La invitación es para una dirección de correo electrónico diferente!",
     "file_too_large": "El archivo es demasiado grande! El tamaño máximo del archivo es {size}.",
     "invalid_file_type": "Tipo de archivo no válido! Solo se permiten PNG, JPEG y WEBP.",
-    "device_timeout_positive": "El tiempo de espera del dispositivo debe ser de al menos 1 minuto!",
     "too_many_requests": "Demasiadas solicitudes! Por favor, inténtalo más tarde.",
     "max_licenses_reached": "Tu equipo ha alcanzado el número máximo de licencias permitidas para el plan actual. Por favor, actualiza para agregar más licencias.",
     "max_products_reached": "Tu equipo ha alcanzado el número máximo de productos permitidos para el plan actual. Por favor, actualiza para agregar más productos.",
@@ -146,7 +145,11 @@
     "webhook_name_already_exists": "El nombre del webhook ya existe.",
     "webhook_url_already_exists": "La URL del webhook ya existe.",
     "webhook_not_found": "No se encontró el webhook.",
-    "webhook_deleted": "Webhook eliminado con éxito."
+    "webhook_deleted": "Webhook eliminado con éxito.",
+    "ip_timeout_max": "El tiempo de espera de IP debe ser como máximo de 259200 minutos.",
+    "hwid_timeout_max": "El tiempo de espera de HWID debe ser como máximo de 259200 minutos.",
+    "hwid_timeout_positive": "¡El tiempo de espera de HWID debe ser de al menos 1 minuto!",
+    "ip_timeout_positive": "¡El tiempo de espera de IP debe ser de al menos 1 minuto!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -191,7 +194,6 @@
     "classloader": "Cargador de clases",
     "verify": "Verificar",
     "heartbeat": "Latido",
-    "devices": "Dispositivos",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado",
     "all": "Todos",
@@ -315,7 +317,6 @@
     "copied_to_clipboard": "Copiado al portapapeles",
     "expires_at": "Expira en",
     "upload_photo": "Subir una foto",
-    "device_identifier": "Identificador de dispositivo",
     "remove_photo": "Eliminar foto",
     "unlock_metadata": "Desbloquear metadatos",
     "locked_metadata_warning": "Este campo de metadatos está bloqueado. Estos campos suelen estar bloqueados porque son generados por el sistema. Modificar este campo puede causar problemas con las integraciones que dependen de estos datos.",
@@ -356,7 +357,10 @@
     "completed_at": "Completado en",
     "response_information": "Información de respuesta",
     "payload_information": "Información del contenido",
-    "triggered_by": "Activado por"
+    "triggered_by": "Activado por",
+    "minutes": "minutos",
+    "hardware_identifier": "Identificador de hardware",
+    "hardware_identifiers": "Identificadores de hardware"
   },
   "auth": {
     "oauth": {
@@ -598,7 +602,6 @@
       "license_description": "Las licencias son las claves que permiten a tus clientes usar tus productos. Puedes asignarlas a clientes y rastrear su uso.",
       "no_products_assigned": "No hay productos asignados",
       "no_customers_assigned": "No hay clientes asignados",
-      "no_device_data": "No hay datos del dispositivo",
       "not_yet_activated": "Aún no activado",
       "license_updated": "Licencia actualizada",
       "license_deleted": "Licencia eliminada",
@@ -606,7 +609,8 @@
       "search_license": "Buscar licencia...",
       "delete_license_confirm_title": "Eliminar licencia",
       "delete_license_confirm_description": "Estás a punto de eliminar la licencia <strong>{license}</strong>! Esto <strong>eliminará permanentemente</strong> esta licencia. Esta acción no se puede deshacer.",
-      "concurrent_users": "Usuarios concurrentes"
+      "hwid_limit": "Límite de HWID",
+      "no_hwid_data": "No hay datos de HWID"
     },
     "logs": {
       "no_logs": "No hay registros",
@@ -727,7 +731,7 @@
       "stripe_integration_updated": "Integración de Stripe actualizada",
       "stripe_integration_created": "Integración de Stripe creada",
       "stripe_integration_deleted": "Integración de Stripe eliminada",
-      "discord_integration_description": "Gestiona tus licencias directamente en Discord. Puedes usar el bot de Discord de Lukittu para verificar licencias, administrar dispositivos y más.",
+      "discord_integration_description": "Gestiona tus necesidades de licencias directamente en Discord. El bot de Discord bloqueado te permite verificar licencias, gestionar clientes y mucho más directamente desde tu servidor de Discord.",
       "discord_integration_deleted": "Integración con Discord eliminada",
       "discord_integration_created": "Integración con Discord creada",
       "discord_integration_updated": "Integración con Discord actualizada",
@@ -797,7 +801,6 @@
       "recommended_dimensions": "Dimensiones recomendadas: 1600x400",
       "email_settings": "Configuraciones de correo electrónico",
       "limits": "Límites",
-      "device_timeout": "Tiempo de espera del dispositivo (minutos)",
       "base_64_encoded": "Codificado en Base64",
       "plain_format": "Formato simple (PEM)",
       "rsa_public_key": "Clave pública RSA 2048",
@@ -842,7 +845,9 @@
       "customer_fields": "Campos del cliente",
       "returned_fields_updated": "Campos devueltos actualizados",
       "returned_fields": "Campos devueltos",
-      "returned_fields_description": "Selecciona qué campos deben ser devueltos al cliente en los puntos de verificación."
+      "returned_fields_description": "Selecciona qué campos deben ser devueltos al cliente en los puntos de verificación.",
+      "hwid_timeout": "Tiempo de espera de HWID",
+      "ip_timeout": "Tiempo de espera de IP"
     },
     "blacklist": {
       "blacklist_updated": "Lista negra actualizada",

@@ -51,9 +51,9 @@
                   "maxLength": 255,
                   "pattern": "^[A-Za-z0-9]+$"
                 },
-                "deviceIdentifier": {
+                "hardwareIdentifier": {
                   "type": "string",
-                  "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Device identifier must not contain spaces and must be between 10 and 1000 characters.",
+                  "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Hardware identifier must not contain spaces and must be between 10 and 1000 characters.",
                   "minLength": 10,
                   "maxLength": 1000,
                   "pattern": "^[A-Za-z0-9]+$"
@@ -92,10 +92,10 @@
                             "nullable": true,
                             "description": "Maximum number of different IP addresses that can use this license"
                           },
-                          "seats": {
+                          "hwidLimit": {
                             "type": "integer",
                             "nullable": true,
-                            "description": "Maximum number of concurrent devices that can use this license"
+                            "description": "Maximum number of different HWIDs that can use this license"
                           },
                           "expirationType": {
                             "type": "string",
@@ -386,9 +386,9 @@
                   "maxLength": 255,
                   "pattern": "^[A-Za-z0-9]+$"
                 },
-                "deviceIdentifier": {
+                "hardwareIdentifier": {
                   "type": "string",
-                  "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Device identifier must not contain spaces and must be between 10 and 1000 characters.",
+                  "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Hardware identifier must not contain spaces and must be between 10 and 1000 characters.",
                   "minLength": 10,
                   "maxLength": 1000,
                   "pattern": "^[A-Za-z0-9]+$"
@@ -401,7 +401,7 @@
                   "pattern": "^[a-zA-Z0-9_-]+$"
                 }
               },
-              "required": ["licenseKey", "deviceIdentifier"]
+              "required": ["licenseKey", "hardwareIdentifier"]
             }
           }
         }
@@ -427,10 +427,10 @@
                             "nullable": true,
                             "description": "Maximum number of different IP addresses that can use this license"
                           },
-                          "seats": {
+                          "hwidLimit": {
                             "type": "integer",
                             "nullable": true,
-                            "description": "Maximum number of concurrent devices that can use this license"
+                            "description": "Maximum number of different HWIDs that can use this license"
                           },
                           "expirationType": {
                             "type": "string",
@@ -730,9 +730,9 @@
           }
         },
         {
-          "name": "deviceIdentifier",
+          "name": "hardwareIdentifier",
           "in": "query",
-          "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Device identifier must not contain spaces and must be between 10 and 1000 characters.",
+          "description": "A unique identifier for the client device. Typically a hardware ID or another identifier that remains consistent across sessions. Hardware identifier must not contain spaces and must be between 10 and 1000 characters.",
           "required": true,
           "schema": {
             "type": "string",

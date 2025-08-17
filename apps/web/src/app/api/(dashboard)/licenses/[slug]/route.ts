@@ -204,7 +204,7 @@ export async function PUT(
       metadata,
       productIds,
       suspended,
-      seats,
+      hwidLimit,
     } = body;
 
     const selectedTeam = await getSelectedTeam();
@@ -351,7 +351,7 @@ export async function PUT(
             },
           },
           suspended,
-          seats,
+          hwidLimit,
           products: {
             set: productIds.map((id) => ({ id })),
           },

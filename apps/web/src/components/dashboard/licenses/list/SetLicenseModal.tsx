@@ -88,7 +88,7 @@ export default function SetLicenseModal() {
       expirationDays: null,
       expirationStart: null,
       ipLimit: null,
-      seats: null,
+      hwidLimit: null,
       expirationType: 'NEVER',
       metadata: [],
       sendEmailDelivery: false,
@@ -132,7 +132,7 @@ export default function SetLicenseModal() {
         setValue('expirationDays', ctx.licenseToEdit.expirationDays);
       }
 
-      setValue('seats', ctx.licenseToEdit.seats);
+      setValue('hwidLimit', ctx.licenseToEdit.hwidLimit);
       setValue('ipLimit', ctx.licenseToEdit.ipLimit);
       setValue(
         'metadata',
@@ -563,24 +563,22 @@ export default function SetLicenseModal() {
               />
               <FormField
                 control={control}
-                name="seats"
+                name="hwidLimit"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {t('dashboard.licenses.concurrent_users')}
-                    </FormLabel>
+                    <FormLabel>{t('dashboard.licenses.hwid_limit')}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
                         min={1}
-                        placeholder={t('dashboard.licenses.concurrent_users')}
+                        placeholder={t('dashboard.licenses.hwid_limit')}
                         type="number"
                         value={field.value ?? ''}
                         onChange={(e) => {
                           if (!e.target.value || e.target.value === '0') {
-                            return setValue('seats', null);
+                            return setValue('hwidLimit', null);
                           }
-                          setValue('seats', +e.target.value);
+                          setValue('hwidLimit', +e.target.value);
                         }}
                       />
                     </FormControl>

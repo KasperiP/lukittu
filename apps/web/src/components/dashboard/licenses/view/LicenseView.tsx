@@ -15,7 +15,7 @@ import { useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import CustomersPreviewTable from '../../../shared/table/preview/CustomersPreviewTable';
-import DevicesPreviewTable from '../../../shared/table/preview/DevicesPreviewTable';
+import HwidPreviewTable from '../../../shared/table/preview/HwidPreviewTable';
 import ProductsPreviewTable from '../../../shared/table/preview/ProductsPreviewTable';
 import RequestLogsPreviewTable from '../../../shared/table/preview/RequestLogsPreviewTable';
 import { RequestsAreaChart } from '../../statistics/RequestsAreaChart';
@@ -80,7 +80,7 @@ export default function LicenseView() {
               <CustomersPreviewTable license={license} licenseId={licenseId} />
               <RequestLogsPreviewTable licenseId={licenseId} />
               <IpAddressPreviewTable licenseId={licenseId} />
-              <DevicesPreviewTable licenseId={licenseId} />
+              <HwidPreviewTable licenseId={licenseId} />
               <RequestsAreaChart licenseId={licenseId} />
               <WorldMapChart licenseId={licenseId} />
             </div>

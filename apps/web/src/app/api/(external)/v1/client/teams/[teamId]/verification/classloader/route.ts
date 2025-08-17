@@ -24,13 +24,22 @@ export async function GET(
 
   try {
     const searchParams = request.nextUrl.searchParams;
+
+    /**
+     * @deprecated use hardwareIdentifier. Only for backward compatibility.
+     */
+    const legacyDeviceIdentifier = searchParams.get('deviceIdentifier');
+
     const payload = {
       licenseKey: searchParams.get('licenseKey') || undefined,
       customerId: searchParams.get('customerId') || undefined,
       productId: searchParams.get('productId') || undefined,
       version: searchParams.get('version') || undefined,
       sessionKey: searchParams.get('sessionKey') || undefined,
-      deviceIdentifier: searchParams.get('deviceIdentifier') || undefined,
+      hardwareIdentifier:
+        legacyDeviceIdentifier ||
+        searchParams.get('hardwareIdentifier') ||
+        undefined,
       branch: searchParams.get('branch') || undefined,
     };
 
@@ -47,7 +56,7 @@ export async function GET(
     if ('stream' in result) {
       // Log successful request
       logRequest({
-        deviceIdentifier: payload.deviceIdentifier,
+        hardwareIdentifier: payload.hardwareIdentifier,
         pathname: request.nextUrl.pathname,
         requestBody: null,
         responseBody: null,

@@ -33,18 +33,19 @@ export const downloadReleaseSchema = () =>
         .regex(/^[^\s]+$/, {
           message: 'Session key must not contain spaces',
         }),
-      deviceIdentifier: z
+      hardwareIdentifier: z
         .string({
-          message: 'Device identifier must be a string',
+          message: 'Hardware identifier must be a string',
+          required_error: 'Hardware identifier is required',
         })
         .min(10, {
-          message: 'Device identifier must be at least 10 characters',
+          message: 'Hardware identifier must be at least 10 characters',
         })
         .max(1000, {
-          message: 'Device identifier must be less than 1000 characters',
+          message: 'Hardware identifier must be less than 1000 characters',
         })
         .regex(/^[^\s]+$/, {
-          message: 'Device identifier must not contain spaces',
+          message: 'Hardware identifier must not contain spaces',
         }),
       version: z
         .string({

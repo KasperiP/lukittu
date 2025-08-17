@@ -83,18 +83,18 @@ export const polymartPurchaseParamsSchema = () =>
         message: 'IP Limit must be an integer',
       })
       .nullable(),
-    seats: z
+    hwidLimit: z
       .number({
-        invalid_type_error: 'Seats must be a number',
+        invalid_type_error: 'HWID Limit must be a number',
       })
       .min(1, {
-        message: 'Seats must be at least 1',
+        message: 'HWID Limit must be at least 1',
       })
       .positive({
-        message: 'Seats must be positive',
+        message: 'HWID Limit must be positive',
       })
       .int({
-        message: 'Seats must be an integer',
+        message: 'HWID Limit must be an integer',
       })
       .nullable(),
     expirationDays: z

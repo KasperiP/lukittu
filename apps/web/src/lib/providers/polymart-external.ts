@@ -139,7 +139,7 @@ export const handlePolymartPurchase = async (
 ): Promise<PolymartPurchaseResult> => {
   try {
     const { product, user } = polymartData.payload;
-    const { productId, seats, expirationStart, expirationDays, ipLimit } =
+    const { productId, hwidLimit, expirationStart, expirationDays, ipLimit } =
       purchaseParams;
 
     logger.info('Processing Polymart purchase', {
@@ -377,7 +377,7 @@ export const handlePolymartPurchase = async (
             },
           },
           ipLimit: ipLimit || null,
-          seats: seats || null,
+          hwidLimit: hwidLimit || null,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays || null,
           expirationStart: expirationStartFormatted,
@@ -406,7 +406,7 @@ export const handlePolymartPurchase = async (
             locked: m.locked,
           })),
           ipLimit,
-          seats,
+          hwidLimit,
           expirationType: expirationDays ? 'DURATION' : 'NEVER',
           expirationDays: expirationDays || null,
           expirationStart: expirationStartFormatted,
@@ -457,7 +457,7 @@ export const handlePolymartPurchase = async (
       polymartProductTitle: product.title,
       polymartUserId: user.id,
       username,
-      seats: seats || null,
+      hwidLimit: hwidLimit || null,
       ipLimit: ipLimit || null,
       expirationDays: expirationDays || null,
       expirationStart: expirationStartFormatted,

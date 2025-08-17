@@ -2,7 +2,6 @@ import { HttpStatus } from '@/types/http-status';
 import {
   createEncryptionStream,
   generateHMAC,
-  IpLimitPeriod,
   logger,
   prisma,
   privateDecrypt,
@@ -28,7 +27,7 @@ interface HandleClassloaderProps {
     version: string | undefined;
     branch: string | undefined;
     sessionKey: string | undefined;
-    deviceIdentifier: string | undefined;
+    hardwareIdentifier: string | undefined;
   };
 }
 
@@ -72,7 +71,7 @@ export const handleClassloader = async ({
 
   const {
     licenseKey,
-    deviceIdentifier,
+    hardwareIdentifier,
     customerId,
     productId,
     version,
@@ -250,16 +249,8 @@ export const handleClassloader = async ({
 
   const licenseKeyLookup = generateHMAC(`${licenseKey}:${teamId}`);
 
-  const ipLimitPeriodDays =
-    settings.ipLimitPeriod === IpLimitPeriod.DAY
-      ? 1
-      : settings.ipLimitPeriod === IpLimitPeriod.WEEK
-        ? 7
-        : 30;
-
-  const ipLimitPeriodDate = new Date(
-    new Date().getTime() - ipLimitPeriodDays * 24 * 60 * 60 * 1000,
-  );
+  const ipTimeoutMinutes = settings.ipTimeout;
+  const hwidTimeoutMinutes = settings.hwidTimeout;
 
   const license = await prisma.license.findUnique({
     where: {
@@ -292,12 +283,22 @@ export const handleClassloader = async ({
           },
         },
       },
-      devices: true,
-      requestLogs: {
+      hardwareIdentifiers: {
         where: {
-          createdAt: {
-            gte: ipLimitPeriodDate,
-          },
+          lastSeenAt: hwidTimeoutMinutes
+            ? {
+                gte: new Date(Date.now() - hwidTimeoutMinutes * 60 * 1000),
+              }
+            : undefined,
+        },
+      },
+      ipAddresses: {
+        where: {
+          lastSeenAt: ipTimeoutMinutes
+            ? {
+                gte: new Date(Date.now() - ipTimeoutMinutes * 60 * 1000),
+              }
+            : undefined,
         },
       },
     },
@@ -320,7 +321,7 @@ export const handleClassloader = async ({
     teamId,
     customerId: matchingCustomer ? customerId : undefined,
     productId: matchingProduct ? productId : undefined,
-    deviceIdentifier,
+    hardwareIdentifier,
     licenseKeyLookup: undefined as string | undefined,
     releaseId: undefined as string | undefined,
     releaseFileId: undefined as string | undefined,
@@ -530,7 +531,7 @@ export const handleClassloader = async ({
     teamId,
     ipAddress,
     geoData,
-    deviceIdentifier,
+    hardwareIdentifier,
   );
 
   if (blacklistCheck) {
@@ -608,13 +609,10 @@ export const handleClassloader = async ({
     };
   }
 
-  if (license.ipLimit) {
-    const existingIps = Array.from(
-      new Set(license.requestLogs.map((log) => log.ipAddress).filter(Boolean)),
-    );
+  if (license.ipLimit && ipAddress) {
+    const existingIps = license.ipAddresses.map((ip) => ip.ip);
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
-    // TODO: @KasperiP: Maybe add separate table for storing IP addresses because user's probably want to also remove old IP addresses
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
       return {
         ...commonBase,
@@ -632,50 +630,70 @@ export const handleClassloader = async ({
     }
   }
 
-  const seatCheck = await sharedVerificationHandler.checkSeats(
-    license,
-    deviceIdentifier,
-    settings.deviceTimeout || 60,
-  );
+  if (license.hwidLimit && hardwareIdentifier) {
+    const existingHwids = license.hardwareIdentifiers.map((hwid) => hwid.hwid);
+    const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
-  if (seatCheck) {
-    return {
-      ...commonBase,
-      status: seatCheck.status,
-      response: {
-        data: null,
-        result: {
-          timestamp: new Date(),
-          valid: false,
-          details: seatCheck.details,
+    if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
+      return {
+        ...commonBase,
+        status: RequestStatus.HWID_LIMIT_REACHED,
+        response: {
+          data: null,
+          result: {
+            timestamp: new Date(),
+            valid: false,
+            details: 'HWID limit reached',
+          },
         },
-      },
-      httpStatus: HttpStatus.FORBIDDEN,
-    };
+        httpStatus: HttpStatus.FORBIDDEN,
+      };
+    }
   }
 
   await prisma.$transaction([
-    prisma.device.upsert({
+    prisma.hardwareIdentifier.upsert({
       where: {
-        licenseId_deviceIdentifier: {
+        teamId,
+        licenseId_hwid: {
           licenseId: license.id,
-          deviceIdentifier,
+          hwid: hardwareIdentifier,
         },
       },
-      update: {
-        lastBeatAt: new Date(),
-        ipAddress,
-        country: geoData?.alpha3 || null,
-      },
       create: {
-        ipAddress,
-        teamId: team.id,
-        deviceIdentifier,
-        lastBeatAt: new Date(),
+        hwid: hardwareIdentifier,
+        teamId,
         licenseId: license.id,
-        country: geoData?.alpha3 || null,
+      },
+      update: {
+        lastSeenAt: new Date(),
+        forgotten: false,
+        forgottenAt: null,
       },
     }),
+    ...(ipAddress
+      ? [
+          prisma.ipAddress.upsert({
+            where: {
+              teamId,
+              licenseId_ip: {
+                licenseId: license.id,
+                ip: ipAddress,
+              },
+            },
+            create: {
+              ip: ipAddress,
+              teamId,
+              licenseId: license.id,
+            },
+            update: {
+              lastSeenAt: new Date(),
+              forgotten: false,
+              forgottenAt: null,
+            },
+          }),
+        ]
+      : []),
     prisma.release.update({
       where: { id: releaseToUse.id },
       data: {

@@ -1,7 +1,7 @@
 import {
-  ILicenseDevicesGetResponse,
-  ILicenseDevicesGetSuccessResponse,
-} from '@/app/api/(dashboard)/devices/route';
+  ILicenseHwidGetResponse,
+  ILicenseHwidGetSuccessResponse,
+} from '@/app/api/(dashboard)/licenses/[slug]/hwid/route';
 import { DateConverter } from '@/components/shared/DateConverter';
 import TablePagination from '@/components/shared/table/TablePagination';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
@@ -22,15 +22,14 @@ import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
-import { CountryFlag } from '../../misc/CountryFlag';
 
-interface DevicePreviewTableProps {
+interface HwidPreviewTableProps {
   licenseId?: string;
 }
 
-const fetchDevices = async (url: string) => {
+const fetchHwids = async (url: string) => {
   const response = await fetch(url);
-  const data = (await response.json()) as ILicenseDevicesGetResponse;
+  const data = (await response.json()) as ILicenseHwidGetResponse;
 
   if ('message' in data) {
     throw new Error(data.message);
@@ -39,14 +38,12 @@ const fetchDevices = async (url: string) => {
   return data;
 };
 
-export default function DevicesPreviewTable({
-  licenseId,
-}: DevicePreviewTableProps) {
+export default function HwidPreviewTable({ licenseId }: HwidPreviewTableProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
 
   const [page, setPage] = useState(1);
-  const [sortColumn, setSortColumn] = useState<'lastBeatAt' | null>(null);
+  const [sortColumn, setSortColumn] = useState<'lastSeenAt' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
     null,
   );
@@ -56,14 +53,13 @@ export default function DevicesPreviewTable({
     pageSize: '10',
     ...(sortColumn && { sortColumn }),
     ...(sortDirection && { sortDirection }),
-    ...(licenseId && { licenseId }),
   });
 
-  const { data, error, isLoading } = useSWR<ILicenseDevicesGetSuccessResponse>(
-    teamCtx.selectedTeam
-      ? ['/api/devices', teamCtx.selectedTeam, searchParams.toString()]
+  const { data, error, isLoading } = useSWR<ILicenseHwidGetSuccessResponse>(
+    teamCtx.selectedTeam && licenseId
+      ? [`/api/licenses/${licenseId}/hwid`, searchParams.toString()]
       : null,
-    ([url, _, params]) => fetchDevices(`${url}?${params}`),
+    ([url, params]) => fetchHwids(`${url}?${params}`),
   );
 
   useEffect(() => {
@@ -72,43 +68,40 @@ export default function DevicesPreviewTable({
     }
   }, [error, t]);
 
-  const devices = data?.devices ?? [];
-  const totalDevices = data?.totalResults ?? 1;
+  const hwids = data?.hwids ?? [];
+  const totalResults = data?.totalResults ?? 0;
 
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center gap-2 border-b py-5">
         <CardTitle className="flex items-center text-xl font-bold">
-          {t('general.devices')}
+          {t('general.hardware_identifiers')}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        {totalDevices ? (
+        {totalResults ? (
           <>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="truncate">
-                    {t('general.device_identifier')}
+                    {t('general.hardware_identifier')}
                   </TableHead>
                   <TableHead className="truncate">
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        setSortColumn('lastBeatAt');
+                        setSortColumn('lastSeenAt');
                         setSortDirection(
-                          sortColumn === 'lastBeatAt' && sortDirection === 'asc'
+                          sortColumn === 'lastSeenAt' && sortDirection === 'asc'
                             ? 'desc'
                             : 'asc',
                         );
                       }}
                     >
-                      {t('dashboard.licenses.last_beat_at')}
+                      {t('general.last_seen')}
                       <ArrowDownUp className="ml-2 h-4 w-4" />
                     </Button>
-                  </TableHead>
-                  <TableHead className="truncate">
-                    {t('general.ip_address')}
                   </TableHead>
                   <TableHead className="truncate">
                     {t('dashboard.licenses.status')}
@@ -116,30 +109,17 @@ export default function DevicesPreviewTable({
                 </TableRow>
               </TableHeader>
               {isLoading ? (
-                <TableSkeleton columns={4} height={4} rows={3} />
+                <TableSkeleton columns={3} height={4} rows={3} />
               ) : (
                 <TableBody>
-                  {devices.map((device) => (
-                    <TableRow key={device.id}>
-                      <TableCell>{device.deviceIdentifier}</TableCell>
+                  {hwids.map((hwid) => (
+                    <TableRow key={hwid.id}>
+                      <TableCell>{hwid.hwid}</TableCell>
                       <TableCell className="truncate">
-                        <DateConverter date={device.lastBeatAt} />
+                        <DateConverter date={hwid.lastSeenAt} />
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {device.alpha2 && (
-                            <span className="flex-shrink-0">
-                              <CountryFlag
-                                countryCode={device.alpha2}
-                                countryName={device.country}
-                              />
-                            </span>
-                          )}
-                          <span>{device.ipAddress}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {device.status === 'inactive' ? (
+                        {hwid.status === 'inactive' ? (
                           <Badge variant="error">
                             <XCircle className="mr-1 h-3 w-3" />
                             {t('general.inactive')}
@@ -160,13 +140,13 @@ export default function DevicesPreviewTable({
               page={page}
               pageSize={10}
               setPage={setPage}
-              totalItems={totalDevices}
-              totalPages={Math.ceil(totalDevices / 10)}
+              totalItems={totalResults}
+              totalPages={Math.ceil(totalResults / 10)}
             />
           </>
         ) : (
           <div className="flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed text-sm text-muted-foreground">
-            {t('dashboard.licenses.no_device_data')}
+            {t('dashboard.licenses.no_hwid_data')}
           </div>
         )}
       </CardContent>

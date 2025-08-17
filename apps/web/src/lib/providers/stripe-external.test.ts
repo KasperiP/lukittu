@@ -183,7 +183,7 @@ describe('Stripe Integration', () => {
       metadata: {
         product_id: '123e4567-e89b-12d3-a456-426614174000',
         ip_limit: '5',
-        seats: '10',
+        hwidLimit: '10',
         expiration_days: '365',
         expiration_start: 'CREATION',
       },
@@ -411,7 +411,7 @@ describe('Stripe Integration', () => {
         metadata: {
           product_id: '123e4567-e89b-12d3-a456-426614174000',
           ip_limit: '5',
-          seats: '10',
+          hwidLimit: '10',
         },
       });
 

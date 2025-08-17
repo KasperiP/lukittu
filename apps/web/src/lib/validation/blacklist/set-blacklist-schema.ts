@@ -9,7 +9,7 @@ export type SetBlacklistSchema = z.infer<ReturnType<typeof setBlacklistSchema>>;
 export const setBlacklistSchema = (t: I18nTranslator) =>
   z
     .object({
-      type: z.enum(['COUNTRY', 'IP_ADDRESS', 'DEVICE_IDENTIFIER']),
+      type: z.enum(['COUNTRY', 'IP_ADDRESS', 'HARDWARE_IDENTIFIER']),
       value: z
         .string({
           required_error: t('validation.blacklist_value_required'),
