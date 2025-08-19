@@ -74,7 +74,7 @@ export const handleVerify = async ({
 
   if (ipAddress && !isTrusted) {
     const key = `license-verify:${ipAddress}`;
-    const isLimited = await isRateLimited(key, 25, 60); // 25 requests per minute
+    const isLimited = await isRateLimited(key, 30, 60); // 30 requests per minute
 
     if (isLimited) {
       return {

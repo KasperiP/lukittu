@@ -88,7 +88,7 @@ export const handleClassloader = async ({
 
   if (ipAddress && !isTrusted) {
     const key = `license-encrypted:${ipAddress}`;
-    const isLimited = await isRateLimited(key, 25, 60); // 25 requests per 1 minute
+    const isLimited = await isRateLimited(key, 30, 60); // 30 requests per 1 minute
 
     if (isLimited) {
       return {
@@ -107,15 +107,15 @@ export const handleClassloader = async ({
     }
   }
 
-  if (licenseKey) {
+  if (!isTrusted) {
     // Rate limit license key requests
     const licenseKeyRatelimitKey = `license-key:${teamId}:${licenseKey}`;
 
     const isLicenseKeyLimited = await isRateLimited(
       licenseKeyRatelimitKey,
-      5,
+      30,
       60,
-    ); // 5 requests per 1 minute
+    ); // 30 requests per 1 minute
 
     if (isLicenseKeyLimited) {
       return {
