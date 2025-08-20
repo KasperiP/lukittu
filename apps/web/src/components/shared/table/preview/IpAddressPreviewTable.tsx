@@ -6,6 +6,7 @@ import {
 import { DateConverter } from '@/components/shared/DateConverter';
 import TablePagination from '@/components/shared/table/TablePagination';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,7 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TeamContext } from '@/providers/TeamProvider';
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, CheckCircle, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,12 +47,16 @@ export default function IpAddressPreviewTable({
   const teamCtx = useContext(TeamContext);
 
   const [page, setPage] = useState(1);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortColumn, setSortColumn] = useState<'lastSeenAt' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
+    null,
+  );
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
     pageSize: '10',
-    sortDirection,
+    ...(sortColumn && { sortColumn }),
+    ...(sortDirection && { sortDirection }),
   });
 
   const { data, error, isLoading } =
@@ -90,20 +95,26 @@ export default function IpAddressPreviewTable({
                   <TableHead className="truncate">
                     <Button
                       variant="ghost"
-                      onClick={() =>
+                      onClick={() => {
+                        setSortColumn('lastSeenAt');
                         setSortDirection(
-                          sortDirection === 'asc' ? 'desc' : 'asc',
-                        )
-                      }
+                          sortColumn === 'lastSeenAt' && sortDirection === 'asc'
+                            ? 'desc'
+                            : 'asc',
+                        );
+                      }}
                     >
                       {t('general.last_seen')}
                       <ArrowDownUp className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
+                  <TableHead className="truncate">
+                    {t('dashboard.licenses.status')}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               {isLoading ? (
-                <TableSkeleton columns={2} height={4} rows={3} />
+                <TableSkeleton columns={3} height={4} rows={3} />
               ) : (
                 <TableBody>
                   {ipAddresses.map((ip) => (
@@ -123,6 +134,19 @@ export default function IpAddressPreviewTable({
                       </TableCell>
                       <TableCell>
                         <DateConverter date={ip.lastSeenAt} />
+                      </TableCell>
+                      <TableCell>
+                        {ip.status === 'inactive' ? (
+                          <Badge variant="error">
+                            <XCircle className="mr-1 h-3 w-3" />
+                            {t('general.inactive')}
+                          </Badge>
+                        ) : (
+                          <Badge variant="success">
+                            <CheckCircle className="mr-1 h-3 w-3" />
+                            {t('general.active')}
+                          </Badge>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

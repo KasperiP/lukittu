@@ -172,6 +172,7 @@ export const handleHeartbeat = async ({
       },
       hardwareIdentifiers: {
         where: {
+          forgotten: false,
           lastSeenAt: hwidTimeoutMinutes
             ? {
                 gte: new Date(Date.now() - hwidTimeoutMinutes * 60 * 1000),
@@ -181,6 +182,7 @@ export const handleHeartbeat = async ({
       },
       ipAddresses: {
         where: {
+          forgotten: false,
           lastSeenAt: ipTimeoutMinutes
             ? {
                 gte: new Date(Date.now() - ipTimeoutMinutes * 60 * 1000),

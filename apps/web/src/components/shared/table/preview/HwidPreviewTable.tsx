@@ -24,7 +24,7 @@ import { toast } from 'sonner';
 import useSWR from 'swr';
 
 interface HwidPreviewTableProps {
-  licenseId?: string;
+  licenseId: string;
 }
 
 const fetchHwids = async (url: string) => {
