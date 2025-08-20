@@ -299,6 +299,7 @@
     "active": "Aktiivinen",
     "basic": "Perus",
     "inactive": "Epäaktiivinen",
+    "forgotten": "Unohdettu",
     "billing_period_ends": "Laskutusjakso päättyy",
     "plan": "Suunnitelma",
     "expiring": "Vanhenee",

@@ -326,6 +326,7 @@
     "delivered": "Delivered",
     "basic": "Basic",
     "inactive": "Inactive",
+    "forgotten": "Forgotten",
     "billing_period_ends": "Billing period ends",
     "plan": "Plan",
     "expiring": "Expiring",

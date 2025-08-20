@@ -299,6 +299,7 @@
     "active": "Activo",
     "basic": "Básico",
     "inactive": "Inactivo",
+    "forgotten": "Olvidado",
     "billing_period_ends": "El periodo de facturación termina",
     "plan": "Plan",
     "expiring": "A punto de expirar",

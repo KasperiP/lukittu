@@ -7,7 +7,7 @@ import { IpAddress, logger, Prisma, prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-type IpStatus = 'active' | 'inactive';
+type IpStatus = 'active' | 'inactive' | 'forgotten';
 
 export type ILicenseIpAddressGetSuccessResponse = {
   ipAddresses: (IpAddress & {
@@ -145,6 +145,16 @@ export async function GET(
     const ipAddresses = team.ipAddresses;
 
     const formattedIpAddresses = ipAddresses.map((ip) => {
+      if (ip.forgotten) {
+        return {
+          ...ip,
+          country: iso3ToName(ip.country),
+          alpha2: ip.country ? iso3toIso2(ip.country) : null,
+          alpha3: ip.country ?? null,
+          status: 'forgotten' as IpStatus,
+        };
+      }
+
       const ipAddressTimeout = team.settings?.ipTimeout || null;
 
       const lastSeenAt = new Date(ip.lastSeenAt);

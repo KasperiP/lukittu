@@ -17,7 +17,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TeamContext } from '@/providers/TeamProvider';
-import { ArrowDownUp, CheckCircle, XCircle } from 'lucide-react';
+import { License } from '@lukittu/shared';
+import { ArrowDownUp, CheckCircle, EyeOff, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,6 +26,7 @@ import useSWR from 'swr';
 
 interface HwidPreviewTableProps {
   licenseId: string;
+  license?: Omit<License, 'licenseKeyLookup'> | null;
 }
 
 const fetchHwids = async (url: string) => {
@@ -38,7 +40,10 @@ const fetchHwids = async (url: string) => {
   return data;
 };
 
-export default function HwidPreviewTable({ licenseId }: HwidPreviewTableProps) {
+export default function HwidPreviewTable({
+  licenseId,
+  license,
+}: HwidPreviewTableProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
 
@@ -71,12 +76,65 @@ export default function HwidPreviewTable({ licenseId }: HwidPreviewTableProps) {
   const hwids = data?.hwids ?? [];
   const totalResults = data?.totalResults ?? 0;
 
+  const activeCount = hwids.filter((hwid) => hwid.status === 'active').length;
+  const hwidLimit = license?.hwidLimit;
+
   return (
     <Card>
-      <CardHeader className="flex flex-row flex-wrap items-center gap-2 border-b py-5">
-        <CardTitle className="flex items-center text-xl font-bold">
+      <CardHeader className="flex flex-row items-center justify-between border-b py-5">
+        <CardTitle className="text-xl font-bold">
           {t('general.hardware_identifiers')}
         </CardTitle>
+        {!isLoading && (
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={
+                  hwidLimit === null || hwidLimit === undefined
+                    ? 'outline'
+                    : activeCount > hwidLimit
+                      ? 'error'
+                      : activeCount === hwidLimit
+                        ? 'warning'
+                        : 'outline'
+                }
+              >
+                {hwidLimit === null || hwidLimit === undefined
+                  ? `${activeCount}/∞`
+                  : `${activeCount}/${hwidLimit}`}
+              </Badge>
+              <span className="text-muted-foreground">
+                {t('general.active')}
+              </span>
+            </div>
+            <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
+              {hwidLimit === null || hwidLimit === undefined ? (
+                <div
+                  className="h-full rounded-full bg-muted"
+                  style={{ width: '0%' }}
+                />
+              ) : hwidLimit > 0 ? (
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    activeCount > hwidLimit
+                      ? 'bg-red-500'
+                      : activeCount === hwidLimit
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500'
+                  }`}
+                  style={{
+                    width: `${Math.min((activeCount / hwidLimit) * 100, 100)}%`,
+                  }}
+                />
+              ) : (
+                <div
+                  className="h-full rounded-full bg-muted"
+                  style={{ width: '0%' }}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {totalResults ? (
@@ -123,6 +181,11 @@ export default function HwidPreviewTable({ licenseId }: HwidPreviewTableProps) {
                           <Badge variant="error">
                             <XCircle className="mr-1 h-3 w-3" />
                             {t('general.inactive')}
+                          </Badge>
+                        ) : hwid.status === 'forgotten' ? (
+                          <Badge variant="outline">
+                            <EyeOff className="mr-1 h-3 w-3" />
+                            {t('general.forgotten')}
                           </Badge>
                         ) : (
                           <Badge variant="success">

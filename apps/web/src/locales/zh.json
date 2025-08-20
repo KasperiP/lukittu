@@ -314,6 +314,7 @@
     "active": "活跃",
     "basic": "基础",
     "inactive": "非活跃",
+    "forgotten": "已遗忘",
     "billing_period_ends": "计费周期结束",
     "plan": "计划",
     "expiring": "即将过期",

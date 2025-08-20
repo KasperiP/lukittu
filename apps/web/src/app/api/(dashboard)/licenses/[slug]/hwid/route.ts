@@ -12,7 +12,7 @@ import {
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-type HwidStatus = 'active' | 'inactive';
+type HwidStatus = 'active' | 'inactive' | 'forgotten';
 
 export type ILicenseHwidGetSuccessResponse = {
   hwids: (HardwareIdentifier & {
@@ -148,6 +148,13 @@ export async function GET(
     const hardwareIdentifiers = team.hardwareIdentifiers;
 
     const formattedHwids = hardwareIdentifiers.map((hwid) => {
+      if (hwid.forgotten) {
+        return {
+          ...hwid,
+          status: 'forgotten' as HwidStatus,
+        };
+      }
+
       const hwidTimeout = team.settings?.hwidTimeout || null;
 
       const lastSeenAt = new Date(hwid.lastSeenAt);

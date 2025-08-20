@@ -79,8 +79,8 @@ export default function LicenseView() {
               <ProductsPreviewTable license={license} licenseId={licenseId} />
               <CustomersPreviewTable license={license} licenseId={licenseId} />
               <RequestLogsPreviewTable licenseId={licenseId} />
-              <IpAddressPreviewTable licenseId={licenseId} />
-              <HwidPreviewTable licenseId={licenseId} />
+              <IpAddressPreviewTable license={license} licenseId={licenseId} />
+              <HwidPreviewTable license={license} licenseId={licenseId} />
               <RequestsAreaChart licenseId={licenseId} />
               <WorldMapChart licenseId={licenseId} />
             </div>

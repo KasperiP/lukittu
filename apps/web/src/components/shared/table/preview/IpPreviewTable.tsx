@@ -18,7 +18,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TeamContext } from '@/providers/TeamProvider';
-import { ArrowDownUp, CheckCircle, XCircle } from 'lucide-react';
+import { License } from '@lukittu/shared';
+import { ArrowDownUp, CheckCircle, EyeOff, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -27,6 +28,7 @@ import { CountryFlag } from '../../misc/CountryFlag';
 
 interface IpPreviewTableProps {
   licenseId: string;
+  license?: Omit<License, 'licenseKeyLookup'> | null;
 }
 
 const fetchIpAddresses = async (url: string) => {
@@ -42,6 +44,7 @@ const fetchIpAddresses = async (url: string) => {
 
 export default function IpAddressPreviewTable({
   licenseId,
+  license,
 }: IpPreviewTableProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
@@ -76,12 +79,65 @@ export default function IpAddressPreviewTable({
   const ipAddresses = data?.ipAddresses ?? [];
   const totalResults = data?.totalResults ?? 0;
 
+  const activeCount = ipAddresses.filter((ip) => ip.status === 'active').length;
+  const ipLimit = license?.ipLimit;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between border-b py-5">
         <CardTitle className="text-xl font-bold">
           {t('general.ip_addresses')}
         </CardTitle>
+        {!isLoading && (
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={
+                  ipLimit === null || ipLimit === undefined
+                    ? 'outline'
+                    : activeCount > ipLimit
+                      ? 'error'
+                      : activeCount === ipLimit
+                        ? 'warning'
+                        : 'outline'
+                }
+              >
+                {ipLimit === null || ipLimit === undefined
+                  ? `${activeCount}/∞`
+                  : `${activeCount}/${ipLimit}`}
+              </Badge>
+              <span className="text-muted-foreground">
+                {t('general.active')}
+              </span>
+            </div>
+            <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
+              {ipLimit === null || ipLimit === undefined ? (
+                <div
+                  className="h-full rounded-full bg-muted"
+                  style={{ width: '0%' }}
+                />
+              ) : ipLimit > 0 ? (
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    activeCount > ipLimit
+                      ? 'bg-red-500'
+                      : activeCount === ipLimit
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500'
+                  }`}
+                  style={{
+                    width: `${Math.min((activeCount / ipLimit) * 100, 100)}%`,
+                  }}
+                />
+              ) : (
+                <div
+                  className="h-full rounded-full bg-muted"
+                  style={{ width: '0%' }}
+                />
+              )}
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
         {totalResults ? (
@@ -140,6 +196,11 @@ export default function IpAddressPreviewTable({
                           <Badge variant="error">
                             <XCircle className="mr-1 h-3 w-3" />
                             {t('general.inactive')}
+                          </Badge>
+                        ) : ip.status === 'forgotten' ? (
+                          <Badge variant="outline">
+                            <EyeOff className="mr-1 h-3 w-3" />
+                            {t('general.forgotten')}
                           </Badge>
                         ) : (
                           <Badge variant="success">
