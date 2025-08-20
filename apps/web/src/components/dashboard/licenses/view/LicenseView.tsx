@@ -4,7 +4,7 @@ import {
   ILicenseGetSuccessResponse,
 } from '@/app/api/(dashboard)/licenses/[slug]/route';
 import MetadataAside from '@/components/shared/misc/MetadataAside';
-import IpAddressPreviewTable from '@/components/shared/table/preview/IpAddressPreviewTable';
+import IpAddressPreviewTable from '@/components/shared/table/preview/IpPreviewTable';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LicenseModalProvider } from '@/providers/LicenseModalProvider';

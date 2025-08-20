@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import useSWR from 'swr';
 import { CountryFlag } from '../../misc/CountryFlag';
 
-interface IpAddressPreviewTableProps {
+interface IpPreviewTableProps {
   licenseId: string;
 }
 
@@ -42,7 +42,7 @@ const fetchIpAddresses = async (url: string) => {
 
 export default function IpAddressPreviewTable({
   licenseId,
-}: IpAddressPreviewTableProps) {
+}: IpPreviewTableProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
 
