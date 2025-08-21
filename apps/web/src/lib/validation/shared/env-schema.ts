@@ -135,6 +135,11 @@ export const envSchema = z.object({
       required_error: 'NEXT_PUBLIC_GOOGLE_REDIRECT_URI is required',
     })
     .url({ message: 'NEXT_PUBLIC_GOOGLE_REDIRECT_URI must be a valid URL' }),
+  NEXT_PUBLIC_SENTRY_DSN: z
+    .string({
+      required_error: 'NEXT_PUBLIC_SENTRY_DSN is required',
+    })
+    .min(1, { message: 'NEXT_PUBLIC_SENTRY_DSN is required' }),
 
   // Cloudflare Turnstile (CAPTCHA alternative)
   TURNSTILE_SECRET: z
