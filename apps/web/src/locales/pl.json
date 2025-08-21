@@ -190,6 +190,8 @@
     "less_than": "Mniejszy niż",
     "ip_count": "Liczba adresów IP",
     "filter_ip_count": "Filtruj liczbę adresów IP",
+    "hwid_count": "Liczba HWID",
+    "filter_hwid_count": "Filtruj liczbę HWID",
     "license_count": "Liczba licencji",
     "filter_license_count": "Filtruj liczbę licencji",
     "min": "Min",

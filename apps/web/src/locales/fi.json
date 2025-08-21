@@ -187,6 +187,8 @@
     "less_than": "Pienempi kuin",
     "ip_count": "IP-osoitteiden määrä",
     "filter_ip_count": "Suodata IP-osoitteiden määrää",
+    "hwid_count": "HWID-tunnisteiden määrä",
+    "filter_hwid_count": "Suodata HWID-tunnisteiden määrää",
     "license_count": "Lisenssien määrä",
     "filter_license_count": "Suodata lisenssien määrää",
     "min": "Min",

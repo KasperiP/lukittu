@@ -144,44 +144,50 @@ export async function GET(
       ? generateHMAC(`${search}:${selectedTeam}`)
       : undefined;
 
+    const teamSettings = await prisma.settings.findUnique({
+      where: {
+        teamId: selectedTeam,
+      },
+    });
+
+    if (!teamSettings) {
+      return NextResponse.json(
+        {
+          message: t('validation.team_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
     const ipCountMin = searchParams.get('ipCountMin');
     const ipCountMax = searchParams.get('ipCountMax');
     const ipCountComparisonMode = searchParams.get('ipCountComparisonMode');
 
+    const hwidCountMin = searchParams.get('hwidCountMin');
+    const hwidCountMax = searchParams.get('hwidCountMax');
+    const hwidCountComparisonMode = searchParams.get('hwidCountComparisonMode');
+
     let ipCountFilter: Prisma.LicenseWhereInput | undefined;
+    let hwidCountFilter: Prisma.LicenseWhereInput | undefined;
 
     if (ipCountMin) {
-      const teamLimits = await prisma.limits.findUnique({
-        where: {
-          teamId: selectedTeam,
-        },
-      });
-
-      if (!teamLimits) {
-        return NextResponse.json(
-          {
-            message: t('validation.team_not_found'),
-          },
-          { status: HttpStatus.NOT_FOUND },
-        );
-      }
-
-      const logRetentionDays = teamLimits.logRetention;
-
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - logRetentionDays);
+      const ipTimeout = teamSettings.ipTimeout || null;
 
       const min = parseInt(ipCountMin);
       if (!isNaN(min) && min >= 0) {
         const uniqueIpCounts = await prisma.$queryRaw<
           { id: string; ipCount: number }[]
         >`
-          SELECT l.id, COUNT(DISTINCT rl."ipAddress") as "ipCount"
+          SELECT l.id, COUNT(DISTINCT ip."ip") as "ipCount"
           FROM "License" l
-          LEFT JOIN "RequestLog" rl ON l.id = rl."licenseId"
+          LEFT JOIN "IpAddress" ip ON l.id = ip."licenseId"
           WHERE l."teamId" = ${selectedTeam}
-            AND rl."ipAddress" IS NOT NULL
-            AND rl."createdAt" >= ${startDate}
+            AND ip."ip" IS NOT NULL
+            AND ip."forgotten" = false
+            AND (
+              ${ipTimeout}::INTEGER IS NULL OR
+              EXTRACT(EPOCH FROM (NOW() - ip."lastSeenAt")) / 60 <= ${ipTimeout}::INTEGER
+            )
           GROUP BY l.id
         `;
 
@@ -205,6 +211,54 @@ export async function GET(
           .map((license) => license.id);
 
         ipCountFilter = {
+          id: {
+            in: filteredLicenseIds,
+          },
+        };
+      }
+    }
+
+    if (hwidCountMin) {
+      const hwidTimeout = teamSettings.hwidTimeout || null;
+
+      const min = parseInt(hwidCountMin);
+      if (!isNaN(min) && min >= 0) {
+        const uniqueHwidCounts = await prisma.$queryRaw<
+          { id: string; hwidCount: number }[]
+        >`
+          SELECT l.id, COUNT(DISTINCT hwid."hwid") as "hwidCount"
+          FROM "License" l
+          LEFT JOIN "HardwareIdentifier" hwid ON l.id = hwid."licenseId"
+          WHERE l."teamId" = ${selectedTeam}
+            AND hwid."hwid" IS NOT NULL
+            AND hwid."forgotten" = false
+            AND (
+              ${hwidTimeout}::INTEGER IS NULL OR
+              EXTRACT(EPOCH FROM (NOW() - hwid."lastSeenAt")) / 60 <= ${hwidTimeout}::INTEGER
+            )
+          GROUP BY l.id
+        `;
+
+        const filteredLicenseIds = uniqueHwidCounts
+          .filter((license) => {
+            const hwidCount = Number(license.hwidCount);
+            switch (hwidCountComparisonMode) {
+              case 'between':
+                const max = parseInt(hwidCountMax || '');
+                return !isNaN(max) && hwidCount >= min && hwidCount <= max;
+              case 'equals':
+                return hwidCount === min;
+              case 'greater':
+                return hwidCount > min;
+              case 'less':
+                return hwidCount < min;
+              default:
+                return false;
+            }
+          })
+          .map((license) => license.id);
+
+        hwidCountFilter = {
           id: {
             in: filteredLicenseIds,
           },
@@ -323,6 +377,7 @@ export async function GET(
 
     const where = {
       ...ipCountFilter,
+      ...hwidCountFilter,
       ...statusFilter,
       teamId: selectedTeam,
       licenseKeyLookup,
@@ -429,7 +484,7 @@ export async function GET(
       hasResults: Boolean(hasResults),
     });
   } catch (error) {
-    logger.error("Error occurred in 'products' route", error);
+    logger.error("Error occurred in 'licenses' route", error);
     return NextResponse.json(
       {
         message: t('general.server_error'),

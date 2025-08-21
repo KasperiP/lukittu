@@ -187,6 +187,8 @@
     "less_than": "Menor que",
     "ip_count": "Conteo de IP",
     "filter_ip_count": "Filtrar conteo de IP",
+    "hwid_count": "Conteo de HWID",
+    "filter_hwid_count": "Filtrar conteo de HWID",
     "license_count": "Conteo de licencias",
     "filter_license_count": "Filtrar conteo de licencias",
     "min": "Minimo",

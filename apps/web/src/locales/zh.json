@@ -197,6 +197,8 @@
     "less_than": "小于",
     "ip_count": "IP数量",
     "filter_ip_count": "筛选IP数量",
+    "hwid_count": "HWID数量",
+    "filter_hwid_count": "筛选HWID数量",
     "license_count": "许可证数量",
     "filter_license_count": "筛选许可证数量",
     "min": "最小",

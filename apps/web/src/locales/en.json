@@ -200,6 +200,8 @@
     "less_than": "Less than",
     "ip_count": "IP count",
     "filter_ip_count": "Filter IP count",
+    "hwid_count": "HWID count",
+    "filter_hwid_count": "Filter HWID count",
     "license_count": "License count",
     "filter_license_count": "Filter license count",
     "min": "Min",
