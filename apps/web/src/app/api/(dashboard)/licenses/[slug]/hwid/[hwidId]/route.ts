@@ -141,7 +141,7 @@ export async function PATCH(
         teamId: selectedTeam,
         action: forgotten
           ? AuditLogAction.FORGET_HWID
-          : AuditLogAction.UNFORGET_HWID,
+          : AuditLogAction.REMEMBER_HWID,
         targetId: hwidId,
         targetType: AuditLogTargetType.HARDWARE_IDENTIFIER,
         requestBody: { forgotten },

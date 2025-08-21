@@ -364,9 +364,8 @@
     "response_information": "Vastauksen tiedot",
     "payload_information": "Lähetyssisällön tiedot",
     "triggered_by": "Laukaissut",
-    "minutes": "minuuttia",
-    "hardware_identifier": "Laitteen tunnus",
-    "hardware_identifiers": "Laitteen tunnukset"
+    "hardware_identifier": "Laitetunniste",
+    "hardware_identifiers": "Laitetunnisteet"
   },
   "auth": {
     "oauth": {
@@ -718,7 +717,11 @@
         "set_polymart_placeholder": "asetti Polymart-placeholderin",
         "update_webhook": "päivitti webhookin",
         "delete_webhook": "poisti webhookin",
-        "create_webhook": "loi webhookin"
+        "create_webhook": "loi webhookin",
+        "forget_ip": "unohti IP-osoitteen",
+        "remember_ip": "muisti IP-osoitteen",
+        "forget_hwid": "unohti laitetunnisteen",
+        "remember_hwid": "muisti laitetunnisteen"
       }
     },
     "members": {

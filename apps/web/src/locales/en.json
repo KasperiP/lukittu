@@ -221,7 +221,6 @@
     "density": "Density",
     "avatar": "Avatar",
     "code": "Code",
-    "minutes": "Minutes",
     "load_more": "Load more",
     "draft": "Draft",
     "published": "Published",
@@ -742,9 +741,9 @@
         "delete_webhook": "deleted webhook",
         "create_webhook": "created webhook",
         "forget_ip": "forgot IP address",
-        "unforget_ip": "unforgot IP address",
+        "remember_ip": "remembered IP address",
         "forget_hwid": "forgot hardware identifier",
-        "unforget_hwid": "unforgot hardware identifier"
+        "remember_hwid": "remembered hardware identifier"
       }
     },
     "members": {

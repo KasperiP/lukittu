@@ -141,7 +141,7 @@ export async function PATCH(
         teamId: selectedTeam,
         action: forgotten
           ? AuditLogAction.FORGET_IP
-          : AuditLogAction.UNFORGET_IP,
+          : AuditLogAction.REMEMBER_IP,
         targetId: ipId,
         targetType: AuditLogTargetType.IP_ADDRESS,
         requestBody: { forgotten },

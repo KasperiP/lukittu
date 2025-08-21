@@ -111,11 +111,11 @@ export default function IpPreviewTable({
                     ? 'outline'
                     : ipLimit === null || ipLimit === undefined
                       ? 'outline'
-                      : activeCount > ipLimit
+                      : activeCount === ipLimit
                         ? 'error'
-                        : activeCount === ipLimit
+                        : activeCount >= Math.floor(ipLimit * 0.8)
                           ? 'warning'
-                          : 'outline'
+                          : 'success'
                 }
               >
                 {showSkeleton ? (
@@ -139,9 +139,9 @@ export default function IpPreviewTable({
               ) : ipLimit > 0 ? (
                 <div
                   className={`h-full rounded-full ${
-                    activeCount > ipLimit
+                    activeCount === ipLimit
                       ? 'bg-red-500'
-                      : activeCount === ipLimit
+                      : activeCount >= Math.floor(ipLimit * 0.8)
                         ? 'bg-yellow-500'
                         : 'bg-green-500'
                   }`}

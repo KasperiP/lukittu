@@ -198,9 +198,9 @@ ALTER TABLE "public"."RequestLog" RENAME COLUMN "deviceIdentifier" TO "hardwareI
 
 
 ALTER TYPE "public"."AuditLogAction" ADD VALUE 'FORGET_HWID';
-ALTER TYPE "public"."AuditLogAction" ADD VALUE 'UNFORGET_HWID';
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'REMEMBER_HWID';
 ALTER TYPE "public"."AuditLogAction" ADD VALUE 'FORGET_IP';
-ALTER TYPE "public"."AuditLogAction" ADD VALUE 'UNFORGET_IP';
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'REMEMBER_IP';
 
 -- AlterEnum
 -- This migration adds more than one value to an enum.

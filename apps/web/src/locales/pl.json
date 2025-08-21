@@ -364,7 +364,6 @@
     "response_information": "Informacje o odpowiedzi",
     "payload_information": "Informacje o ładunku",
     "triggered_by": "Wywołane przez",
-    "minutes": "minut",
     "hardware_identifier": "Identyfikator sprzętu",
     "hardware_identifiers": "Identyfikatory sprzętu"
   },
@@ -718,7 +717,11 @@
         "set_polymart_placeholder": "ustawiono zastępczy Polymart",
         "update_webhook": "zaktualizowano webhook",
         "delete_webhook": "usunął webhook",
-        "create_webhook": "utworzył webhook"
+        "create_webhook": "utworzył webhook",
+        "forget_ip": "zapomniał adresu IP",
+        "remember_ip": "zapamiętał adres IP",
+        "forget_hwid": "zapomniał identyfikatora sprzętowego",
+        "remember_hwid": "zapamiętał identyfikator sprzętowy"
       }
     },
     "members": {

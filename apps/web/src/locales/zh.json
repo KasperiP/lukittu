@@ -364,7 +364,6 @@
     "response_information": "响应信息",
     "payload_information": "负载信息",
     "triggered_by": "触发来源",
-    "minutes": "分钟",
     "hardware_identifier": "硬件标识符",
     "hardware_identifiers": "硬件标识符"
   },
@@ -718,7 +717,11 @@
         "set_polymart_placeholder": "设置 Polymart 占位符",
         "update_webhook": "更新Webhook",
         "delete_webhook": "删除Webhook",
-        "create_webhook": "创建Webhook"
+        "create_webhook": "创建Webhook",
+        "forget_ip": "忘记了 IP 地址",
+        "remember_ip": "记住了 IP 地址",
+        "forget_hwid": "忘记了硬件标识符",
+        "remember_hwid": "记住了硬件标识符"
       }
     },
     "members": {

@@ -364,7 +364,6 @@
     "response_information": "Información de respuesta",
     "payload_information": "Información del contenido",
     "triggered_by": "Activado por",
-    "minutes": "minutos",
     "hardware_identifier": "Identificador de hardware",
     "hardware_identifiers": "Identificadores de hardware"
   },
@@ -718,7 +717,11 @@
         "set_polymart_placeholder": "estableció marcador de Polymart",
         "update_webhook": "actualizó webhook",
         "delete_webhook": "eliminó webhook",
-        "create_webhook": "creó webhook"
+        "create_webhook": "creó webhook",
+        "forget_ip": "olvidó la dirección IP",
+        "remember_ip": "recordó la dirección IP",
+        "forget_hwid": "olvidó el identificador de hardware",
+        "remember_hwid": "recordó el identificador de hardware"
       }
     },
     "members": {

@@ -104,11 +104,7 @@ export default function TeamValidationSettings({
     },
   });
 
-  const { reset, handleSubmit, control, setValue, watch } = form;
-
-  // Watch the timeout values to sync with duration states
-  const hwidTimeout = watch('hwidTimeout');
-  const ipTimeout = watch('ipTimeout');
+  const { reset, handleSubmit, control, setValue } = form;
 
   useEffect(() => {
     const settings = {
@@ -314,12 +310,6 @@ export default function TeamValidationSettings({
                     </Select>
                   </div>
                   <FormMessage />
-                  {hwidTimeout && (
-                    <p className="text-sm text-muted-foreground">
-                      {t('dashboard.dashboard.total')}: {hwidTimeout}{' '}
-                      {t('general.minutes')}
-                    </p>
-                  )}
                 </FormItem>
               )}
             />
@@ -380,12 +370,6 @@ export default function TeamValidationSettings({
                     </Select>
                   </div>
                   <FormMessage />
-                  {ipTimeout && (
-                    <p className="text-sm text-muted-foreground">
-                      {t('dashboard.dashboard.total')}: {ipTimeout}{' '}
-                      {t('general.minutes')}
-                    </p>
-                  )}
                 </FormItem>
               )}
             />

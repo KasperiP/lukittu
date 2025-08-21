@@ -108,11 +108,11 @@ export default function HwidPreviewTable({
                     ? 'outline'
                     : hwidLimit === null || hwidLimit === undefined
                       ? 'outline'
-                      : activeCount > hwidLimit
+                      : activeCount === hwidLimit
                         ? 'error'
-                        : activeCount === hwidLimit
+                        : activeCount >= Math.floor(hwidLimit * 0.8)
                           ? 'warning'
-                          : 'outline'
+                          : 'success'
                 }
               >
                 {showSkeleton ? (
@@ -136,9 +136,9 @@ export default function HwidPreviewTable({
               ) : hwidLimit > 0 ? (
                 <div
                   className={`h-full rounded-full ${
-                    activeCount > hwidLimit
+                    activeCount === hwidLimit
                       ? 'bg-red-500'
-                      : activeCount === hwidLimit
+                      : activeCount >= Math.floor(hwidLimit * 0.8)
                         ? 'bg-yellow-500'
                         : 'bg-green-500'
                   }`}
