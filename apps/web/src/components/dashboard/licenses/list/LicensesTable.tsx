@@ -207,7 +207,8 @@ export function LicensesTable() {
     ...(ipCountMax && ipCountComparisonMode === 'between' && { ipCountMax }),
     ...(ipCountComparisonMode && { ipCountComparisonMode }),
     ...(hwidCountMin && { hwidCountMin }),
-    ...(hwidCountMax && hwidCountComparisonMode === 'between' && { hwidCountMax }),
+    ...(hwidCountMax &&
+      hwidCountComparisonMode === 'between' && { hwidCountMax }),
     ...(hwidCountComparisonMode && { hwidCountComparisonMode }),
     ...(status !== 'all' && { status }),
   });

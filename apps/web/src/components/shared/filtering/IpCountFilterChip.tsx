@@ -72,7 +72,11 @@ export function IpCountFilterChip({
   return (
     <FilterChip
       activeValue={getActiveValue()}
-      disabled={!tempComparisonMode || !tempIpCountMin || (tempComparisonMode === 'between' && !tempIpCountMax)}
+      disabled={
+        !tempComparisonMode ||
+        !tempIpCountMin ||
+        (tempComparisonMode === 'between' && !tempIpCountMax)
+      }
       isActive={!!ipCountMin}
       label={t('general.ip_count')}
       popoverTitle={t('general.filter_ip_count')}

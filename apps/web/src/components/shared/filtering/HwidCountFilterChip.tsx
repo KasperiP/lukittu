@@ -72,7 +72,11 @@ export function HwidCountFilterChip({
   return (
     <FilterChip
       activeValue={getActiveValue()}
-      disabled={!tempComparisonMode || !tempHwidCountMin || (tempComparisonMode === 'between' && !tempHwidCountMax)}
+      disabled={
+        !tempComparisonMode ||
+        !tempHwidCountMin ||
+        (tempComparisonMode === 'between' && !tempHwidCountMax)
+      }
       isActive={!!hwidCountMin}
       label={t('general.hwid_count')}
       popoverTitle={t('general.filter_hwid_count')}
