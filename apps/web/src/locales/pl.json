@@ -63,6 +63,9 @@
     "license_key_exists": "Klucz licencji już istnieje!",
     "customer_not_found": "Klient nie znaleziony!",
     "license_not_found": "Licencja nie znaleziona!",
+    "hwid_not_found": "Identyfikator sprzętowy nie znaleziony!",
+    "ip_not_found": "Adres IP nie znaleziony!",
+    "invalid_forgotten_value": "Nieprawidłowa wartość zapomniana!",
     "user_already_in_team": "Użytkownik z tym adresem email jest już w zespole!",
     "invitation_already_sent": "Wysłałeś już zaproszenie do tego użytkownika! Poczekaj co najmniej 15 minut przed wysłaniem kolejnego.",
     "invitation_not_found": "Zaproszenie nie znalezione! Mogło wygasnąć. Poproś właściciela zespołu o ponowne wysłanie zaproszenia.",
@@ -306,6 +309,8 @@
     "basic": "Podstawowy",
     "inactive": "Nieaktywny",
     "forgotten": "Zapomniany",
+    "show_forgotten": "Pokaż zapomniane",
+    "hide_forgotten": "Ukryj zapomniane",
     "billing_period_ends": "Okres rozliczeniowy kończy się",
     "plan": "Plan",
     "expiring": "Wygasający",
@@ -511,6 +516,18 @@
       "list": "Lista",
       "integrations": "Integracje",
       "webhooks": "Webhooki"
+    },
+    "hwid": {
+      "hwid_forgotten": "Identyfikator sprzętowy zapomniany pomyślnie",
+      "hwid_remembered": "Identyfikator sprzętowy zapamiętany pomyślnie",
+      "forget_hwid": "Zapomnij HWID",
+      "remember_hwid": "Zapamiętaj HWID"
+    },
+    "ip": {
+      "ip_forgotten": "Adres IP zapomniany pomyślnie",
+      "ip_remembered": "Adres IP zapamiętany pomyślnie",
+      "forget_ip": "Zapomnij IP",
+      "remember_ip": "Zapamiętaj IP"
     },
     "teams": {
       "create_team": "Utwórz zespół",

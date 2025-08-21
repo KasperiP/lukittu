@@ -54,6 +54,9 @@
     "license_key_exists": "Lisenssiavain on jo olemassa!",
     "customer_not_found": "Asiakasta ei löydy!",
     "license_not_found": "Lisenssiä ei löydy!",
+    "hwid_not_found": "Laitteistotunnistetta ei löydy!",
+    "ip_not_found": "IP-osoitetta ei löydy!",
+    "invalid_forgotten_value": "Virheellinen unohdettu arvo!",
     "user_already_in_team": "Tällä sähköpostilla oleva käyttäjä on jo tiimissä!",
     "invitation_already_sent": "Olet jo lähettänyt kutsun tälle käyttäjälle! Odota vähintään 15 minuuttia ennen toisen lähettämistä.",
     "invitation_not_found": "Kutsua ei löydy! Se saattaa olla vanhentunut. Pyydä tiimin omistajaa lähettämään kutsu uudelleen.",
@@ -300,6 +303,8 @@
     "basic": "Perus",
     "inactive": "Epäaktiivinen",
     "forgotten": "Unohdettu",
+    "show_forgotten": "Näytä unohdetut",
+    "hide_forgotten": "Piilota unohdetut",
     "billing_period_ends": "Laskutusjakso päättyy",
     "plan": "Suunnitelma",
     "expiring": "Vanhenee",
@@ -511,6 +516,18 @@
       "list": "Lista",
       "integrations": "Integraatiot",
       "webhooks": "Webhookit"
+    },
+    "hwid": {
+      "hwid_forgotten": "Laitteistotunniste unohdettu onnistuneesti",
+      "hwid_remembered": "Laitteistotunniste muistettu onnistuneesti",
+      "forget_hwid": "Unohda HWID",
+      "remember_hwid": "Muista HWID"
+    },
+    "ip": {
+      "ip_forgotten": "IP-osoite unohdettu onnistuneesti",
+      "ip_remembered": "IP-osoite muistettu onnistuneesti",
+      "forget_ip": "Unohda IP",
+      "remember_ip": "Muista IP"
     },
     "teams": {
       "create_team": "Luo tiimi",

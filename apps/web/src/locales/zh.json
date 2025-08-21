@@ -71,6 +71,9 @@
     "license_key_exists": "许可证密钥已存在！",
     "customer_not_found": "未找到客户！",
     "license_not_found": "未找到许可证！",
+    "hwid_not_found": "未找到硬件标识符！",
+    "ip_not_found": "未找到IP地址！",
+    "invalid_forgotten_value": "无效的遗忘值！",
     "user_already_in_team": "此邮箱的用户已在团队中！",
     "invitation_already_sent": "您最近已向此用户发送邀请！请至少等待15分钟后再发送另一个。",
     "invitation_not_found": "未找到邀请！可能已过期。请要求团队所有者重新发送邀请。",
@@ -315,6 +318,8 @@
     "basic": "基础",
     "inactive": "非活跃",
     "forgotten": "已遗忘",
+    "show_forgotten": "显示已遗忘",
+    "hide_forgotten": "隐藏已遗忘",
     "billing_period_ends": "计费周期结束",
     "plan": "计划",
     "expiring": "即将过期",
@@ -511,6 +516,18 @@
       "list": "列表",
       "integrations": "集成",
       "webhooks": "Webhook"
+    },
+    "hwid": {
+      "hwid_forgotten": "硬件标识符遗忘成功",
+      "hwid_remembered": "硬件标识符记住成功",
+      "forget_hwid": "遗忘HWID",
+      "remember_hwid": "记住HWID"
+    },
+    "ip": {
+      "ip_forgotten": "IP地址遗忘成功",
+      "ip_remembered": "IP地址记住成功",
+      "forget_ip": "遗忘IP",
+      "remember_ip": "记住IP"
     },
     "teams": {
       "create_team": "创建团队",

@@ -9,6 +9,7 @@ import TableSkeleton from '@/components/shared/table/TableSkeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -17,14 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useTableScroll } from '@/hooks/useTableScroll';
+import { cn } from '@/lib/utils/tailwind-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
 import { License } from '@lukittu/shared';
-import { ArrowDownUp, CheckCircle, EyeOff, XCircle } from 'lucide-react';
+import { ArrowDownUp, CheckCircle, Eye, EyeOff, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { CountryFlag } from '../../misc/CountryFlag';
+import { IpActionDropdown } from './IpActionDropdown';
 
 interface IpPreviewTableProps {
   licenseId: string;
@@ -42,32 +46,43 @@ const fetchIpAddresses = async (url: string) => {
   return data;
 };
 
-export default function IpAddressPreviewTable({
+export default function IpPreviewTable({
   licenseId,
   license,
 }: IpPreviewTableProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
+  const { showDropdown, containerRef } = useTableScroll();
 
   const [page, setPage] = useState(1);
   const [sortColumn, setSortColumn] = useState<'lastSeenAt' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(
     null,
   );
+  const [showForgotten, setShowForgotten] = useState(false);
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
     pageSize: '10',
     ...(sortColumn && { sortColumn }),
     ...(sortDirection && { sortDirection }),
+    ...(showForgotten && { showForgotten: 'true' }),
   });
 
   const { data, error, isLoading } =
     useSWR<ILicenseIpAddressGetSuccessResponse>(
-      teamCtx.selectedTeam
-        ? [`/api/licenses/${licenseId}/ip-address`, searchParams.toString()]
+      teamCtx.selectedTeam && licenseId
+        ? [
+            `/api/licenses/${licenseId}/ip-address`,
+            teamCtx.selectedTeam,
+            searchParams.toString(),
+          ]
         : null,
-      ([url, params]) => fetchIpAddresses(`${url}?${params}`),
+      ([url, _, params]) => fetchIpAddresses(`${url}?${params}`),
+      {
+        revalidateOnFocus: false,
+        dedupingInterval: 5000,
+      },
     );
 
   useEffect(() => {
@@ -75,6 +90,8 @@ export default function IpAddressPreviewTable({
       toast.error(error.message ?? t('general.server_error'));
     }
   }, [error, t]);
+
+  const showSkeleton = isLoading && !data;
 
   const ipAddresses = data?.ipAddresses ?? [];
   const totalResults = data?.totalResults ?? 0;
@@ -84,41 +101,48 @@ export default function IpAddressPreviewTable({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between border-b py-5">
-        <CardTitle className="text-xl font-bold">
-          {t('general.ip_addresses')}
-        </CardTitle>
-        {!isLoading && (
-          <div className="flex items-center gap-2 text-sm">
+      <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2 border-b py-5">
+        <div className="grid gap-1">
+          <CardTitle className="text-xl font-bold">
+            {t('general.ip_addresses')}
+          </CardTitle>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Badge
+                className="h-5"
                 variant={
-                  ipLimit === null || ipLimit === undefined
+                  showSkeleton
                     ? 'outline'
-                    : activeCount > ipLimit
-                      ? 'error'
-                      : activeCount === ipLimit
-                        ? 'warning'
-                        : 'outline'
+                    : ipLimit === null || ipLimit === undefined
+                      ? 'outline'
+                      : activeCount > ipLimit
+                        ? 'error'
+                        : activeCount === ipLimit
+                          ? 'warning'
+                          : 'outline'
                 }
               >
-                {ipLimit === null || ipLimit === undefined
-                  ? `${activeCount}/∞`
-                  : `${activeCount}/${ipLimit}`}
+                {showSkeleton ? (
+                  <span className="opacity-50">--/--</span>
+                ) : ipLimit === null || ipLimit === undefined ? (
+                  `${activeCount}/∞`
+                ) : (
+                  `${activeCount}/${ipLimit}`
+                )}
               </Badge>
-              <span className="text-muted-foreground">
-                {t('general.active')}
-              </span>
+              <span>{t('general.active')}</span>
             </div>
             <div className="h-2 w-16 overflow-hidden rounded-full bg-muted">
-              {ipLimit === null || ipLimit === undefined ? (
+              {showSkeleton ? (
+                <Skeleton className="h-full w-full rounded-full" />
+              ) : ipLimit === null || ipLimit === undefined ? (
                 <div
                   className="h-full rounded-full bg-muted"
                   style={{ width: '0%' }}
                 />
               ) : ipLimit > 0 ? (
                 <div
-                  className={`h-full rounded-full transition-all ${
+                  className={`h-full rounded-full ${
                     activeCount > ipLimit
                       ? 'bg-red-500'
                       : activeCount === ipLimit
@@ -137,15 +161,39 @@ export default function IpAddressPreviewTable({
               )}
             </div>
           </div>
-        )}
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setShowForgotten(!showForgotten)}
+        >
+          {showForgotten ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              <span className="ml-1 max-sm:hidden">
+                {t('general.hide_forgotten')}
+              </span>
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              <span className="ml-1 max-sm:hidden">
+                {t('general.show_forgotten')}
+              </span>
+            </>
+          )}
+        </Button>
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        {totalResults ? (
+        {totalResults || showSkeleton ? (
           <>
-            <Table>
+            <Table
+              className="relative"
+              containerRef={containerRef as React.RefObject<HTMLDivElement>}
+            >
               <TableHeader>
                 <TableRow>
-                  <TableHead className="truncate">
+                  <TableHead className="min-w-0 truncate">
                     {t('general.ip_address')}
                   </TableHead>
                   <TableHead className="truncate">
@@ -167,16 +215,24 @@ export default function IpAddressPreviewTable({
                   <TableHead className="truncate">
                     {t('dashboard.licenses.status')}
                   </TableHead>
+                  <TableHead
+                    className={cn(
+                      'sticky right-0 w-[50px] truncate px-2 text-right',
+                      {
+                        'bg-background drop-shadow-md': showDropdown,
+                      },
+                    )}
+                  />
                 </TableRow>
               </TableHeader>
-              {isLoading ? (
-                <TableSkeleton columns={3} height={4} rows={3} />
+              {showSkeleton ? (
+                <TableSkeleton columns={4} height={4} rows={5} />
               ) : (
                 <TableBody>
                   {ipAddresses.map((ip) => (
                     <TableRow key={ip.ip}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
+                      <TableCell className="min-w-0 max-w-[150px] sm:max-w-[200px] lg:max-w-[250px] xl:max-w-[300px]">
+                        <div className="flex min-w-0 items-center gap-2">
                           {ip.alpha2 && (
                             <span className="flex-shrink-0">
                               <CountryFlag
@@ -185,7 +241,9 @@ export default function IpAddressPreviewTable({
                               />
                             </span>
                           )}
-                          <span>{ip.ip}</span>
+                          <span className="min-w-0 truncate" title={ip.ip}>
+                            {ip.ip}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -208,6 +266,16 @@ export default function IpAddressPreviewTable({
                             {t('general.active')}
                           </Badge>
                         )}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          'sticky right-0 w-[50px] truncate px-2 py-0 text-right',
+                          {
+                            'bg-background drop-shadow-md': showDropdown,
+                          },
+                        )}
+                      >
+                        <IpActionDropdown ip={ip} licenseId={licenseId} />
                       </TableCell>
                     </TableRow>
                   ))}

@@ -681,6 +681,10 @@ enum AuditLogAction {
     CREATE_WEBHOOK
     UPDATE_WEBHOOK
     DELETE_WEBHOOK
+    FORGET_HWID
+    UNFORGET_HWID
+    FORGET_IP
+    UNFORGET_IP
 }
 
 enum ReleaseStatus {
@@ -699,6 +703,8 @@ enum AuditLogTargetType {
     RELEASE
     BRANCH
     WEBHOOK
+    HARDWARE_IDENTIFIER
+    IP_ADDRESS
 }
 
 enum BlacklistType {

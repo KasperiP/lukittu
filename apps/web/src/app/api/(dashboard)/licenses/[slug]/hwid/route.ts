@@ -63,6 +63,7 @@ export async function GET(
     let pageSize = parseInt(searchParams.get('pageSize') as string) || 10;
     let sortColumn = searchParams.get('sortColumn') as string;
     let sortDirection = searchParams.get('sortDirection') as 'asc' | 'desc';
+    const showForgotten = searchParams.get('showForgotten') === 'true';
 
     if (!allowedSortDirections.includes(sortDirection)) {
       sortDirection = 'desc';
@@ -95,6 +96,7 @@ export async function GET(
     const where = {
       teamId: selectedTeam,
       licenseId,
+      ...(showForgotten ? {} : { forgotten: false }),
     } as Prisma.HardwareIdentifierWhereInput;
 
     const session = await getSession({

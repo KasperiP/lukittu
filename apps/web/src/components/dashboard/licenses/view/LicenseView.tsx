@@ -4,7 +4,7 @@ import {
   ILicenseGetSuccessResponse,
 } from '@/app/api/(dashboard)/licenses/[slug]/route';
 import MetadataAside from '@/components/shared/misc/MetadataAside';
-import IpAddressPreviewTable from '@/components/shared/table/preview/IpPreviewTable';
+import IpPreviewTable from '@/components/shared/table/preview/IpPreviewTable';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LicenseModalProvider } from '@/providers/LicenseModalProvider';
@@ -79,7 +79,7 @@ export default function LicenseView() {
               <ProductsPreviewTable license={license} licenseId={licenseId} />
               <CustomersPreviewTable license={license} licenseId={licenseId} />
               <RequestLogsPreviewTable licenseId={licenseId} />
-              <IpAddressPreviewTable license={license} licenseId={licenseId} />
+              <IpPreviewTable license={license} licenseId={licenseId} />
               <HwidPreviewTable license={license} licenseId={licenseId} />
               <RequestsAreaChart licenseId={licenseId} />
               <WorldMapChart licenseId={licenseId} />

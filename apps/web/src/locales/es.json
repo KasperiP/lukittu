@@ -54,6 +54,9 @@
     "license_key_exists": "La clave de licencia ya existe!",
     "customer_not_found": "Cliente no encontrado.",
     "license_not_found": "Licencia no encontrada.",
+    "hwid_not_found": "Identificador de hardware no encontrado!",
+    "ip_not_found": "Dirección IP no encontrada!",
+    "invalid_forgotten_value": "Valor olvidado inválido!",
     "user_already_in_team": "El usuario con este correo electrónico ya está en el equipo!",
     "invitation_already_sent": "Recientemente has enviado una invitación a este usuario! Por favor, espera al menos 15 minutos antes de enviar otra.",
     "invitation_not_found": "Invitación no encontrada! Puede que haya expirado. Por favor, pide al propietario del equipo que reenvíe la invitación.",
@@ -300,6 +303,8 @@
     "basic": "Básico",
     "inactive": "Inactivo",
     "forgotten": "Olvidado",
+    "show_forgotten": "Mostrar olvidados",
+    "hide_forgotten": "Ocultar olvidados",
     "billing_period_ends": "El periodo de facturación termina",
     "plan": "Plan",
     "expiring": "A punto de expirar",
@@ -511,6 +516,18 @@
       "list": "Lista",
       "integrations": "Integraciones",
       "webhooks": "Webhooks"
+    },
+    "hwid": {
+      "hwid_forgotten": "Identificador de hardware olvidado con éxito",
+      "hwid_remembered": "Identificador de hardware recordado con éxito",
+      "forget_hwid": "Olvidar HWID",
+      "remember_hwid": "Recordar HWID"
+    },
+    "ip": {
+      "ip_forgotten": "Dirección IP olvidada con éxito",
+      "ip_remembered": "Dirección IP recordada con éxito",
+      "forget_ip": "Olvidar IP",
+      "remember_ip": "Recordar IP"
     },
     "teams": {
       "create_team": "Crear un equipo",

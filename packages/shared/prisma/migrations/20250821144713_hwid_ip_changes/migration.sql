@@ -189,5 +189,28 @@ ALTER TABLE "public"."ReturnedFields" RENAME COLUMN "licenseSeats" TO "licenseHw
 -- AlterTable: Rename deviceIdentifier to hardwareIdentifier in RequestLog table
 ALTER TABLE "public"."RequestLog" RENAME COLUMN "deviceIdentifier" TO "hardwareIdentifier";
 
+-- AlterEnum
+-- This migration adds more than one value to an enum.
+-- With PostgreSQL versions 11 and earlier, this is not possible
+-- in a single migration. This can be worked around by creating
+-- multiple migrations, each migration adding only one value to
+-- the enum.
+
+
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'FORGET_HWID';
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'UNFORGET_HWID';
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'FORGET_IP';
+ALTER TYPE "public"."AuditLogAction" ADD VALUE 'UNFORGET_IP';
+
+-- AlterEnum
+-- This migration adds more than one value to an enum.
+-- With PostgreSQL versions 11 and earlier, this is not possible
+-- in a single migration. This can be worked around by creating
+-- multiple migrations, each migration adding only one value to
+-- the enum.
+
+
+ALTER TYPE "public"."AuditLogTargetType" ADD VALUE 'HARDWARE_IDENTIFIER';
+ALTER TYPE "public"."AuditLogTargetType" ADD VALUE 'IP_ADDRESS';
 
 COMMIT;
