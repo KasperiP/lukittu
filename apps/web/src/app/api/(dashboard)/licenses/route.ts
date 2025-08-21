@@ -178,16 +178,19 @@ export async function GET(
         const uniqueIpCounts = await prisma.$queryRaw<
           { id: string; ipCount: number }[]
         >`
-          SELECT l.id, COUNT(DISTINCT ip."ip") as "ipCount"
+          SELECT l.id, COUNT(DISTINCT CASE 
+            WHEN ip."ip" IS NOT NULL 
+              AND ip."forgotten" = false
+              AND (
+                ${ipTimeout}::INTEGER IS NULL OR
+                EXTRACT(EPOCH FROM (NOW() - ip."lastSeenAt")) / 60 <= ${ipTimeout}::INTEGER
+              )
+            THEN ip."ip" 
+            ELSE NULL 
+          END) as "ipCount"
           FROM "License" l
           LEFT JOIN "IpAddress" ip ON l.id = ip."licenseId"
           WHERE l."teamId" = ${selectedTeam}
-            AND ip."ip" IS NOT NULL
-            AND ip."forgotten" = false
-            AND (
-              ${ipTimeout}::INTEGER IS NULL OR
-              EXTRACT(EPOCH FROM (NOW() - ip."lastSeenAt")) / 60 <= ${ipTimeout}::INTEGER
-            )
           GROUP BY l.id
         `;
 
@@ -226,16 +229,19 @@ export async function GET(
         const uniqueHwidCounts = await prisma.$queryRaw<
           { id: string; hwidCount: number }[]
         >`
-          SELECT l.id, COUNT(DISTINCT hwid."hwid") as "hwidCount"
+          SELECT l.id, COUNT(DISTINCT CASE 
+            WHEN hwid."hwid" IS NOT NULL 
+              AND hwid."forgotten" = false
+              AND (
+                ${hwidTimeout}::INTEGER IS NULL OR
+                EXTRACT(EPOCH FROM (NOW() - hwid."lastSeenAt")) / 60 <= ${hwidTimeout}::INTEGER
+              )
+            THEN hwid."hwid" 
+            ELSE NULL 
+          END) as "hwidCount"
           FROM "License" l
           LEFT JOIN "HardwareIdentifier" hwid ON l.id = hwid."licenseId"
           WHERE l."teamId" = ${selectedTeam}
-            AND hwid."hwid" IS NOT NULL
-            AND hwid."forgotten" = false
-            AND (
-              ${hwidTimeout}::INTEGER IS NULL OR
-              EXTRACT(EPOCH FROM (NOW() - hwid."lastSeenAt")) / 60 <= ${hwidTimeout}::INTEGER
-            )
           GROUP BY l.id
         `;
 
