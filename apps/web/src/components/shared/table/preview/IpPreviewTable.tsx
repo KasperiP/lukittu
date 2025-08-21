@@ -79,10 +79,6 @@ export default function IpPreviewTable({
           ]
         : null,
       ([url, _, params]) => fetchIpAddresses(`${url}?${params}`),
-      {
-        revalidateOnFocus: false,
-        dedupingInterval: 5000,
-      },
     );
 
   useEffect(() => {

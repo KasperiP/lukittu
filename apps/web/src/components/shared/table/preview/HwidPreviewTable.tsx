@@ -76,10 +76,6 @@ export default function HwidPreviewTable({
         ]
       : null,
     ([url, _, params]) => fetchHwids(`${url}?${params}`),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
-    },
   );
 
   useEffect(() => {
