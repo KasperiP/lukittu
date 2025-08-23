@@ -71,8 +71,11 @@ export async function POST(request: NextRequest) {
     const body = {
       ...rawBody,
       lukittuData: {
-        ...rawBody.lukittuData,
+        productId: rawBody.lukittuData.productId,
+        ipLimit: rawBody.lukittuData.ipLimit,
         hwidLimit: rawBody.lukittuData.hwidLimit || legacySeats,
+        expirationDays: rawBody.lukittuData.expirationDays,
+        expirationStart: rawBody.lukittuData.expirationStart,
       },
     };
 

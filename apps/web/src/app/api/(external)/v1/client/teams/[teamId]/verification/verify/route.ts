@@ -47,8 +47,10 @@ export async function POST(
      */
     const legacyDeviceIdentifier = rawBody.deviceIdentifier;
 
+    // Build body, mapping hardwareIdentifier and removing deviceIdentifier
+    const { deviceIdentifier: _deviceIdentifier, ...restRawBody } = rawBody;
     const body = {
-      ...rawBody,
+      ...restRawBody,
       hardwareIdentifier: rawBody.hardwareIdentifier || legacyDeviceIdentifier,
     } as VerifyLicenseSchema;
 
