@@ -312,9 +312,26 @@ jobs:
             echo "🔐 Logging into Docker registry..."
             docker login -u ${{ secrets.REGISTRY_USERNAME }} -p ${{ secrets.REGISTRY_PASSWORD }}
 
-            echo "📦 Pulling latest images..."
-            docker pull ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE }}:$TAG
-            docker pull ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE_BOT }}:$TAG
+
+            echo "📦 Pulling all images from compose files..."
+            IMAGE_TAG=$TAG docker compose -f docker/docker-compose-prod.yml pull
+            IMAGE_TAG=$TAG docker compose -f docker-compose-migrate.yml pull
+
+            echo "📝 Starting migration step..."
+            set +e
+            cd docker
+            echo "🚀 Running migration containers..."
+            IMAGE_TAG=$TAG docker compose -f docker-compose-migrate.yml up --abort-on-container-exit --exit-code-from prisma
+            MIGRATION_EXIT_CODE=$?
+            set -e
+            if [ $MIGRATION_EXIT_CODE -ne 0 ]; then
+              echo "❌ Migration failed, aborting deployment."
+              cd ..
+              exit 1
+            else
+              echo "✅ Migration completed successfully."
+            fi
+            cd ..
 
             echo "🔄 Restarting containers..."
             IMAGE_TAG=$TAG docker compose -f docker/docker-compose-prod.yml down
@@ -325,9 +342,6 @@ jobs:
             for i in {1..12}; do
               if curl -s http://localhost:3069/api/health > /dev/null; then
                 echo "✅ Application is ready!"
-                
-                echo "📝 Running migrations..."
-                cd docker && docker compose -f docker-compose-migrate.yml up -d
                 exit 0
               fi
               echo "Attempt $i/12: Application not ready, waiting..."
