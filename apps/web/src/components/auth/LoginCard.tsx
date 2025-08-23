@@ -75,6 +75,12 @@ export default function LoginCard() {
     setFormError(null);
   }, [formWatcher]);
 
+  useEffect(() => {
+    if (error && ['server_error', 'wrong_provider'].includes(error)) {
+      setErrorModalOpen(true);
+    }
+  }, [error]);
+
   const handleCredentialsLogin = async (payload: LoginSchema) => {
     const response = await fetch('/api/auth/login', {
       method: 'POST',
