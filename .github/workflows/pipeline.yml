@@ -315,7 +315,7 @@ jobs:
 
             echo "📦 Pulling all images from compose files..."
             IMAGE_TAG=$TAG docker compose -f docker/docker-compose-prod.yml pull
-            IMAGE_TAG=$TAG docker compose -f docker-compose-migrate.yml pull
+            IMAGE_TAG=$TAG docker compose -f docker/docker-compose-migrate.yml pull
 
             echo "📝 Starting migration step..."
             set +e
