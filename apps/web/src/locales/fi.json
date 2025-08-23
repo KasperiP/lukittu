@@ -54,6 +54,9 @@
     "license_key_exists": "Lisenssiavain on jo olemassa!",
     "customer_not_found": "Asiakasta ei löydy!",
     "license_not_found": "Lisenssiä ei löydy!",
+    "hwid_not_found": "Laitteistotunnistetta ei löydy!",
+    "ip_not_found": "IP-osoitetta ei löydy!",
+    "invalid_forgotten_value": "Virheellinen unohdettu arvo!",
     "user_already_in_team": "Tällä sähköpostilla oleva käyttäjä on jo tiimissä!",
     "invitation_already_sent": "Olet jo lähettänyt kutsun tälle käyttäjälle! Odota vähintään 15 minuuttia ennen toisen lähettämistä.",
     "invitation_not_found": "Kutsua ei löydy! Se saattaa olla vanhentunut. Pyydä tiimin omistajaa lähettämään kutsu uudelleen.",
@@ -61,7 +64,6 @@
     "invitation_for_different_email": "Kutsu on toiselle sähköpostiosoitteelle!",
     "file_too_large": "Tiedosto on liian suuri! Suurin sallittu tiedostokoko on {size}.",
     "invalid_file_type": "Virheellinen tiedostotyyppi! Vain PNG, JPEG ja WEBP ovat sallittuja.",
-    "device_timeout_positive": "Laitteen aikakatkaisu on oltava vähintään 1 minuutti!",
     "too_many_requests": "Liian monta pyyntöä! Yritä myöhemmin uudelleen.",
     "max_licenses_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman lisenssimäärän. Päivitä suunnitelma lisenssien lisäämiseksi.",
     "max_products_reached": "Tiimisi on saavuttanut nykyisen suunnitelman salliman tuotemäärän. Päivitä suunnitelma lisätuotteiden lisäämiseksi.",
@@ -146,7 +148,11 @@
     "webhook_name_already_exists": "Webhookin nimi on jo käytössä.",
     "webhook_url_already_exists": "Webhookin URL-osoite on jo käytössä.",
     "webhook_not_found": "Webhookia ei löytynyt.",
-    "webhook_deleted": "Webhook poistettu onnistuneesti."
+    "webhook_deleted": "Webhook poistettu onnistuneesti.",
+    "ip_timeout_max": "IP-aikakatkaisu saa olla enintään 259200 minuuttia.",
+    "hwid_timeout_max": "HWID-aikakatkaisu saa olla enintään 259200 minuuttia.",
+    "hwid_timeout_positive": "HWID-aikakatkaisun on oltava vähintään 1 minuutti!",
+    "ip_timeout_positive": "IP-aikakatkaisun on oltava vähintään 1 minuutti!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -181,6 +187,8 @@
     "less_than": "Pienempi kuin",
     "ip_count": "IP-osoitteiden määrä",
     "filter_ip_count": "Suodata IP-osoitteiden määrää",
+    "hwid_count": "HWID-tunnisteiden määrä",
+    "filter_hwid_count": "Suodata HWID-tunnisteiden määrää",
     "license_count": "Lisenssien määrä",
     "filter_license_count": "Suodata lisenssien määrää",
     "min": "Min",
@@ -191,7 +199,6 @@
     "classloader": "Luokkalataaja",
     "verify": "Vahvistus",
     "heartbeat": "Sydämenlyönti",
-    "devices": "Laitteet",
     "enabled": "Otkettu käyttöön",
     "disabled": "Poistettu käytöstä",
     "all": "Kaikki",
@@ -297,6 +304,9 @@
     "active": "Aktiivinen",
     "basic": "Perus",
     "inactive": "Epäaktiivinen",
+    "forgotten": "Unohdettu",
+    "show_forgotten": "Näytä unohdetut",
+    "hide_forgotten": "Piilota unohdetut",
     "billing_period_ends": "Laskutusjakso päättyy",
     "plan": "Suunnitelma",
     "expiring": "Vanhenee",
@@ -315,7 +325,6 @@
     "copied_to_clipboard": "Kopioitu leikepöydälle",
     "expires_at": "Vanhenee",
     "upload_photo": "Lataa valokuva",
-    "device_identifier": "Laitteen tunnus",
     "remove_photo": "Poista valokuva",
     "unlock_metadata": "Avaa metatiedot",
     "locked_metadata_warning": "Tämä metatietokenttä on lukittu. Nämä kentät on tyypillisesti lukittu, koska ne on luotu järjestelmän toimesta. Tämän kentän muokkaaminen voi aiheuttaa ongelmia integraatioissa, jotka riippuvat tästä tiedosta.",
@@ -356,7 +365,9 @@
     "completed_at": "Valmistunut",
     "response_information": "Vastauksen tiedot",
     "payload_information": "Lähetyssisällön tiedot",
-    "triggered_by": "Laukaissut"
+    "triggered_by": "Laukaissut",
+    "hardware_identifier": "Laitetunniste",
+    "hardware_identifiers": "Laitetunnisteet"
   },
   "auth": {
     "oauth": {
@@ -507,6 +518,18 @@
       "integrations": "Integraatiot",
       "webhooks": "Webhookit"
     },
+    "hwid": {
+      "hwid_forgotten": "Laitteistotunniste unohdettu onnistuneesti",
+      "hwid_remembered": "Laitteistotunniste muistettu onnistuneesti",
+      "forget_hwid": "Unohda HWID",
+      "remember_hwid": "Muista HWID"
+    },
+    "ip": {
+      "ip_forgotten": "IP-osoite unohdettu onnistuneesti",
+      "ip_remembered": "IP-osoite muistettu onnistuneesti",
+      "forget_ip": "Unohda IP",
+      "remember_ip": "Muista IP"
+    },
     "teams": {
       "create_team": "Luo tiimi",
       "edit_team": "Muokkaa tiimiä",
@@ -598,7 +621,6 @@
       "license_description": "Lisenssit ovat avaimia, jotka mahdollistavat asiakkaidesi tuotteiden käytön. Voit liittää ne asiakkaille ja seurata niiden käyttöä.",
       "no_products_assigned": "Ei liitettyjä tuotteita",
       "no_customers_assigned": "Ei liitettyjä asiakkaita",
-      "no_device_data": "Ei laitetietoja",
       "not_yet_activated": "Ei vielä aktivoitu",
       "license_updated": "Lisenssi päivitetty",
       "license_deleted": "Lisenssi poistettu",
@@ -606,7 +628,8 @@
       "search_license": "Etsi lisenssi...",
       "delete_license_confirm_title": "Poista lisenssi",
       "delete_license_confirm_description": "Olet poistamassa lisenssiä <strong>{license}</strong>! Tämä poistaa <strong>pysyvästi</strong> tämän lisenssin. Tätä toimintoa ei voi peruuttaa.",
-      "concurrent_users": "Samanaikaiset käyttäjät"
+      "hwid_limit": "HWID-rajoitus",
+      "no_hwid_data": "Ei HWID-tietoja"
     },
     "logs": {
       "no_logs": "Ei lokitietoja",
@@ -696,7 +719,11 @@
         "set_polymart_placeholder": "asetti Polymart-placeholderin",
         "update_webhook": "päivitti webhookin",
         "delete_webhook": "poisti webhookin",
-        "create_webhook": "loi webhookin"
+        "create_webhook": "loi webhookin",
+        "forget_ip": "unohti IP-osoitteen",
+        "remember_ip": "muisti IP-osoitteen",
+        "forget_hwid": "unohti laitetunnisteen",
+        "remember_hwid": "muisti laitetunnisteen"
       }
     },
     "members": {
@@ -727,7 +754,7 @@
       "stripe_integration_updated": "Stripe-integraatio päivitetty",
       "stripe_integration_created": "Stripe-integraatio luotu",
       "stripe_integration_deleted": "Stripe-integraatio poistettu",
-      "discord_integration_description": "Hallitse lisenssejäsi suoraan Discordissa. Voit käyttää Lukittu Discord-bottia lisenssien vahvistamiseen, laitteiden hallintaan ja muuhun.",
+      "discord_integration_description": "Hallitse lisensointitarpeesi suoraan Discordissa. Lukittu Discord-botti antaa sinun tarkistaa lisenssit, hallita asiakkaita ja paljon muuta suoraan Discord-palvelimeltasi.",
       "discord_integration_deleted": "Discord-integraatio poistettu",
       "discord_integration_created": "Discord-integraatio luotu",
       "discord_integration_updated": "Discord-integraatio päivitetty",
@@ -797,7 +824,6 @@
       "recommended_dimensions": "Suositellut mitat: 1600x400",
       "email_settings": "Sähköpostiasetukset",
       "limits": "Rajoitukset",
-      "device_timeout": "Laitteen aikakatkaisu (minuutteina)",
       "base_64_encoded": "Base64 koodattu",
       "plain_format": "Plain formaatti (PEM)",
       "rsa_public_key": "RSA 2048 julkinen avain",
@@ -842,7 +868,9 @@
       "customer_fields": "Asiakaskentät",
       "returned_fields_updated": "Palautetut kentät päivitetty",
       "returned_fields": "Palautetut kentät",
-      "returned_fields_description": "Valitse, mitkä kentät palautetaan asiakkaalle lisenssirajapinnasta."
+      "returned_fields_description": "Valitse, mitkä kentät palautetaan asiakkaalle lisenssirajapinnasta.",
+      "hwid_timeout": "HWID-aikakatkaisu",
+      "ip_timeout": "IP-aikakatkaisu"
     },
     "blacklist": {
       "blacklist_updated": "Mustan listan päivitys onnistui",

@@ -5,6 +5,8 @@ import { VerifyLicenseSchema } from '@/lib/validation/licenses/verify-license-sc
 import { handleVerify } from '@/lib/verification/verify';
 import { HttpStatus } from '@/types/http-status';
 import { logger, RequestStatus, RequestType } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 export async function POST(
@@ -14,6 +16,18 @@ export async function POST(
   const params = await props.params;
   const requestTime = new Date();
   const teamId = params.teamId;
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+
+  logger.info('License verify: Request started', {
+    requestId,
+    teamId,
+    route: '/v1/client/teams/[teamId]/verification/verify',
+    method: 'POST',
+    userAgent,
+    timestamp: requestTime.toISOString(),
+  });
 
   const loggedResponseBase = {
     body: null,
@@ -26,13 +40,45 @@ export async function POST(
   const ipAddress = await getIp();
 
   try {
-    const body = (await request.json()) as VerifyLicenseSchema;
+    const rawBody = await request.json();
+
+    /**
+     * @deprecated use hardwareIdentifier. Only for backward compatibility.
+     */
+    const legacyDeviceIdentifier = rawBody.deviceIdentifier;
+
+    const body = {
+      ...rawBody,
+      hardwareIdentifier: rawBody.hardwareIdentifier || legacyDeviceIdentifier,
+    } as VerifyLicenseSchema;
+
+    logger.info('License verify: Processing license verification', {
+      requestId,
+      teamId,
+      licenseKey: body.licenseKey,
+      hardwareId: body.hardwareIdentifier,
+      ipAddress,
+      country: geoData?.alpha2 || 'unknown',
+      hasChallenge: !!body.challenge,
+    });
 
     const result = await handleVerify({
+      requestId,
       teamId,
       ipAddress,
       geoData,
       payload: body,
+    });
+
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('License verify: Completed', {
+      requestId,
+      teamId,
+      status: result.status,
+      valid: result.response.result.valid,
+      responseTimeMs: responseTime,
+      statusCode: result.httpStatus,
     });
 
     return loggedResponse({
@@ -40,10 +86,21 @@ export async function POST(
       ...result,
     });
   } catch (error) {
-    logger.error(
-      "Error occurred in '(external)/v1/client/teams/[teamId]/verification/verify' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('License verify: Failed', {
+      requestId,
+      teamId,
+      route: '/v1/client/teams/[teamId]/verification/verify',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return loggedResponse({

@@ -78,7 +78,7 @@ const buildLicenseFields = (payload: LicenseWebhookPayload) => {
     });
   }
 
-  if (payload.ipLimit || payload.seats) {
+  if (payload.ipLimit || payload.hwidLimit) {
     fields.push({
       name: '\u200B',
       value: '**License Limits**',
@@ -93,10 +93,10 @@ const buildLicenseFields = (payload: LicenseWebhookPayload) => {
       });
     }
 
-    if (payload.seats) {
+    if (payload.hwidLimit) {
       fields.push({
-        name: 'Concurrent users',
-        value: payload.seats.toString(),
+        name: 'HWID Limit',
+        value: payload.hwidLimit.toString(),
         inline: true,
       });
     }

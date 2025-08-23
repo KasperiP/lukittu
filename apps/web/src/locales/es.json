@@ -54,6 +54,9 @@
     "license_key_exists": "La clave de licencia ya existe!",
     "customer_not_found": "Cliente no encontrado.",
     "license_not_found": "Licencia no encontrada.",
+    "hwid_not_found": "Identificador de hardware no encontrado!",
+    "ip_not_found": "Dirección IP no encontrada!",
+    "invalid_forgotten_value": "Valor olvidado inválido!",
     "user_already_in_team": "El usuario con este correo electrónico ya está en el equipo!",
     "invitation_already_sent": "Recientemente has enviado una invitación a este usuario! Por favor, espera al menos 15 minutos antes de enviar otra.",
     "invitation_not_found": "Invitación no encontrada! Puede que haya expirado. Por favor, pide al propietario del equipo que reenvíe la invitación.",
@@ -61,7 +64,6 @@
     "invitation_for_different_email": "La invitación es para una dirección de correo electrónico diferente!",
     "file_too_large": "El archivo es demasiado grande! El tamaño máximo del archivo es {size}.",
     "invalid_file_type": "Tipo de archivo no válido! Solo se permiten PNG, JPEG y WEBP.",
-    "device_timeout_positive": "El tiempo de espera del dispositivo debe ser de al menos 1 minuto!",
     "too_many_requests": "Demasiadas solicitudes! Por favor, inténtalo más tarde.",
     "max_licenses_reached": "Tu equipo ha alcanzado el número máximo de licencias permitidas para el plan actual. Por favor, actualiza para agregar más licencias.",
     "max_products_reached": "Tu equipo ha alcanzado el número máximo de productos permitidos para el plan actual. Por favor, actualiza para agregar más productos.",
@@ -146,7 +148,11 @@
     "webhook_name_already_exists": "El nombre del webhook ya existe.",
     "webhook_url_already_exists": "La URL del webhook ya existe.",
     "webhook_not_found": "No se encontró el webhook.",
-    "webhook_deleted": "Webhook eliminado con éxito."
+    "webhook_deleted": "Webhook eliminado con éxito.",
+    "ip_timeout_max": "El tiempo de espera de IP debe ser como máximo de 259200 minutos.",
+    "hwid_timeout_max": "El tiempo de espera de HWID debe ser como máximo de 259200 minutos.",
+    "hwid_timeout_positive": "¡El tiempo de espera de HWID debe ser de al menos 1 minuto!",
+    "ip_timeout_positive": "¡El tiempo de espera de IP debe ser de al menos 1 minuto!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -181,6 +187,8 @@
     "less_than": "Menor que",
     "ip_count": "Conteo de IP",
     "filter_ip_count": "Filtrar conteo de IP",
+    "hwid_count": "Conteo de HWID",
+    "filter_hwid_count": "Filtrar conteo de HWID",
     "license_count": "Conteo de licencias",
     "filter_license_count": "Filtrar conteo de licencias",
     "min": "Minimo",
@@ -191,7 +199,6 @@
     "classloader": "Cargador de clases",
     "verify": "Verificar",
     "heartbeat": "Latido",
-    "devices": "Dispositivos",
     "enabled": "Habilitado",
     "disabled": "Deshabilitado",
     "all": "Todos",
@@ -297,6 +304,9 @@
     "active": "Activo",
     "basic": "Básico",
     "inactive": "Inactivo",
+    "forgotten": "Olvidado",
+    "show_forgotten": "Mostrar olvidados",
+    "hide_forgotten": "Ocultar olvidados",
     "billing_period_ends": "El periodo de facturación termina",
     "plan": "Plan",
     "expiring": "A punto de expirar",
@@ -315,7 +325,6 @@
     "copied_to_clipboard": "Copiado al portapapeles",
     "expires_at": "Expira en",
     "upload_photo": "Subir una foto",
-    "device_identifier": "Identificador de dispositivo",
     "remove_photo": "Eliminar foto",
     "unlock_metadata": "Desbloquear metadatos",
     "locked_metadata_warning": "Este campo de metadatos está bloqueado. Estos campos suelen estar bloqueados porque son generados por el sistema. Modificar este campo puede causar problemas con las integraciones que dependen de estos datos.",
@@ -356,7 +365,9 @@
     "completed_at": "Completado en",
     "response_information": "Información de respuesta",
     "payload_information": "Información del contenido",
-    "triggered_by": "Activado por"
+    "triggered_by": "Activado por",
+    "hardware_identifier": "Identificador de hardware",
+    "hardware_identifiers": "Identificadores de hardware"
   },
   "auth": {
     "oauth": {
@@ -507,6 +518,18 @@
       "integrations": "Integraciones",
       "webhooks": "Webhooks"
     },
+    "hwid": {
+      "hwid_forgotten": "Identificador de hardware olvidado con éxito",
+      "hwid_remembered": "Identificador de hardware recordado con éxito",
+      "forget_hwid": "Olvidar HWID",
+      "remember_hwid": "Recordar HWID"
+    },
+    "ip": {
+      "ip_forgotten": "Dirección IP olvidada con éxito",
+      "ip_remembered": "Dirección IP recordada con éxito",
+      "forget_ip": "Olvidar IP",
+      "remember_ip": "Recordar IP"
+    },
     "teams": {
       "create_team": "Crear un equipo",
       "edit_team": "Editar equipo",
@@ -598,7 +621,6 @@
       "license_description": "Las licencias son las claves que permiten a tus clientes usar tus productos. Puedes asignarlas a clientes y rastrear su uso.",
       "no_products_assigned": "No hay productos asignados",
       "no_customers_assigned": "No hay clientes asignados",
-      "no_device_data": "No hay datos del dispositivo",
       "not_yet_activated": "Aún no activado",
       "license_updated": "Licencia actualizada",
       "license_deleted": "Licencia eliminada",
@@ -606,7 +628,8 @@
       "search_license": "Buscar licencia...",
       "delete_license_confirm_title": "Eliminar licencia",
       "delete_license_confirm_description": "Estás a punto de eliminar la licencia <strong>{license}</strong>! Esto <strong>eliminará permanentemente</strong> esta licencia. Esta acción no se puede deshacer.",
-      "concurrent_users": "Usuarios concurrentes"
+      "hwid_limit": "Límite de HWID",
+      "no_hwid_data": "No hay datos de HWID"
     },
     "logs": {
       "no_logs": "No hay registros",
@@ -696,7 +719,11 @@
         "set_polymart_placeholder": "estableció marcador de Polymart",
         "update_webhook": "actualizó webhook",
         "delete_webhook": "eliminó webhook",
-        "create_webhook": "creó webhook"
+        "create_webhook": "creó webhook",
+        "forget_ip": "olvidó la dirección IP",
+        "remember_ip": "recordó la dirección IP",
+        "forget_hwid": "olvidó el identificador de hardware",
+        "remember_hwid": "recordó el identificador de hardware"
       }
     },
     "members": {
@@ -727,7 +754,7 @@
       "stripe_integration_updated": "Integración de Stripe actualizada",
       "stripe_integration_created": "Integración de Stripe creada",
       "stripe_integration_deleted": "Integración de Stripe eliminada",
-      "discord_integration_description": "Gestiona tus licencias directamente en Discord. Puedes usar el bot de Discord de Lukittu para verificar licencias, administrar dispositivos y más.",
+      "discord_integration_description": "Gestiona tus necesidades de licencias directamente en Discord. El bot de Discord bloqueado te permite verificar licencias, gestionar clientes y mucho más directamente desde tu servidor de Discord.",
       "discord_integration_deleted": "Integración con Discord eliminada",
       "discord_integration_created": "Integración con Discord creada",
       "discord_integration_updated": "Integración con Discord actualizada",
@@ -797,7 +824,6 @@
       "recommended_dimensions": "Dimensiones recomendadas: 1600x400",
       "email_settings": "Configuraciones de correo electrónico",
       "limits": "Límites",
-      "device_timeout": "Tiempo de espera del dispositivo (minutos)",
       "base_64_encoded": "Codificado en Base64",
       "plain_format": "Formato simple (PEM)",
       "rsa_public_key": "Clave pública RSA 2048",
@@ -842,7 +868,9 @@
       "customer_fields": "Campos del cliente",
       "returned_fields_updated": "Campos devueltos actualizados",
       "returned_fields": "Campos devueltos",
-      "returned_fields_description": "Selecciona qué campos deben ser devueltos al cliente en los puntos de verificación."
+      "returned_fields_description": "Selecciona qué campos deben ser devueltos al cliente en los puntos de verificación.",
+      "hwid_timeout": "Tiempo de espera de HWID",
+      "ip_timeout": "Tiempo de espera de IP"
     },
     "blacklist": {
       "blacklist_updated": "Lista negra actualizada",

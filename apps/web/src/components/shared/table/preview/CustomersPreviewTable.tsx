@@ -121,7 +121,7 @@ export default function CustomersPreviewTable({
         value: string;
         locked: boolean;
       }[],
-      seats: license.seats,
+      hwidLimit: license.hwidLimit,
       sendEmailDelivery: false,
       suspended: license.suspended,
     });

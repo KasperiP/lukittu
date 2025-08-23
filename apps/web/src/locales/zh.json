@@ -71,6 +71,9 @@
     "license_key_exists": "许可证密钥已存在！",
     "customer_not_found": "未找到客户！",
     "license_not_found": "未找到许可证！",
+    "hwid_not_found": "未找到硬件标识符！",
+    "ip_not_found": "未找到IP地址！",
+    "invalid_forgotten_value": "无效的遗忘值！",
     "user_already_in_team": "此邮箱的用户已在团队中！",
     "invitation_already_sent": "您最近已向此用户发送邀请！请至少等待15分钟后再发送另一个。",
     "invitation_not_found": "未找到邀请！可能已过期。请要求团队所有者重新发送邀请。",
@@ -78,7 +81,6 @@
     "invitation_for_different_email": "邀请是针对不同的邮箱地址！",
     "file_too_large": "文件太大！最大文件大小为 {size}。",
     "invalid_file_type": "无效的文件类型！只允许 PNG、JPEG 和 WEBP。",
-    "device_timeout_positive": "设备超时必须至少1分钟！",
     "too_many_requests": "请求过多！请稍后重试。",
     "max_licenses_reached": "您的团队已达到当前计划允许的最大许可证数量。请升级以添加更多许可证。",
     "max_products_reached": "您的团队已达到当前计划允许的最大产品数量。请升级以添加更多产品。",
@@ -146,7 +148,11 @@
     "webhook_url_already_exists": "该 URL 的 Webhook 已存在！",
     "webhook_not_found": "未找到 Webhook！",
     "webhook_limit_reached": "您的团队已达到当前套餐允许的最大 Webhook 数量。如需添加更多，请升级套餐。",
-    "webhook_deleted": "Webhook 已删除！"
+    "webhook_deleted": "Webhook 已删除！",
+    "ip_timeout_max": "IP 超时时间最多为 259200 分钟。",
+    "hwid_timeout_max": "HWID 超时时间最多为 259200 分钟。",
+    "hwid_timeout_positive": "HWID 超时时间至少为 1 分钟！",
+    "ip_timeout_positive": "IP 超时时间至少为 1 分钟！"
   },
   "general": {
     "select_source": "选择来源",
@@ -191,6 +197,8 @@
     "less_than": "小于",
     "ip_count": "IP数量",
     "filter_ip_count": "筛选IP数量",
+    "hwid_count": "HWID数量",
+    "filter_hwid_count": "筛选HWID数量",
     "license_count": "许可证数量",
     "filter_license_count": "筛选许可证数量",
     "min": "最小",
@@ -201,7 +209,6 @@
     "classloader": "类加载器",
     "verify": "验证",
     "heartbeat": "心跳",
-    "devices": "设备",
     "enabled": "启用",
     "disabled": "禁用",
     "all": "全部",
@@ -312,6 +319,9 @@
     "active": "活跃",
     "basic": "基础",
     "inactive": "非活跃",
+    "forgotten": "已遗忘",
+    "show_forgotten": "显示已遗忘",
+    "hide_forgotten": "隐藏已遗忘",
     "billing_period_ends": "计费周期结束",
     "plan": "计划",
     "expiring": "即将过期",
@@ -330,7 +340,6 @@
     "copied_to_clipboard": "已复制到剪贴板",
     "expires_at": "过期时间",
     "upload_photo": "上传照片",
-    "device_identifier": "设备标识符",
     "remove_photo": "移除照片",
     "unlock_metadata": "解锁元数据",
     "locked_metadata_warning": "此元数据字段已锁定。这些字段通常被锁定是因为它们是系统生成的。修改此字段可能会导致依赖此数据的集成出现问题。",
@@ -356,7 +365,9 @@
     "completed_at": "完成时间",
     "response_information": "响应信息",
     "payload_information": "负载信息",
-    "triggered_by": "触发来源"
+    "triggered_by": "触发来源",
+    "hardware_identifier": "硬件标识符",
+    "hardware_identifiers": "硬件标识符"
   },
   "auth": {
     "oauth": {
@@ -507,6 +518,18 @@
       "integrations": "集成",
       "webhooks": "Webhook"
     },
+    "hwid": {
+      "hwid_forgotten": "硬件标识符遗忘成功",
+      "hwid_remembered": "硬件标识符记住成功",
+      "forget_hwid": "遗忘HWID",
+      "remember_hwid": "记住HWID"
+    },
+    "ip": {
+      "ip_forgotten": "IP地址遗忘成功",
+      "ip_remembered": "IP地址记住成功",
+      "forget_ip": "遗忘IP",
+      "remember_ip": "记住IP"
+    },
     "teams": {
       "create_team": "创建团队",
       "edit_team": "编辑团队",
@@ -598,7 +621,6 @@
       "license_description": "许可证是允许您的客户使用您产品的密钥。您可以将它们分配给客户并跟踪其使用情况。",
       "no_products_assigned": "未分配产品",
       "no_customers_assigned": "未分配客户",
-      "no_device_data": "无设备数据",
       "not_yet_activated": "尚未激活",
       "license_updated": "许可证已更新",
       "license_deleted": "许可证已删除",
@@ -606,7 +628,8 @@
       "search_license": "搜索许可证...",
       "delete_license_confirm_title": "删除许可证",
       "delete_license_confirm_description": "您即将删除许可证 <strong>{license}</strong>！这将<strong>永久删除</strong>此许可证。此操作无法撤销。",
-      "concurrent_users": "并发用户"
+      "hwid_limit": "HWID限制",
+      "no_hwid_data": "没有HWID数据"
     },
     "logs": {
       "no_logs": "无日志",
@@ -696,7 +719,11 @@
         "set_polymart_placeholder": "设置 Polymart 占位符",
         "update_webhook": "更新Webhook",
         "delete_webhook": "删除Webhook",
-        "create_webhook": "创建Webhook"
+        "create_webhook": "创建Webhook",
+        "forget_ip": "忘记了 IP 地址",
+        "remember_ip": "记住了 IP 地址",
+        "forget_hwid": "忘记了硬件标识符",
+        "remember_hwid": "记住了硬件标识符"
       }
     },
     "members": {
@@ -728,7 +755,7 @@
       "stripe_integration_updated": "Stripe 集成已更新",
       "stripe_integration_created": "Stripe 集成已创建",
       "stripe_integration_deleted": "Stripe 集成已删除",
-      "discord_integration_description": "直接在 Discord 中处理您的许可需求。您可以使用 Lukittu Discord 机器人来验证许可证、管理设备等。",
+      "discord_integration_description": "直接在 Discord 中处理您的授权需求。锁定的 Discord 机器人允许您直接在服务器上验证授权、管理客户等。",
       "discord_integration_deleted": "Discord 集成已删除",
       "discord_integration_created": "Discord 集成已创建",
       "discord_integration_updated": "Discord 集成已更新",
@@ -807,7 +834,6 @@
       "recommended_dimensions": "推荐尺寸：1600x400",
       "email_settings": "邮件设置",
       "limits": "限制",
-      "device_timeout": "设备超时（分钟）",
       "base_64_encoded": "Base64 编码",
       "plain_format": "纯文本格式（PEM）",
       "rsa_public_key": "RSA 2048 公钥",
@@ -842,7 +868,9 @@
       "delete_api_key_confirm_description": "您即将删除 ID 为 <strong>{id}</strong> 的 API 密钥！这将<strong>永久删除</strong>此 API 密钥。此操作无法撤销。",
       "no_api_keys": "无 API 密钥",
       "api_key_created_description": "API 密钥创建成功。请保密此密钥，不要与任何人分享。<strong>这是您唯一一次看到此密钥，请立即保存！</strong>",
-      "api_key_expiration_date_description": "您不需要设置过期日期，但出于安全考虑这可能很有用。如果您设置了过期日期，API 密钥将在该日期后自动删除。"
+      "api_key_expiration_date_description": "您不需要设置过期日期，但出于安全考虑这可能很有用。如果您设置了过期日期，API 密钥将在该日期后自动删除。",
+      "hwid_timeout": "HWID 超时",
+      "ip_timeout": "IP 超时"
     },
     "blacklist": {
       "blacklist_updated": "黑名单已更新",

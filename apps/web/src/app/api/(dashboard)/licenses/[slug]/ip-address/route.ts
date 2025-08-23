@@ -3,21 +3,19 @@ import { iso3toIso2, iso3ToName } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, prisma, regex } from '@lukittu/shared';
+import { IpAddress, logger, Prisma, prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+type IpStatus = 'active' | 'inactive' | 'forgotten';
+
 export type ILicenseIpAddressGetSuccessResponse = {
-  ipAddresses: {
-    ipAddress: string;
-    lastSeen: Date;
-    requestCount: number;
-    country: string | null;
+  ipAddresses: (IpAddress & {
+    status: IpStatus;
     alpha2: string | null;
     alpha3: string | null;
-  }[];
+  })[];
   totalResults: number;
-  hasResults: boolean;
 };
 
 export type ILicenseIpAddressGetResponse =
@@ -56,13 +54,20 @@ export async function GET(
 
     const allowedPageSizes = [10, 25, 50, 100];
     const allowedSortDirections = ['asc', 'desc'];
+    const allowedSortColumns = ['lastSeenAt'];
 
     let page = parseInt(searchParams.get('page') as string) || 1;
     let pageSize = parseInt(searchParams.get('pageSize') as string) || 10;
+    let sortColumn = searchParams.get('sortColumn') as string;
     let sortDirection = searchParams.get('sortDirection') as 'asc' | 'desc';
+    const showForgotten = searchParams.get('showForgotten') === 'true';
 
     if (!allowedSortDirections.includes(sortDirection)) {
       sortDirection = 'desc';
+    }
+
+    if (!sortColumn || !allowedSortColumns.includes(sortColumn)) {
+      sortColumn = 'lastSeenAt';
     }
 
     if (!allowedPageSizes.includes(pageSize)) {
@@ -85,6 +90,12 @@ export async function GET(
       );
     }
 
+    const where = {
+      teamId: selectedTeam,
+      licenseId,
+      ...(showForgotten ? {} : { forgotten: false }),
+    } as Prisma.IpAddressWhereInput;
+
     const session = await getSession({
       user: {
         include: {
@@ -94,11 +105,14 @@ export async function GET(
               id: selectedTeam,
             },
             include: {
-              limits: true,
-              licenses: {
-                where: {
-                  id: licenseId,
+              settings: true,
+              ipAddresses: {
+                where,
+                orderBy: {
+                  [sortColumn]: sortDirection,
                 },
+                skip,
+                take,
               },
             },
           },
@@ -126,99 +140,49 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    if (!team.licenses.length) {
-      return NextResponse.json(
-        {
-          message: t('validation.license_not_found'),
-        },
-        { status: HttpStatus.NOT_FOUND },
-      );
-    }
+    const totalResults = await prisma.ipAddress.count({
+      where,
+    });
 
-    if (!team.limits) {
-      return NextResponse.json(
-        {
-          message: t('general.server_error'),
-        },
-        { status: HttpStatus.INTERNAL_SERVER_ERROR },
-      );
-    }
+    const ipAddresses = team.ipAddresses;
 
-    const retentionDate = new Date();
-    retentionDate.setDate(retentionDate.getDate() - team.limits.logRetention);
+    const formattedIpAddresses = ipAddresses.map((ip) => {
+      if (ip.forgotten) {
+        return {
+          ...ip,
+          country: iso3ToName(ip.country),
+          alpha2: ip.country ? iso3toIso2(ip.country) : null,
+          alpha3: ip.country ?? null,
+          status: 'forgotten' as IpStatus,
+        };
+      }
 
-    const license = team.licenses[0];
+      const ipAddressTimeout = team.settings?.ipTimeout || null;
 
-    const [ipAddresses, totalResults, hasResults] = await prisma.$transaction([
-      sortDirection === 'asc'
-        ? prisma.$queryRaw<
-            {
-              ipAddress: string;
-              lastSeen: Date;
-              requestCount: number;
-              country: string | null;
-            }[]
-          >`
-            SELECT 
-              "ipAddress",
-              MAX("createdAt") as "lastSeen",
-              CAST(COUNT(*) AS INTEGER) as "requestCount",
-              MAX("country") as "country"
-            FROM "RequestLog"
-            WHERE "licenseId" = ${license.id}
-            AND "createdAt" >= ${retentionDate}
-            GROUP BY "ipAddress"
-            ORDER BY "lastSeen" ASC
-            LIMIT ${take} OFFSET ${skip}
-          `
-        : prisma.$queryRaw<
-            {
-              ipAddress: string;
-              lastSeen: Date;
-              requestCount: number;
-              country: string | null;
-            }[]
-          >`
-            SELECT 
-              "ipAddress",
-              MAX("createdAt") as "lastSeen",
-              CAST(COUNT(*) AS INTEGER) as "requestCount",
-              MAX("country") as "country"
-            FROM "RequestLog"
-            WHERE "licenseId" = ${license.id}
-            AND "createdAt" >= ${retentionDate}
-            GROUP BY "ipAddress"
-            ORDER BY "lastSeen" DESC
-            LIMIT ${take} OFFSET ${skip}
-          `,
-      prisma.$queryRaw<[{ count: number }]>`
-        SELECT CAST(COUNT(DISTINCT "ipAddress") AS INTEGER) as count
-        FROM "RequestLog"
-        WHERE "licenseId" = ${license.id}
-        AND "createdAt" >= ${retentionDate}
-      `,
-      prisma.requestLog.findFirst({
-        where: {
-          licenseId,
-          createdAt: {
-            gte: retentionDate,
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
-    ]);
+      const lastSeenAt = new Date(ip.lastSeenAt);
+      const now = new Date();
 
-    return NextResponse.json({
-      ipAddresses: ipAddresses.map((ip) => ({
+      const diff = Math.abs(now.getTime() - lastSeenAt.getTime());
+      const minutes = Math.floor(diff / 1000 / 60);
+
+      const status: IpStatus = ipAddressTimeout
+        ? minutes <= ipAddressTimeout
+          ? 'active'
+          : 'inactive'
+        : 'active';
+
+      return {
         ...ip,
         country: iso3ToName(ip.country),
         alpha2: ip.country ? iso3toIso2(ip.country) : null,
         alpha3: ip.country ?? null,
-      })),
-      totalResults: Number(totalResults[0].count),
-      hasResults: Boolean(hasResults),
+        status,
+      };
+    });
+
+    return NextResponse.json({
+      ipAddresses: formattedIpAddresses,
+      totalResults,
     });
   } catch (error) {
     logger.error("Error occurred in 'licenses/ip-address' route", error);

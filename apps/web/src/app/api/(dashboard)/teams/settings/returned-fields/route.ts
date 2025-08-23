@@ -103,7 +103,7 @@ export async function PUT(
       licenseExpirationType: validated.data.licenseExpirationType,
       licenseIpLimit: validated.data.licenseIpLimit,
       licenseMetadataKeys: validated.data.licenseMetadataKeys,
-      licenseSeats: validated.data.licenseSeats,
+      licenseHwidLimit: validated.data.licenseHwidLimit,
       productMetadataKeys: validated.data.productMetadataKeys,
       productName: validated.data.productName,
       productUrl: validated.data.productUrl,

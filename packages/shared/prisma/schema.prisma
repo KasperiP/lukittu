@@ -84,7 +84,8 @@ model Team {
     auditLogs             AuditLog[]
     invitations           Invitation[]
     apiKeys               ApiKey[]
-    devices               Device[]
+    ipAddresses           IpAddress[]
+    hardwareIdentifiers   HardwareIdentifier[]
     releases              Release[]
     blacklist             Blacklist[]
     metadata              Metadata[]
@@ -276,8 +277,8 @@ model Settings {
     id              String          @id @default(uuid())
     teamId          String          @unique
     team            Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    deviceTimeout   Int             @default(60)
-    ipLimitPeriod   IpLimitPeriod   @default(DAY)
+    hwidTimeout     Int?
+    ipTimeout       Int?
     strictCustomers Boolean         @default(false)
     strictProducts  Boolean         @default(false)
     strictReleases  Boolean         @default(false)
@@ -293,7 +294,7 @@ model ReturnedFields {
     settingsId             String   @unique
     settings               Settings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
     licenseIpLimit         Boolean  @default(false)
-    licenseSeats           Boolean  @default(false)
+    licenseHwidLimit       Boolean  @default(false)
     licenseExpirationType  Boolean  @default(false)
     licenseExpirationStart Boolean  @default(false)
     licenseExpirationDate  Boolean  @default(false)
@@ -485,46 +486,66 @@ model Metadata {
 }
 
 model License {
-    id               String                 @id @default(uuid())
-    licenseKey       String
-    licenseKeyLookup String
-    ipLimit          Int?
-    metadata         Metadata[]
-    expirationType   LicenseExpirationType  @default(NEVER)
-    expirationStart  LicenseExpirationStart @default(CREATION)
-    expirationDate   DateTime?
-    expirationDays   Int?
-    seats            Int?
-    suspended        Boolean                @default(false)
-    teamId           String
-    team             Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    products         Product[]
-    customers        Customer[]
-    allowedReleases  Release[]
-    createdByUserId  String?
-    createdBy        User?                  @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-    createdAt        DateTime               @default(now())
-    updatedAt        DateTime               @updatedAt
-    requestLogs      RequestLog[]
-    devices          Device[]
-    lastActiveAt     DateTime               @default(now())
+    id                  String                 @id @default(uuid())
+    licenseKey          String
+    licenseKeyLookup    String
+    ipLimit             Int?
+    hwidLimit           Int?
+    metadata            Metadata[]
+    expirationType      LicenseExpirationType  @default(NEVER)
+    expirationStart     LicenseExpirationStart @default(CREATION)
+    expirationDate      DateTime?
+    expirationDays      Int?
+    suspended           Boolean                @default(false)
+    teamId              String
+    team                Team                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    products            Product[]
+    customers           Customer[]
+    allowedReleases     Release[]
+    createdByUserId     String?
+    createdBy           User?                  @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdAt           DateTime               @default(now())
+    updatedAt           DateTime               @updatedAt
+    requestLogs         RequestLog[]
+    hardwareIdentifiers HardwareIdentifier[]
+    ipAddresses         IpAddress[]
+    lastActiveAt        DateTime               @default(now())
 
     @@unique([teamId, licenseKeyLookup])
 }
 
-model Device {
-    id               String   @id @default(uuid())
-    licenseId        String
-    license          License  @relation(fields: [licenseId], references: [id], onDelete: Cascade)
-    teamId           String
-    team             Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    ipAddress        String?
-    country          String?
-    deviceIdentifier String
-    lastBeatAt       DateTime @default(now())
-    createdAt        DateTime @default(now())
+model IpAddress {
+    id          String    @id @default(uuid())
+    ip          String
+    forgotten   Boolean   @default(false)
+    forgottenAt DateTime?
+    lastSeenAt  DateTime  @default(now())
+    country     String?
+    licenseId   String
+    license     License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+    teamId      String
+    team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 
-    @@unique([licenseId, deviceIdentifier])
+    @@unique([licenseId, ip])
+    @@index([teamId])
+}
+
+model HardwareIdentifier {
+    id          String    @id @default(uuid())
+    hwid        String
+    forgotten   Boolean   @default(false)
+    forgottenAt DateTime?
+    licenseId   String
+    license     License   @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+    teamId      String
+    team        Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    lastSeenAt  DateTime  @default(now())
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    @@unique([licenseId, hwid])
     @@index([teamId])
 }
 
@@ -552,36 +573,36 @@ model AuditLog {
 }
 
 model RequestLog {
-    id               String        @id @default(uuid())
-    responseTime     Int
-    ipAddress        String?
-    longitude        Float?
-    latitude         Float?
-    country          String?
-    status           RequestStatus
-    type             RequestType   @default(UNKNOWN)
-    statusCode       Int
-    version          String
-    userAgent        String?
-    deviceIdentifier String?
-    path             String
-    method           RequestMethod
-    requestBody      Json?
-    responseBody     Json?
-    requestQuery     Json?
-    teamId           String
-    team             Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    licenseId        String?
-    license          License?      @relation(fields: [licenseId], references: [id], onDelete: Cascade)
-    productId        String?
-    product          Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
-    releaseId        String?
-    release          Release?      @relation(fields: [releaseId], references: [id], onDelete: SetNull)
-    releaseFileId    String?
-    releaseFile      ReleaseFile?  @relation(fields: [releaseFileId], references: [id], onDelete: SetNull)
-    customerId       String?
-    customer         Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-    createdAt        DateTime      @default(now())
+    id                 String        @id @default(uuid())
+    responseTime       Int
+    ipAddress          String?
+    longitude          Float?
+    latitude           Float?
+    country            String?
+    status             RequestStatus
+    type               RequestType   @default(UNKNOWN)
+    statusCode         Int
+    version            String
+    userAgent          String?
+    hardwareIdentifier String?
+    path               String
+    method             RequestMethod
+    requestBody        Json?
+    responseBody       Json?
+    requestQuery       Json?
+    teamId             String
+    team               Team          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    licenseId          String?
+    license            License?      @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+    productId          String?
+    product            Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+    releaseId          String?
+    release            Release?      @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+    releaseFileId      String?
+    releaseFile        ReleaseFile?  @relation(fields: [releaseFileId], references: [id], onDelete: SetNull)
+    customerId         String?
+    customer           Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+    createdAt          DateTime      @default(now())
 
     @@index([teamId, createdAt])
 }
@@ -660,6 +681,10 @@ enum AuditLogAction {
     CREATE_WEBHOOK
     UPDATE_WEBHOOK
     DELETE_WEBHOOK
+    FORGET_HWID
+    REMEMBER_HWID
+    FORGET_IP
+    REMEMBER_IP
 }
 
 enum ReleaseStatus {
@@ -678,10 +703,12 @@ enum AuditLogTargetType {
     RELEASE
     BRANCH
     WEBHOOK
+    HARDWARE_IDENTIFIER
+    IP_ADDRESS
 }
 
 enum BlacklistType {
-    DEVICE_IDENTIFIER
+    HARDWARE_IDENTIFIER
     IP_ADDRESS
     COUNTRY
 }
@@ -703,26 +730,20 @@ enum LicenseExpirationStart {
     CREATION
 }
 
-enum IpLimitPeriod {
-    DAY
-    WEEK
-    MONTH
-}
-
 enum RequestStatus {
     INTERNAL_SERVER_ERROR
     BAD_REQUEST
     LICENSE_NOT_FOUND
     VALID
     IP_LIMIT_REACHED
+    HWID_LIMIT_REACHED
     PRODUCT_NOT_FOUND
     CUSTOMER_NOT_FOUND
     LICENSE_EXPIRED
     LICENSE_SUSPENDED
-    MAXIMUM_CONCURRENT_SEATS
     TEAM_NOT_FOUND
     RATE_LIMIT
-    DEVICE_IDENTIFIER_BLACKLISTED
+    HARDWARE_IDENTIFIER_BLACKLISTED
     COUNTRY_BLACKLISTED
     IP_BLACKLISTED
     RELEASE_NOT_FOUND

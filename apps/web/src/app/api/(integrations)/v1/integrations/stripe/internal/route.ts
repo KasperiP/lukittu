@@ -5,13 +5,15 @@ import {
 } from '@/lib/providers/stripe-internal';
 import { HttpStatus } from '@/types/http-status';
 import { logger } from '@lukittu/shared';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
-    const sig = request.headers.get('stripe-signature')!;
+    const headersList = await headers();
+    const sig = headersList.get('stripe-signature')!;
 
     if (!sig || !rawBody) {
       logger.error('Invalid request', { sig, rawBody });

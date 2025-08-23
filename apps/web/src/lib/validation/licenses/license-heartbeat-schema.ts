@@ -14,19 +14,19 @@ export const licenseHeartbeatSchema = () =>
           message:
             'License key must be in the format of XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
         }),
-      deviceIdentifier: z
+      hardwareIdentifier: z
         .string({
-          message: 'Device identifier must be a string',
-          required_error: 'Device identifier is required',
+          message: 'Hardware identifier must be a string',
+          required_error: 'Hardware identifier is required',
         })
         .min(10, {
-          message: 'Device identifier must be at least 10 characters',
+          message: 'Hardware identifier must be at least 10 characters',
         })
         .max(1000, {
-          message: 'Device identifier must be less than 1000 characters',
+          message: 'Hardware identifier must be less than 1000 characters',
         })
         .regex(/^[^\s]+$/, {
-          message: 'Device identifier must not contain spaces',
+          message: 'Hardware identifier must not contain spaces',
         }),
       customerId: z
         .string({ message: 'Customer UUID must be a string' })

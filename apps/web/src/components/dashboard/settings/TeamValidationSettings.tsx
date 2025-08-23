@@ -35,6 +35,44 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+// Time unit multipliers (to convert to minutes)
+const TIME_UNITS = {
+  minutes: { label: 'Minutes', multiplier: 1 },
+  hours: { label: 'Hours', multiplier: 60 },
+  days: { label: 'Days', multiplier: 60 * 24 },
+  weeks: { label: 'Weeks', multiplier: 60 * 24 * 7 },
+  months: { label: 'Months', multiplier: 60 * 24 * 30 },
+} as const;
+
+type TimeUnit = keyof typeof TIME_UNITS;
+
+interface DurationValue {
+  value: number | null;
+  unit: TimeUnit;
+}
+
+// Helper functions to convert between minutes and duration format
+const minutesToDuration = (minutes: number | null): DurationValue => {
+  if (minutes === null) return { value: null, unit: 'minutes' };
+
+  // Find the best unit (largest unit that results in a whole number)
+  const units: TimeUnit[] = ['months', 'weeks', 'days', 'hours', 'minutes'];
+
+  for (const unit of units) {
+    const multiplier = TIME_UNITS[unit].multiplier;
+    if (minutes % multiplier === 0 && minutes >= multiplier) {
+      return { value: minutes / multiplier, unit };
+    }
+  }
+
+  return { value: minutes, unit: 'minutes' };
+};
+
+const durationToMinutes = (duration: DurationValue): number | null => {
+  if (duration.value === null) return null;
+  return duration.value * TIME_UNITS[duration.unit].multiplier;
+};
+
 interface TeamValidationSettingsProps {
   team: ITeamGetSuccessResponse['team'] | null;
 }
@@ -45,28 +83,55 @@ export default function TeamValidationSettings({
   const t = useTranslations();
   const [loading, setLoading] = useState(false);
 
+  // State for duration inputs
+  const [hwidDuration, setHwidDuration] = useState<DurationValue>({
+    value: null,
+    unit: 'minutes',
+  });
+  const [ipDuration, setIpDuration] = useState<DurationValue>({
+    value: null,
+    unit: 'minutes',
+  });
+
   const form = useForm<SetTeamValidationSettingsSchema>({
     resolver: zodResolver(setTeamValidationSettingsSchema(t)),
     defaultValues: {
       strictCustomers: false,
       strictProducts: false,
       strictReleases: false,
-      deviceTimeout: 60,
-      ipLimitPeriod: 'DAY',
+      hwidTimeout: null,
+      ipTimeout: null,
     },
   });
 
   const { reset, handleSubmit, control, setValue } = form;
 
   useEffect(() => {
-    reset({
+    const settings = {
       strictCustomers: team?.settings.strictCustomers ?? false,
       strictProducts: team?.settings.strictProducts ?? false,
       strictReleases: team?.settings.strictReleases ?? false,
-      deviceTimeout: team?.settings.deviceTimeout ?? 60,
-      ipLimitPeriod: team?.settings.ipLimitPeriod ?? 'DAY',
-    });
+      hwidTimeout: team?.settings.hwidTimeout ?? null,
+      ipTimeout: team?.settings.ipTimeout ?? null,
+    };
+
+    reset(settings);
+
+    // Initialize duration states
+    setHwidDuration(minutesToDuration(settings.hwidTimeout));
+    setIpDuration(minutesToDuration(settings.ipTimeout));
   }, [team, reset]);
+
+  // Update form values when duration changes
+  const handleHwidDurationChange = (duration: DurationValue) => {
+    setHwidDuration(duration);
+    setValue('hwidTimeout', durationToMinutes(duration));
+  };
+
+  const handleIpDurationChange = (duration: DurationValue) => {
+    setIpDuration(duration);
+    setValue('ipTimeout', durationToMinutes(duration));
+  };
 
   const onSubmit = async (payload: SetTeamValidationSettingsSchema) => {
     setLoading(true);
@@ -105,7 +170,7 @@ export default function TeamValidationSettings({
       <CardContent>
         <Form {...form}>
           <form
-            className="space-y-2 max-md:px-2"
+            className="space-y-4 max-md:px-2"
             onSubmit={handleSubmit(onSubmit)}
           >
             <FormField
@@ -134,6 +199,7 @@ export default function TeamValidationSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={control}
               name="strictProducts"
@@ -160,6 +226,7 @@ export default function TeamValidationSettings({
                 </FormItem>
               )}
             />
+
             <FormField
               control={control}
               name="strictReleases"
@@ -186,59 +253,122 @@ export default function TeamValidationSettings({
                 </FormItem>
               )}
             />
+
+            {/* HWID Timeout with Duration Input */}
             <FormField
               control={control}
-              name="ipLimitPeriod"
-              render={({ field }) => (
+              name="hwidTimeout"
+              render={() => (
                 <FormItem>
-                  <FormLabel>
-                    {t('dashboard.settings.ip_limit_period')}
-                  </FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={(value) => field.onChange(value)}
-                  >
+                  <FormLabel>{t('dashboard.settings.hwid_timeout')}</FormLabel>
+                  <div className="flex space-x-2">
                     <FormControl>
-                      <SelectTrigger disabled={!team || loading}>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Input
+                        disabled={!team || loading}
+                        min={1}
+                        placeholder={t('general.duration')}
+                        type="number"
+                        value={hwidDuration.value ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (!value) {
+                            handleHwidDurationChange({
+                              ...hwidDuration,
+                              value: null,
+                            });
+                          } else {
+                            const numValue = Math.max(1, +value);
+                            handleHwidDurationChange({
+                              ...hwidDuration,
+                              value: numValue,
+                            });
+                          }
+                        }}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="DAY">{t('general.day')}</SelectItem>
-                      <SelectItem value="WEEK">{t('general.week')}</SelectItem>
-                      <SelectItem value="MONTH">
-                        {t('general.month')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      value={hwidDuration.unit}
+                      onValueChange={(unit: TimeUnit) =>
+                        handleHwidDurationChange({ ...hwidDuration, unit })
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger
+                          className="w-32"
+                          disabled={!team || loading}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(TIME_UNITS).map(([key, { label }]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* IP Timeout with Duration Input */}
             <FormField
               control={control}
-              name="deviceTimeout"
-              render={({ field }) => (
+              name="ipTimeout"
+              render={() => (
                 <FormItem>
-                  <FormLabel>
-                    {t('dashboard.settings.device_timeout')}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      disabled={!team || loading}
-                      min={1}
-                      placeholder={t('dashboard.settings.device_timeout')}
-                      type="number"
-                      value={field.value}
-                      onChange={(e) => {
-                        if (!e.target.value || e.target.value === '0') {
-                          e.target.value = '1';
-                        }
-                        setValue('deviceTimeout', +e.target.value);
-                      }}
-                    />
-                  </FormControl>
+                  <FormLabel>{t('dashboard.settings.ip_timeout')}</FormLabel>
+                  <div className="flex space-x-2">
+                    <FormControl>
+                      <Input
+                        disabled={!team || loading}
+                        min={1}
+                        placeholder={t('general.duration')}
+                        type="number"
+                        value={ipDuration.value ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (!value) {
+                            handleIpDurationChange({
+                              ...ipDuration,
+                              value: null,
+                            });
+                          } else {
+                            const numValue = Math.max(1, +value);
+                            handleIpDurationChange({
+                              ...ipDuration,
+                              value: numValue,
+                            });
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <Select
+                      value={ipDuration.unit}
+                      onValueChange={(unit: TimeUnit) =>
+                        handleIpDurationChange({ ...ipDuration, unit })
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger
+                          className="w-32"
+                          disabled={!team || loading}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.entries(TIME_UNITS).map(([key, { label }]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

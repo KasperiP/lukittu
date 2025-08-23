@@ -23,7 +23,7 @@ interface GetReturnedFields {
 interface ReturnedFieldsData {
   license?: {
     ipLimit?: number | null;
-    seats?: number | null;
+    hwidLimit?: number | null;
     expirationType?: LicenseExpirationType;
     expirationStart?: LicenseExpirationStart;
     expirationDate?: Date | null;
@@ -69,8 +69,11 @@ export const getReturnedFields = ({
     licenseData.ipLimit = license.ipLimit;
   }
 
-  if (returnedFields.licenseSeats && license.seats !== undefined) {
-    licenseData.seats = license.seats;
+  if (returnedFields.licenseHwidLimit && license.hwidLimit !== undefined) {
+    licenseData.hwidLimit = license.hwidLimit;
+
+    /** @deprecated Use hwidLimit */
+    (licenseData as any).seats = license.hwidLimit;
   }
 
   if (returnedFields.licenseExpirationType) {

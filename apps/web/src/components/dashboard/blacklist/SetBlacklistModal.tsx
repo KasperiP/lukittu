@@ -195,8 +195,8 @@ export default function SetBlacklistModal() {
                         <SelectItem value="IP_ADDRESS">
                           {t('general.ip_address')}
                         </SelectItem>
-                        <SelectItem value="DEVICE_IDENTIFIER">
-                          {t('general.device_identifier')}
+                        <SelectItem value="HARDWARE_IDENTIFIER">
+                          {t('general.hardware_identifier')}
                         </SelectItem>
                         <SelectItem value="COUNTRY">
                           {t('general.country')}

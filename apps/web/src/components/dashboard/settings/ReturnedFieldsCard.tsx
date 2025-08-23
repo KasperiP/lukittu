@@ -82,7 +82,8 @@ export default function ReturnedFieldsCard({ team }: ReturnedFieldsCardProps) {
     resolver: zodResolver(setReturnedFieldsSchema(t)),
     defaultValues: {
       licenseIpLimit: team?.settings?.returnedFields?.licenseIpLimit || false,
-      licenseSeats: team?.settings?.returnedFields?.licenseSeats || false,
+      licenseHwidLimit:
+        team?.settings?.returnedFields?.licenseHwidLimit || false,
       licenseExpirationType:
         team?.settings?.returnedFields?.licenseExpirationType || false,
       licenseExpirationStart:
@@ -253,18 +254,18 @@ export default function ReturnedFieldsCard({ team }: ReturnedFieldsCardProps) {
 
                       <FormField
                         control={control}
-                        name="licenseSeats"
+                        name="licenseHwidLimit"
                         render={({ field }) => (
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
                               <Checkbox
                                 checked={field.value}
-                                id="licenseSeats"
+                                id="licenseHwidLimit"
                                 onCheckedChange={field.onChange}
                               />
                             </FormControl>
-                            <FormLabel htmlFor="licenseSeats">
-                              {t('dashboard.licenses.concurrent_users')}
+                            <FormLabel htmlFor="licenseHwidLimit">
+                              {t('dashboard.licenses.hwid_limit')}
                             </FormLabel>
                           </FormItem>
                         )}

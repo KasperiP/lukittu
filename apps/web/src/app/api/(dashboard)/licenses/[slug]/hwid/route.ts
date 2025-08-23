@@ -1,35 +1,41 @@
 import { getSession } from '@/lib/security/session';
-import { iso2toIso3, iso3toIso2 } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { Device, logger, prisma, Prisma, regex } from '@lukittu/shared';
+import {
+  HardwareIdentifier,
+  logger,
+  prisma,
+  Prisma,
+  regex,
+} from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-type DeviceStatus = 'active' | 'inactive';
+type HwidStatus = 'active' | 'inactive' | 'forgotten';
 
-export type ILicenseDevicesGetSuccessResponse = {
-  devices: (Device & {
-    status: DeviceStatus;
-    country: string | null;
-    alpha2: string | null;
+export type ILicenseHwidGetSuccessResponse = {
+  hwids: (HardwareIdentifier & {
+    status: HwidStatus;
   })[];
   totalResults: number;
 };
 
-export type ILicenseDevicesGetResponse =
+export type ILicenseHwidGetResponse =
   | ErrorResponse
-  | ILicenseDevicesGetSuccessResponse;
+  | ILicenseHwidGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,
-): Promise<NextResponse<ILicenseDevicesGetResponse>> {
+  props: { params: Promise<{ slug: string }> },
+): Promise<NextResponse<ILicenseHwidGetResponse>> {
+  const params = await props.params;
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
     const searchParams = request.nextUrl.searchParams;
     const selectedTeam = await getSelectedTeam();
+    const licenseId = params.slug;
 
     if (!selectedTeam) {
       return NextResponse.json(
@@ -40,46 +46,31 @@ export async function GET(
       );
     }
 
-    const licenseId = searchParams.get('licenseId') as string;
+    if (!regex.uuidV4.test(licenseId)) {
+      return NextResponse.json(
+        {
+          message: t('validation.license_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
     const allowedPageSizes = [10, 25, 50, 100];
     const allowedSortDirections = ['asc', 'desc'];
-    const allowedSortColumns = ['lastBeatAt'];
+    const allowedSortColumns = ['lastSeenAt'];
 
     let page = parseInt(searchParams.get('page') as string) || 1;
     let pageSize = parseInt(searchParams.get('pageSize') as string) || 10;
     let sortColumn = searchParams.get('sortColumn') as string;
     let sortDirection = searchParams.get('sortDirection') as 'asc' | 'desc';
-
-    if (licenseId && !regex.uuidV4.test(licenseId)) {
-      return NextResponse.json(
-        {
-          message: t('validation.bad_request'),
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
-    const limits = await prisma.limits.findUnique({
-      where: {
-        teamId: selectedTeam,
-      },
-    });
-
-    if (!limits) {
-      return NextResponse.json(
-        {
-          message: t('validation.team_not_found'),
-        },
-        { status: HttpStatus.NOT_FOUND },
-      );
-    }
+    const showForgotten = searchParams.get('showForgotten') === 'true';
 
     if (!allowedSortDirections.includes(sortDirection)) {
       sortDirection = 'desc';
     }
 
     if (!sortColumn || !allowedSortColumns.includes(sortColumn)) {
-      sortColumn = 'lastBeatAt';
+      sortColumn = 'lastSeenAt';
     }
 
     if (!allowedPageSizes.includes(pageSize)) {
@@ -93,18 +84,20 @@ export async function GET(
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
-    const logRetentionDays = limits.logRetention;
-
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - logRetentionDays);
+    if (isNaN(skip) || isNaN(take)) {
+      return NextResponse.json(
+        {
+          message: t('validation.bad_request'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
 
     const where = {
       teamId: selectedTeam,
       licenseId,
-      lastBeatAt: {
-        gte: startDate,
-      },
-    } as Prisma.DeviceWhereInput;
+      ...(showForgotten ? {} : { forgotten: false }),
+    } as Prisma.HardwareIdentifierWhereInput;
 
     const session = await getSession({
       user: {
@@ -116,7 +109,7 @@ export async function GET(
             },
             include: {
               settings: true,
-              devices: {
+              hardwareIdentifiers: {
                 where,
                 orderBy: {
                   [sortColumn]: sortDirection,
@@ -150,34 +143,42 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    const totalResults = await prisma.device.count({
+    const totalResults = await prisma.hardwareIdentifier.count({
       where,
     });
 
-    const devices = team.devices;
+    const hardwareIdentifiers = team.hardwareIdentifiers;
 
-    const devicesWithStatus = devices.map((device) => {
-      const deviceTimeout = team.settings?.deviceTimeout || 60;
+    const formattedHwids = hardwareIdentifiers.map((hwid) => {
+      if (hwid.forgotten) {
+        return {
+          ...hwid,
+          status: 'forgotten' as HwidStatus,
+        };
+      }
 
-      const lastBeatAt = new Date(device.lastBeatAt);
+      const hwidTimeout = team.settings?.hwidTimeout || null;
+
+      const lastSeenAt = new Date(hwid.lastSeenAt);
       const now = new Date();
 
-      const diff = Math.abs(now.getTime() - lastBeatAt.getTime());
+      const diff = Math.abs(now.getTime() - lastSeenAt.getTime());
       const minutes = Math.floor(diff / 1000 / 60);
 
-      const status: DeviceStatus =
-        minutes <= deviceTimeout ? 'active' : 'inactive';
+      const status: HwidStatus = hwidTimeout
+        ? minutes <= hwidTimeout
+          ? 'active'
+          : 'inactive'
+        : 'active';
 
       return {
-        ...device,
-        country: iso2toIso3(device.country),
-        alpha2: iso3toIso2(device.country),
+        ...hwid,
         status,
       };
     });
 
     return NextResponse.json({
-      devices: devicesWithStatus,
+      hwids: formattedHwids,
       totalResults,
     });
   } catch (error) {

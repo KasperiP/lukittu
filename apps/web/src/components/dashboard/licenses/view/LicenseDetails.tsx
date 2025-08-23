@@ -192,11 +192,11 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-semibold">
-              {t('dashboard.licenses.concurrent_users')}
+              {t('dashboard.licenses.hwid_limit')}
             </h3>
             <div className="text-sm text-muted-foreground">
               {license ? (
-                (license.seats ?? <Infinity className="h-4 w-4 shrink-0" />)
+                (license.hwidLimit ?? <Infinity className="h-4 w-4 shrink-0" />)
               ) : (
                 <Skeleton className="h-4 w-8" />
               )}

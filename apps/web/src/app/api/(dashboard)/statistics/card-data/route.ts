@@ -91,25 +91,47 @@ export async function GET(): Promise<
     const team = session.user.teams[0];
 
     const now = new Date();
-    const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
+    // Get licenses with most recent activity from either IPs or HWIDs
     const [currentActive, previousActive] = await Promise.all([
       prisma.$queryRaw<[{ count: number }]>(
         Prisma.sql`
           SELECT COUNT(DISTINCT "licenseId") as count
-          FROM "RequestLog"
-          WHERE "teamId" = ${team.id}
-          AND "createdAt" >= ${hourAgo}
+          FROM (
+            SELECT "licenseId", MAX("lastSeenAt") as "lastActivity"
+            FROM (
+              SELECT "licenseId", "lastSeenAt"
+              FROM "IpAddress"
+              WHERE "teamId" = ${team.id} AND "forgotten" = false
+              UNION ALL
+              SELECT "licenseId", "lastSeenAt"
+              FROM "HardwareIdentifier"
+              WHERE "teamId" = ${team.id} AND "forgotten" = false
+            ) combined
+            GROUP BY "licenseId"
+          ) activity
+          WHERE "lastActivity" >= ${oneHourAgo}
         `,
       ),
       prisma.$queryRaw<[{ count: number }]>(
         Prisma.sql`
           SELECT COUNT(DISTINCT "licenseId") as count
-          FROM "RequestLog"
-          WHERE "teamId" = ${team.id}
-          AND "createdAt" >= ${twoHoursAgo}
-          AND "createdAt" < ${hourAgo}
+          FROM (
+            SELECT "licenseId", MAX("lastSeenAt") as "lastActivity"
+            FROM (
+              SELECT "licenseId", "lastSeenAt"
+              FROM "IpAddress"
+              WHERE "teamId" = ${team.id} AND "forgotten" = false
+              UNION ALL
+              SELECT "licenseId", "lastSeenAt"
+              FROM "HardwareIdentifier"
+              WHERE "teamId" = ${team.id} AND "forgotten" = false
+            ) combined
+            GROUP BY "licenseId"
+          ) activity
+          WHERE "lastActivity" >= ${twoHoursAgo} AND "lastActivity" < ${oneHourAgo}
         `,
       ),
     ]);

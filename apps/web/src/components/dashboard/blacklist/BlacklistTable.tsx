@@ -62,7 +62,9 @@ const TypeBadge = ({ type }: { type: BlacklistType }) => {
   const icon = {
     [BlacklistType.IP_ADDRESS]: <MapPinned className="mr-1 h-3 w-3" />,
     [BlacklistType.COUNTRY]: <Globe className="mr-1 h-3 w-3" />,
-    [BlacklistType.DEVICE_IDENTIFIER]: <Fingerprint className="mr-1 h-3 w-3" />,
+    [BlacklistType.HARDWARE_IDENTIFIER]: (
+      <Fingerprint className="mr-1 h-3 w-3" />
+    ),
   };
 
   return (

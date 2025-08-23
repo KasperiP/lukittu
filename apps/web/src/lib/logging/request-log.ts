@@ -25,7 +25,7 @@ interface LogRequestProps {
   licenseKeyLookup?: string;
   teamId?: string;
   method: string;
-  deviceIdentifier?: string;
+  hardwareIdentifier?: string;
   releaseId?: string;
   type: RequestType;
   releaseFileId?: string;
@@ -41,7 +41,7 @@ export async function logRequest({
   productId,
   licenseKeyLookup,
   requestQuery,
-  deviceIdentifier,
+  hardwareIdentifier,
   teamId,
   method,
   pathname,
@@ -89,7 +89,7 @@ export async function logRequest({
           requestQuery,
           responseBody,
           type,
-          deviceIdentifier,
+          hardwareIdentifier,
           ipAddress,
           release: releaseId ? { connect: { id: releaseId } } : undefined,
           releaseFile: releaseFileId
@@ -123,7 +123,7 @@ interface HandleLoggedRequestResponse {
   request: NextRequest;
   requestTime: Date;
   status: RequestStatus;
-  deviceIdentifier?: string;
+  hardwareIdentifier?: string;
   query?: any;
   response: {
     data: any;
@@ -167,7 +167,7 @@ export async function loggedResponse({
   customerId,
   productId,
   licenseKeyLookup,
-  deviceIdentifier,
+  hardwareIdentifier,
   releaseFileId,
   releaseId,
   type,
@@ -187,7 +187,7 @@ export async function loggedResponse({
 
   if (teamId) {
     logRequest({
-      deviceIdentifier,
+      hardwareIdentifier,
       pathname: request.nextUrl.pathname,
       requestBody: body,
       responseBody,

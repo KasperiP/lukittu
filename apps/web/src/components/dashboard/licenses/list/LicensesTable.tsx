@@ -9,6 +9,7 @@ import {
   ComparisonMode,
   IpCountFilterChip,
 } from '@/components/shared/filtering/IpCountFilterChip';
+import { HwidCountFilterChip } from '@/components/shared/filtering/HwidCountFilterChip';
 import { LicenseStatusFilterChip } from '@/components/shared/filtering/LicenseStatusFilterChip';
 import { MetadataFilterChip } from '@/components/shared/filtering/MetadataFilterChip';
 import { ProductFilterChip } from '@/components/shared/filtering/ProductFilterChip';
@@ -161,6 +162,28 @@ export function LicensesTable() {
   );
   const [tempIpCountComparisonMode, setTempIpCountComparisonMode] =
     useState<ComparisonMode>('');
+  const [hwidCountMin, setHwidCountMin] = useQueryState(
+    'hwidCountMin',
+    parseAsString.withDefault(''),
+  );
+  const [hwidCountMax, setHwidCountMax] = useQueryState(
+    'hwidCountMax',
+    parseAsString.withDefault(''),
+  );
+  const [tempHwidCountMin, setTempHwidCountMin] = useState('');
+  const [tempHwidCountMax, setTempHwidCountMax] = useState('');
+  const [hwidCountComparisonMode, setHwidCountComparisonMode] = useQueryState(
+    'hwidCountComparisonMode',
+    parseAsStringEnum([
+      '',
+      'equals',
+      'greater',
+      'less',
+      'between',
+    ] as const).withDefault(''),
+  );
+  const [tempHwidCountComparisonMode, setTempHwidCountComparisonMode] =
+    useState<ComparisonMode>('');
   const [status, setStatus] = useQueryState(
     'status',
     parseAsStringEnum([
@@ -183,6 +206,10 @@ export function LicensesTable() {
     ...(ipCountMin && { ipCountMin }),
     ...(ipCountMax && ipCountComparisonMode === 'between' && { ipCountMax }),
     ...(ipCountComparisonMode && { ipCountComparisonMode }),
+    ...(hwidCountMin && { hwidCountMin }),
+    ...(hwidCountMax &&
+      hwidCountComparisonMode === 'between' && { hwidCountMax }),
+    ...(hwidCountComparisonMode && { hwidCountComparisonMode }),
     ...(status !== 'all' && { status }),
   });
 
@@ -257,6 +284,21 @@ export function LicensesTable() {
         tempIpCountMin={tempIpCountMin}
       />
 
+      <HwidCountFilterChip
+        comparisonMode={hwidCountComparisonMode}
+        hwidCountMax={hwidCountMax}
+        hwidCountMin={hwidCountMin}
+        setComparisonMode={setHwidCountComparisonMode}
+        setHwidCountMax={setHwidCountMax}
+        setHwidCountMin={setHwidCountMin}
+        setTempComparisonMode={setTempHwidCountComparisonMode}
+        setTempHwidCountMax={setTempHwidCountMax}
+        setTempHwidCountMin={setTempHwidCountMin}
+        tempComparisonMode={tempHwidCountComparisonMode}
+        tempHwidCountMax={tempHwidCountMax}
+        tempHwidCountMin={tempHwidCountMin}
+      />
+
       <LicenseStatusFilterChip
         setStatus={setStatus}
         setTempStatus={setTempStatus}
@@ -268,7 +310,9 @@ export function LicensesTable() {
         productIds.length > 0 ||
         customerIds.length > 0 ||
         status !== 'all' ||
-        (metadataKey && metadataValue)) && (
+        (metadataKey && metadataValue) ||
+        ipCountMin ||
+        hwidCountMin) && (
         <Button
           className="h-7 rounded-full text-xs"
           size="sm"
@@ -288,6 +332,12 @@ export function LicensesTable() {
             setTempIpCountMax('');
             setIpCountComparisonMode('');
             setTempIpCountComparisonMode('');
+            setHwidCountMin('');
+            setHwidCountMax('');
+            setTempHwidCountMin('');
+            setTempHwidCountMax('');
+            setHwidCountComparisonMode('');
+            setTempHwidCountComparisonMode('');
             setPage(1);
             setPageSize(25);
             setSortColumn('');

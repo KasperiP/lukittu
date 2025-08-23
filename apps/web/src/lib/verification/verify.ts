@@ -1,7 +1,7 @@
 import { HttpStatus } from '@/types/http-status';
 import {
   generateHMAC,
-  IpLimitPeriod,
+  logger,
   prisma,
   regex,
   RequestStatus,
@@ -15,6 +15,7 @@ import { getReturnedFields } from './shared/shared-returned-fields';
 import { sharedVerificationHandler } from './shared/shared-verification';
 
 interface HandleVerifyProps {
+  requestId: string;
   teamId: string;
   ipAddress: string | null;
   geoData: CloudflareVisitorData | null;
@@ -24,17 +25,24 @@ interface HandleVerifyProps {
     productId?: string | undefined;
     challenge?: string | undefined;
     version?: string | undefined;
-    deviceIdentifier?: string | undefined;
+    hardwareIdentifier?: string | undefined;
   };
 }
 
 export const handleVerify = async ({
+  requestId,
   teamId,
   ipAddress,
   geoData,
   payload,
 }: HandleVerifyProps) => {
+  const handlerStartTime = Date.now();
+
   if (!teamId || !regex.uuidV4.test(teamId)) {
+    logger.warn('handleVerify: Invalid team UUID provided', {
+      requestId,
+      teamId,
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -52,6 +60,12 @@ export const handleVerify = async ({
   const validated = await verifyLicenseSchema().safeParseAsync(payload);
 
   if (!validated.success) {
+    logger.warn('handleVerify: Schema validation failed', {
+      requestId,
+      teamId,
+      error: validated.error.errors[0].message,
+      errors: validated.error.errors.slice(0, 3),
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -77,6 +91,12 @@ export const handleVerify = async ({
     const isLimited = await isRateLimited(key, 30, 60); // 30 requests per minute
 
     if (isLimited) {
+      logger.warn('handleVerify: Rate limit exceeded', {
+        requestId,
+        teamId,
+        ipAddress,
+        rateLimitKey: key,
+      });
       return {
         ...validatedBody,
         status: RequestStatus.RATE_LIMIT,
@@ -114,6 +134,13 @@ export const handleVerify = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !keyPair) {
+    logger.warn('handleVerify: Team, settings, or keyPair not found', {
+      requestId,
+      teamId,
+      hasTeam: !!team,
+      hasSettings: !!settings,
+      hasKeyPair: !!keyPair,
+    });
     return {
       ...validatedBody,
       status: RequestStatus.TEAM_NOT_FOUND,
@@ -134,23 +161,15 @@ export const handleVerify = async ({
     customerId,
     productId,
     challenge,
-    deviceIdentifier,
+    hardwareIdentifier,
     version,
     branch,
   } = validated.data;
 
   const licenseKeyLookup = generateHMAC(`${licenseKey}:${teamId}`);
 
-  const ipLimitPeriodDays =
-    settings.ipLimitPeriod === IpLimitPeriod.DAY
-      ? 1
-      : settings.ipLimitPeriod === IpLimitPeriod.WEEK
-        ? 7
-        : 30;
-
-  const ipLimitPeriodDate = new Date(
-    new Date().getTime() - ipLimitPeriodDays * 24 * 60 * 60 * 1000,
-  );
+  const ipTimeoutMinutes = settings.ipTimeout;
+  const hwidTimeoutMinutes = settings.hwidTimeout;
 
   const license = await prisma.license.findUnique({
     where: {
@@ -179,12 +198,24 @@ export const handleVerify = async ({
           },
         },
       },
-      devices: true,
-      requestLogs: {
+      hardwareIdentifiers: {
         where: {
-          createdAt: {
-            gte: ipLimitPeriodDate,
-          },
+          forgotten: false,
+          lastSeenAt: hwidTimeoutMinutes
+            ? {
+                gte: new Date(Date.now() - hwidTimeoutMinutes * 60 * 1000),
+              }
+            : undefined,
+        },
+      },
+      ipAddresses: {
+        where: {
+          forgotten: false,
+          lastSeenAt: ipTimeoutMinutes
+            ? {
+                gte: new Date(Date.now() - ipTimeoutMinutes * 60 * 1000),
+              }
+            : undefined,
         },
       },
     },
@@ -210,7 +241,7 @@ export const handleVerify = async ({
     teamId,
     customerId: matchingCustomer ? customerId : undefined,
     productId: matchingProduct ? productId : undefined,
-    deviceIdentifier,
+    hardwareIdentifier,
     licenseKeyLookup: undefined as string | undefined,
     releaseId: undefined as string | undefined,
     releaseFileId: undefined as string | undefined,
@@ -231,6 +262,13 @@ export const handleVerify = async ({
     });
 
     if (!branchEntity) {
+      logger.warn('handleVerify: Branch not found', {
+        requestId,
+        teamId,
+        licenseId: license?.id,
+        requestedBranch: branch,
+        productId: matchingProduct?.id,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -251,6 +289,13 @@ export const handleVerify = async ({
     );
 
     if (filteredReleases.length === 0) {
+      logger.warn('handleVerify: No releases found for branch', {
+        requestId,
+        teamId,
+        licenseId: license?.id,
+        requestedBranch: branch,
+        productId: matchingProduct?.id,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -276,6 +321,11 @@ export const handleVerify = async ({
   const latestRelease = filteredReleases.find((r) => r.latest);
 
   if (!license) {
+    logger.warn('handleVerify: License not found', {
+      requestId,
+      teamId,
+      licenseKeyLookup: 'redacted',
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_NOT_FOUND,
@@ -298,10 +348,17 @@ export const handleVerify = async ({
     teamId,
     ipAddress,
     geoData,
-    deviceIdentifier,
+    hardwareIdentifier,
   );
 
   if (blacklistCheck) {
+    logger.warn('handleVerify: Blacklist check failed', {
+      requestId,
+      teamId,
+      licenseKey: payload.licenseKey,
+      blacklistReason: blacklistCheck.details,
+      status: blacklistCheck.status,
+    });
     return {
       ...commonBase,
       status: blacklistCheck.status,
@@ -323,6 +380,14 @@ export const handleVerify = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
+    logger.warn('handleVerify: Customer validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedCustomerId: customerId,
+      strictMode: strictModeNoCustomerId,
+      noMatch: noCustomerMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.CUSTOMER_NOT_FOUND,
@@ -343,6 +408,14 @@ export const handleVerify = async ({
   const noProductMatch = licenseHasProducts && productId && !matchingProduct;
 
   if (strictModeNoProductId || noProductMatch) {
+    logger.warn('handleVerify: Product validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedProductId: productId,
+      strictMode: strictModeNoProductId,
+      noMatch: noProductMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.PRODUCT_NOT_FOUND,
@@ -363,6 +436,15 @@ export const handleVerify = async ({
   const noVersionMatch = productHasReleases && version && !matchingRelease;
 
   if (strictModeNoVersion || noVersionMatch) {
+    logger.warn('handleVerify: Release/version validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedVersion: version,
+      productId: matchingProduct?.id,
+      strictMode: strictModeNoVersion,
+      noMatch: noVersionMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_NOT_FOUND,
@@ -381,6 +463,12 @@ export const handleVerify = async ({
   commonBase.releaseId = matchingRelease?.id;
 
   if (license.suspended) {
+    logger.warn('handleVerify: License is suspended', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      licenseKey: payload.licenseKey,
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_SUSPENDED,
@@ -403,6 +491,13 @@ export const handleVerify = async ({
     );
 
   if (licenseExpirationCheck) {
+    logger.warn('handleVerify: License expired', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      expirationReason: licenseExpirationCheck.details,
+      status: licenseExpirationCheck.status,
+    });
     return {
       ...commonBase,
       status: licenseExpirationCheck.status,
@@ -418,14 +513,19 @@ export const handleVerify = async ({
     };
   }
 
-  if (license.ipLimit) {
-    const existingIps = Array.from(
-      new Set(license.requestLogs.map((log) => log.ipAddress).filter(Boolean)),
-    );
+  if (license.ipLimit && ipAddress) {
+    const existingIps = license.ipAddresses.map((ip) => ip.ip);
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
-    // TODO: @KasperiP: Maybe add separate table for storing IP addresses because user's probably want to also remove old IP addresses
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
+      logger.warn('handleVerify: IP limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentIpCount: existingIps.length,
+        ipLimit: license.ipLimit,
+        newIp: ipAddress,
+      });
       return {
         ...commonBase,
         status: RequestStatus.IP_LIMIT_REACHED,
@@ -442,64 +542,93 @@ export const handleVerify = async ({
     }
   }
 
-  const seatCheck = await sharedVerificationHandler.checkSeats(
-    license,
-    deviceIdentifier,
-    settings.deviceTimeout || 60,
-  );
+  if (license.hwidLimit && hardwareIdentifier) {
+    const existingHwids = license.hardwareIdentifiers.map((hwid) => hwid.hwid);
+    const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
-  if (seatCheck) {
-    return {
-      ...commonBase,
-      status: seatCheck.status,
-      response: {
-        data: null,
-        result: {
-          timestamp: new Date(),
-          valid: false,
-          details: seatCheck.details,
-        },
-      },
-      httpStatus: HttpStatus.FORBIDDEN,
-    };
-  }
-
-  await prisma.$transaction(async (prisma) => {
-    if (deviceIdentifier) {
-      await prisma.device.upsert({
-        where: {
-          licenseId_deviceIdentifier: {
-            licenseId: license.id,
-            deviceIdentifier,
+    if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
+      logger.warn('handleVerify: HWID limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentHwidCount: existingHwids.length,
+        hwidLimit: license.hwidLimit,
+        newHwid: hardwareIdentifier,
+      });
+      return {
+        ...commonBase,
+        status: RequestStatus.HWID_LIMIT_REACHED,
+        response: {
+          data: null,
+          result: {
+            timestamp: new Date(),
+            valid: false,
+            details: 'HWID limit reached',
           },
         },
-        update: {
-          lastBeatAt: new Date(),
-          ipAddress,
-          country: geoData?.alpha3 || null,
-        },
-        create: {
-          ipAddress,
-          teamId: team.id,
-          deviceIdentifier,
-          lastBeatAt: new Date(),
-          licenseId: license.id,
-          country: geoData?.alpha3 || null,
-        },
-      });
+        httpStatus: HttpStatus.FORBIDDEN,
+      };
     }
+  }
 
-    if (matchingRelease || latestRelease) {
-      const idToUse = matchingRelease?.id || latestRelease?.id;
-
-      await prisma.release.update({
-        where: { id: idToUse },
-        data: {
-          lastSeenAt: new Date(),
-        },
-      });
-    }
-  });
+  await prisma.$transaction([
+    ...(hardwareIdentifier
+      ? [
+          prisma.hardwareIdentifier.upsert({
+            where: {
+              teamId,
+              licenseId_hwid: {
+                licenseId: license.id,
+                hwid: hardwareIdentifier,
+              },
+            },
+            create: {
+              hwid: hardwareIdentifier,
+              teamId,
+              licenseId: license.id,
+            },
+            update: {
+              lastSeenAt: new Date(),
+              forgotten: false,
+              forgottenAt: null,
+            },
+          }),
+        ]
+      : []),
+    ...(ipAddress
+      ? [
+          prisma.ipAddress.upsert({
+            where: {
+              teamId,
+              licenseId_ip: {
+                licenseId: license.id,
+                ip: ipAddress,
+              },
+            },
+            create: {
+              ip: ipAddress,
+              teamId,
+              licenseId: license.id,
+            },
+            update: {
+              lastSeenAt: new Date(),
+              forgotten: false,
+              forgottenAt: null,
+            },
+          }),
+        ]
+      : []),
+    ...(matchingRelease || latestRelease
+      ? [
+          prisma.release.update({
+            where: { id: (matchingRelease || latestRelease)!.id },
+            data: {
+              lastSeenAt: new Date(),
+            },
+          }),
+        ]
+      : []),
+  ]);
 
   const challengeResponse = challenge
     ? signChallenge(challenge, keyPair.privateKey)
@@ -509,6 +638,19 @@ export const handleVerify = async ({
     requestedBranch: branch || null,
     returnedFields: settings.returnedFields,
     license,
+  });
+
+  const handlerTime = Date.now() - handlerStartTime;
+
+  logger.info('handleVerify: License verification successful', {
+    requestId,
+    teamId,
+    licenseId: license.id,
+    customerId: matchingCustomer?.id,
+    productId: matchingProduct?.id,
+    releaseId: matchingRelease?.id || latestRelease?.id,
+    handlerTimeMs: handlerTime,
+    hasChallengeResponse: !!challengeResponse,
   });
 
   return {

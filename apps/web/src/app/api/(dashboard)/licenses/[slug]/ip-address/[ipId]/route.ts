@@ -1,10 +1,6 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
-import {
-  setTeamValidationSettingsSchema,
-  SetTeamValidationSettingsSchema,
-} from '@/lib/validation/team/set-team-validation-settings-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -13,40 +9,28 @@ import {
   AuditLogTargetType,
   logger,
   prisma,
-  Settings,
+  regex,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export type ITeamsSettingsValidationEditSuccessResponse = {
-  settings: Settings;
+export type IIpUpdateSuccessResponse = {
+  success: true;
 };
 
-export type ITeamsSettingsValidationEditResponse =
-  | ErrorResponse
-  | ITeamsSettingsValidationEditSuccessResponse;
+export type IIpUpdateResponse = ErrorResponse | IIpUpdateSuccessResponse;
 
-export async function PUT(
+export async function PATCH(
   request: NextRequest,
-): Promise<NextResponse<ITeamsSettingsValidationEditResponse>> {
+  props: { params: Promise<{ slug: string; ipId: string }> },
+): Promise<NextResponse<IIpUpdateResponse>> {
+  const params = await props.params;
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
-    const body = (await request.json()) as SetTeamValidationSettingsSchema;
-    const validated =
-      await setTeamValidationSettingsSchema(t).safeParseAsync(body);
-
-    if (!validated.success) {
-      return NextResponse.json(
-        {
-          message: validated.error.errors[0].message,
-          field: validated.error.errors[0].path[0],
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
     const selectedTeam = await getSelectedTeam();
+    const licenseId = params.slug;
+    const ipId = params.ipId;
 
     if (!selectedTeam) {
       return NextResponse.json(
@@ -57,13 +41,51 @@ export async function PUT(
       );
     }
 
+    if (!regex.uuidV4.test(licenseId)) {
+      return NextResponse.json(
+        {
+          message: t('validation.license_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
+    if (!regex.uuidV4.test(ipId)) {
+      return NextResponse.json(
+        {
+          message: t('validation.ip_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
+    const body = await request.json();
+    const { forgotten } = body;
+
+    if (typeof forgotten !== 'boolean') {
+      return NextResponse.json(
+        {
+          message: t('validation.invalid_forgotten_value'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
     const session = await getSession({
       user: {
         include: {
           teams: {
             where: {
-              id: selectedTeam,
               deletedAt: null,
+              id: selectedTeam,
+            },
+            include: {
+              ipAddresses: {
+                where: {
+                  id: ipId,
+                  licenseId,
+                },
+              },
             },
           },
         },
@@ -83,45 +105,46 @@ export async function PUT(
       return NextResponse.json(
         {
           message: t('validation.team_not_found'),
-          field: 'id',
         },
         { status: HttpStatus.NOT_FOUND },
       );
     }
 
-    const {
-      strictCustomers,
-      strictProducts,
-      hwidTimeout,
-      ipTimeout,
-      strictReleases,
-    } = validated.data;
+    const team = session.user.teams[0];
+
+    if (!team.ipAddresses.length) {
+      return NextResponse.json(
+        {
+          message: t('validation.ip_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
 
     const response = await prisma.$transaction(async (prisma) => {
-      const updatedSettings = await prisma.settings.update({
+      await prisma.ipAddress.update({
         where: {
+          id: ipId,
           teamId: selectedTeam,
         },
         data: {
-          strictCustomers,
-          strictProducts,
-          strictReleases,
-          ipTimeout,
-          hwidTimeout,
+          forgotten: Boolean(forgotten),
         },
       });
 
       const response = {
-        settings: updatedSettings,
+        success: true as const,
       };
 
       await createAuditLog({
         userId: session.user.id,
         teamId: selectedTeam,
-        action: AuditLogAction.UPDATE_TEAM_SETTINGS,
-        targetId: selectedTeam,
-        targetType: AuditLogTargetType.TEAM,
-        requestBody: body,
+        action: forgotten
+          ? AuditLogAction.FORGET_IP
+          : AuditLogAction.REMEMBER_IP,
+        targetId: ipId,
+        targetType: AuditLogTargetType.IP_ADDRESS,
+        requestBody: { forgotten },
         responseBody: response,
         source: AuditLogSource.DASHBOARD,
         tx: prisma,
@@ -132,7 +155,7 @@ export async function PUT(
 
     return NextResponse.json(response);
   } catch (error) {
-    logger.error("Error occurred in 'teams/settings/validation' route", error);
+    logger.error("Error occurred in 'ip address update' route", error);
     return NextResponse.json(
       {
         message: t('general.server_error'),

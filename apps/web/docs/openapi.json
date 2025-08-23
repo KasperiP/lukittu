@@ -85,7 +85,7 @@
                 "type": "integer",
                 "nullable": true
               },
-              "seats": {
+              "hwidLimit": {
                 "type": "integer",
                 "nullable": true
               },

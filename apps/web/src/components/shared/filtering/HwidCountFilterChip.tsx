@@ -11,35 +11,35 @@ import { FilterChip } from '../FilterChip';
 
 export type ComparisonMode = 'between' | 'equals' | 'greater' | 'less' | '';
 
-interface IpCountFilterChipProps {
-  ipCountMin: string;
-  ipCountMax: string;
-  tempIpCountMin: string;
-  tempIpCountMax: string;
+interface HwidCountFilterChipProps {
+  hwidCountMin: string;
+  hwidCountMax: string;
+  tempHwidCountMin: string;
+  tempHwidCountMax: string;
   comparisonMode: ComparisonMode;
   tempComparisonMode: ComparisonMode;
-  setIpCountMin: (value: string) => void;
-  setIpCountMax: (value: string) => void;
-  setTempIpCountMin: (value: string) => void;
-  setTempIpCountMax: (value: string) => void;
+  setHwidCountMin: (value: string) => void;
+  setHwidCountMax: (value: string) => void;
+  setTempHwidCountMin: (value: string) => void;
+  setTempHwidCountMax: (value: string) => void;
   setComparisonMode: (value: ComparisonMode) => void;
   setTempComparisonMode: (value: ComparisonMode) => void;
 }
 
-export function IpCountFilterChip({
-  ipCountMin,
-  ipCountMax,
-  tempIpCountMin,
-  tempIpCountMax,
+export function HwidCountFilterChip({
+  hwidCountMin,
+  hwidCountMax,
+  tempHwidCountMin,
+  tempHwidCountMax,
   comparisonMode,
   tempComparisonMode,
-  setIpCountMin,
-  setIpCountMax,
-  setTempIpCountMin,
-  setTempIpCountMax,
+  setHwidCountMin,
+  setHwidCountMax,
+  setTempHwidCountMin,
+  setTempHwidCountMax,
   setComparisonMode,
   setTempComparisonMode,
-}: IpCountFilterChipProps) {
+}: HwidCountFilterChipProps) {
   const t = useTranslations();
 
   const handleNumberInput = (
@@ -55,17 +55,17 @@ export function IpCountFilterChip({
   };
 
   const getActiveValue = () => {
-    if (!ipCountMin) return '';
+    if (!hwidCountMin) return '';
 
     switch (comparisonMode) {
       case 'between':
-        return `${ipCountMin} - ${ipCountMax}`;
+        return `${hwidCountMin} - ${hwidCountMax}`;
       case 'equals':
-        return `= ${ipCountMin}`;
+        return `= ${hwidCountMin}`;
       case 'greater':
-        return `> ${ipCountMin}`;
+        return `> ${hwidCountMin}`;
       case 'less':
-        return `< ${ipCountMin}`;
+        return `< ${hwidCountMin}`;
     }
   };
 
@@ -74,29 +74,34 @@ export function IpCountFilterChip({
       activeValue={getActiveValue()}
       disabled={
         !tempComparisonMode ||
-        !tempIpCountMin ||
-        (tempComparisonMode === 'between' && !tempIpCountMax)
+        !tempHwidCountMin ||
+        (tempComparisonMode === 'between' && !tempHwidCountMax)
       }
-      isActive={!!ipCountMin}
-      label={t('general.ip_count')}
-      popoverTitle={t('general.filter_ip_count')}
+      isActive={!!hwidCountMin}
+      label={t('general.hwid_count')}
+      popoverTitle={t('general.filter_hwid_count')}
       onApply={() => {
-        setComparisonMode(tempComparisonMode);
-        setIpCountMin(tempIpCountMin);
-        setIpCountMax(tempIpCountMax);
+        if (tempComparisonMode && tempHwidCountMin) {
+          if (tempComparisonMode === 'between' && !tempHwidCountMax) {
+            return;
+          }
+          setComparisonMode(tempComparisonMode);
+          setHwidCountMin(tempHwidCountMin);
+          setHwidCountMax(tempHwidCountMax);
+        }
       }}
       onClear={() => {
         setTempComparisonMode(comparisonMode);
-        setTempIpCountMin(ipCountMin);
-        setTempIpCountMax(ipCountMax);
+        setTempHwidCountMin(hwidCountMin);
+        setTempHwidCountMax(hwidCountMax);
       }}
       onReset={() => {
         setComparisonMode('');
         setTempComparisonMode('');
-        setIpCountMin('');
-        setIpCountMax('');
-        setTempIpCountMin('');
-        setTempIpCountMax('');
+        setHwidCountMin('');
+        setHwidCountMax('');
+        setTempHwidCountMin('');
+        setTempHwidCountMax('');
       }}
     >
       <div className="flex flex-col gap-4">
@@ -126,9 +131,9 @@ export function IpCountFilterChip({
                 : t('general.value')
             }
             type="number"
-            value={tempIpCountMin}
+            value={tempHwidCountMin}
             onChange={(e) =>
-              handleNumberInput(e.target.value, setTempIpCountMin)
+              handleNumberInput(e.target.value, setTempHwidCountMin)
             }
             onKeyDown={(e) => {
               if (e.key === '-') {
@@ -141,9 +146,9 @@ export function IpCountFilterChip({
               min="0"
               placeholder={t('general.max')}
               type="number"
-              value={tempIpCountMax}
+              value={tempHwidCountMax}
               onChange={(e) =>
-                handleNumberInput(e.target.value, setTempIpCountMax)
+                handleNumberInput(e.target.value, setTempHwidCountMax)
               }
               onKeyDown={(e) => {
                 if (e.key === '-') {

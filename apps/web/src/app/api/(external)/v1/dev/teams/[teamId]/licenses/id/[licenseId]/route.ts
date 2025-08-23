@@ -115,6 +115,9 @@ export async function GET(
       {
         data: {
           ...license,
+
+          /** @deprecated Use hwidLimit */
+          seats: license.hwidLimit,
           licenseKey: decryptLicenseKey(license.licenseKey),
         },
         result: {

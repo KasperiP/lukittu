@@ -9,7 +9,7 @@ export const setReturnedFieldsSchema = (t: I18nTranslator) =>
   z
     .object({
       licenseIpLimit: z.boolean(),
-      licenseSeats: z.boolean(),
+      licenseHwidLimit: z.boolean(),
       licenseExpirationType: z.boolean(),
       licenseExpirationStart: z.boolean(),
       licenseExpirationDate: z.boolean(),

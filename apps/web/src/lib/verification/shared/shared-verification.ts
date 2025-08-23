@@ -1,4 +1,12 @@
-import { BlacklistType, License, prisma, RequestStatus } from '@lukittu/shared';
+import { CloudflareVisitorData } from '@/lib/providers/cloudflare';
+import {
+  Blacklist,
+  BlacklistType,
+  License,
+  prisma,
+  RequestStatus,
+  Team,
+} from '@lukittu/shared';
 import { iso2toIso3 } from '../../utils/country-helpers';
 
 class SharedVerificationHandler {
@@ -24,16 +32,16 @@ class SharedVerificationHandler {
   }
 
   public async checkBlacklist(
-    team: any,
+    team: Team & { blacklist: Blacklist[] },
     teamId: string,
     ipAddress: string | null,
-    geoData: any,
-    deviceIdentifier: string | undefined,
+    geoData: CloudflareVisitorData | null,
+    hardwareIdentifier: string | undefined,
   ) {
     const blacklistedIps = team.blacklist.filter(
-      (b: any) => b.type === BlacklistType.IP_ADDRESS,
+      (b) => b.type === BlacklistType.IP_ADDRESS,
     );
-    const blacklistedIpList = blacklistedIps.map((b: any) => b.value);
+    const blacklistedIpList = blacklistedIps.map((b) => b.value);
 
     if (ipAddress && blacklistedIpList.includes(ipAddress)) {
       await this.updateBlacklistHits(
@@ -48,11 +56,9 @@ class SharedVerificationHandler {
     }
 
     const blacklistedCountries = team.blacklist.filter(
-      (b: any) => b.type === BlacklistType.COUNTRY,
+      (b) => b.type === BlacklistType.COUNTRY,
     );
-    const blacklistedCountryList = blacklistedCountries.map(
-      (b: any) => b.value,
-    );
+    const blacklistedCountryList = blacklistedCountries.map((b) => b.value);
 
     if (blacklistedCountryList.length > 0 && geoData?.alpha2) {
       const inIso3 = iso2toIso3(geoData.alpha2)!;
@@ -65,25 +71,24 @@ class SharedVerificationHandler {
       }
     }
 
-    const blacklistedDeviceIdentifiers = team.blacklist.filter(
-      (b: any) => b.type === BlacklistType.DEVICE_IDENTIFIER,
+    const blacklistedHardwareIdentifiers = team.blacklist.filter(
+      (b) => b.type === BlacklistType.HARDWARE_IDENTIFIER,
     );
-    const blacklistedDeviceIdentifierList = blacklistedDeviceIdentifiers.map(
-      (b: any) => b.value,
-    );
+    const blacklistedHardwareIdentifierList =
+      blacklistedHardwareIdentifiers.map((b) => b.value);
 
     if (
-      deviceIdentifier &&
-      blacklistedDeviceIdentifierList.includes(deviceIdentifier)
+      hardwareIdentifier &&
+      blacklistedHardwareIdentifierList.includes(hardwareIdentifier)
     ) {
       await this.updateBlacklistHits(
         teamId,
-        BlacklistType.DEVICE_IDENTIFIER,
-        deviceIdentifier,
+        BlacklistType.HARDWARE_IDENTIFIER,
+        hardwareIdentifier,
       );
       return {
-        status: RequestStatus.DEVICE_IDENTIFIER_BLACKLISTED,
-        details: 'Device identifier is blacklisted',
+        status: RequestStatus.HARDWARE_IDENTIFIER_BLACKLISTED,
+        details: 'Hardware identifier is blacklisted',
       };
     }
 
@@ -136,33 +141,6 @@ class SharedVerificationHandler {
             details: 'License expired',
           };
         }
-      }
-    }
-
-    return null;
-  }
-
-  public async checkSeats(
-    license: any,
-    deviceIdentifier: string | undefined,
-    deviceTimeout: number,
-  ) {
-    if (license.seats) {
-      const activeSeats = license.devices.filter(
-        (device: any) =>
-          new Date(device.lastBeatAt).getTime() >
-          new Date(Date.now() - deviceTimeout * 60 * 1000).getTime(),
-      );
-
-      const seatsIncludesClient = activeSeats.some(
-        (seat: any) => seat.deviceIdentifier === deviceIdentifier,
-      );
-
-      if (!seatsIncludesClient && activeSeats.length >= license.seats) {
-        return {
-          status: RequestStatus.MAXIMUM_CONCURRENT_SEATS,
-          details: 'License seat limit reached',
-        };
       }
     }
 

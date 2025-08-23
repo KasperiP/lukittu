@@ -183,7 +183,7 @@ describe('Stripe Integration', () => {
       metadata: {
         product_id: '123e4567-e89b-12d3-a456-426614174000',
         ip_limit: '5',
-        seats: '10',
+        hwidLimit: '10',
         expiration_days: '365',
         expiration_start: 'CREATION',
       },
@@ -226,6 +226,7 @@ describe('Stripe Integration', () => {
       prismaMock.license.create.mockResolvedValue(createdLicense as any);
 
       const result = await handleCheckoutSessionCompleted(
+        'test-request-id',
         mockSession,
         mockTeam,
         mockStripe,
@@ -243,7 +244,7 @@ describe('Stripe Integration', () => {
       expect(prismaMock.license.create).toHaveBeenCalled();
       expect(sendLicenseDistributionEmail).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
-        'Stripe checkout session completed',
+        'handleCheckoutSessionCompleted: Stripe checkout session processed successfully',
         expect.any(Object),
       );
     });
@@ -256,10 +257,16 @@ describe('Stripe Integration', () => {
         },
       });
 
-      await handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe);
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: License already exists for payment intent',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - license already exists',
+        expect.any(Object),
       );
       expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
@@ -270,14 +277,20 @@ describe('Stripe Integration', () => {
         payment_status: 'unpaid',
       } as Stripe.Checkout.Session;
 
-      await handleCheckoutSessionCompleted(unpaidSession, mockTeam, mockStripe);
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        unpaidSession,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(mockStripe.checkout.sessions.retrieve).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Invalid payment status or session mode',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid payment status or mode',
         {
-          sessionId: unpaidSession.id,
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
+          sessionId: unpaidSession.id,
           paymentStatus: 'unpaid',
           mode: 'payment',
         },
@@ -287,11 +300,19 @@ describe('Stripe Integration', () => {
     it('should skip if product not found from database', async () => {
       prismaMock.product.findUnique.mockResolvedValue(null);
 
-      await handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe);
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Product not found in database',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - product not found',
         {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          sessionId: 'cs_test_123',
           productId: '123e4567-e89b-12d3-a456-426614174000',
         },
       );
@@ -305,6 +326,7 @@ describe('Stripe Integration', () => {
       } as unknown as Stripe.Checkout.Session;
 
       await handleCheckoutSessionCompleted(
+        'test-request-id',
         sessionWithoutEmail,
         mockTeam,
         mockStripe,
@@ -312,7 +334,12 @@ describe('Stripe Integration', () => {
 
       expect(mockStripe.checkout.sessions.retrieve).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: No customer email found in the checkout session.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - no customer email',
+        {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          sessionId: 'cs_test_123',
+        },
       );
     });
 
@@ -324,10 +351,21 @@ describe('Stripe Integration', () => {
         },
       });
 
-      await handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe);
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: No product_id found in the product metadata or invalid product_id.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID',
+        {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          sessionId: 'cs_test_123',
+          productId: 'invalid-uuid',
+        },
       );
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
     });
@@ -341,10 +379,21 @@ describe('Stripe Integration', () => {
         },
       });
 
-      await handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe);
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: expiration_start is set but expiration_days is not.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - expiration start without days',
+        {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          sessionId: 'cs_test_123',
+          expirationStart: 'ACTIVATION',
+        },
       );
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
     });
@@ -353,11 +402,16 @@ describe('Stripe Integration', () => {
       (generateUniqueLicense as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe),
+        handleCheckoutSessionCompleted(
+          'test-request-id',
+          mockSession,
+          mockTeam,
+          mockStripe,
+        ),
       ).rejects.toThrow('Failed to generate a unique license key');
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to generate a unique license key',
+        'handleCheckoutSessionCompleted: Failed to generate a unique license key',
       );
       expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
@@ -367,16 +421,24 @@ describe('Stripe Integration', () => {
       prismaMock.$transaction.mockRejectedValue(error);
 
       await expect(
-        handleCheckoutSessionCompleted(mockSession, mockTeam, mockStripe),
+        handleCheckoutSessionCompleted(
+          'test-request-id',
+          mockSession,
+          mockTeam,
+          mockStripe,
+        ),
       ).rejects.toThrow('Database error');
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Error occurred in handleCheckoutSessionCompleted',
+        'handleCheckoutSessionCompleted: Stripe checkout session processing failed',
         {
-          error,
-          sessionId: mockSession.id,
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
+          sessionId: mockSession.id,
           paymentIntentId: mockSession.payment_intent,
+          error: 'Database error',
+          errorType: 'Error',
+          handlerTimeMs: expect.any(Number),
         },
       );
     });
@@ -411,7 +473,7 @@ describe('Stripe Integration', () => {
         metadata: {
           product_id: '123e4567-e89b-12d3-a456-426614174000',
           ip_limit: '5',
-          seats: '10',
+          hwidLimit: '10',
         },
       });
 
@@ -432,14 +494,19 @@ describe('Stripe Integration', () => {
         return createdLicense;
       });
 
-      const result = await handleInvoicePaid(invoice, mockTeam, mockStripe);
+      const result = await handleInvoicePaid(
+        'test-request-id',
+        invoice,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(result).toBeDefined();
       expect(mockStripe.subscriptions.retrieve).toHaveBeenCalledWith('sub_123');
       expect(prismaMock.license.create).toHaveBeenCalled();
       expect(mockStripe.subscriptions.update).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
-        'License created for subscription',
+        'handleInvoicePaid: License created for subscription',
         expect.any(Object),
       );
     });
@@ -469,7 +536,12 @@ describe('Stripe Integration', () => {
 
       prismaMock.license.update.mockResolvedValue(updatedLicense as any);
 
-      const result = await handleInvoicePaid(invoice, mockTeam, mockStripe);
+      const result = await handleInvoicePaid(
+        'test-request-id',
+        invoice,
+        mockTeam,
+        mockStripe,
+      );
 
       expect(result).toBeDefined();
       expect(result).toEqual(updatedLicense);
@@ -487,13 +559,14 @@ describe('Stripe Integration', () => {
         billing_reason: null,
       };
 
-      await handleInvoicePaid(invoice, mockTeam, mockStripe);
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: No billing reason associated with invoice',
+        'handleInvoicePaid: Stripe invoice skipped - no billing reason',
         {
-          invoiceId: invoice.id,
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
+          invoiceId: invoice.id,
         },
       );
     });
@@ -509,14 +582,15 @@ describe('Stripe Integration', () => {
         metadata: { lukittu_license_id: 'existing_license' },
       });
 
-      await handleInvoicePaid(invoice, mockTeam, mockStripe);
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: License already exists for subscription',
+        'handleInvoicePaid: Stripe invoice skipped - license already exists',
         {
+          requestId: 'test-request-id',
+          teamId: mockTeam.id,
           subscriptionId: mockSubscription.id,
           licenseId: 'existing_license',
-          teamId: mockTeam.id,
         },
       );
     });
@@ -531,10 +605,15 @@ describe('Stripe Integration', () => {
         deleted: true,
       });
 
-      await handleInvoicePaid(invoice, mockTeam, mockStripe);
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Customer not found or deleted',
+        'handleInvoicePaid: Stripe invoice skipped - customer not found or deleted',
+        {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          customerId: 'cus_123',
+        },
       );
       expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
@@ -549,15 +628,21 @@ describe('Stripe Integration', () => {
       prismaMock.$transaction.mockRejectedValue(error);
 
       await expect(
-        handleInvoicePaid(invoice, mockTeam, mockStripe),
+        handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe),
       ).rejects.toThrow('Database error');
 
-      expect(logger.error).toHaveBeenCalledWith('Error in handleInvoicePaid', {
-        error,
-        invoiceId: invoice.id,
-        teamId: mockTeam.id,
-        subscriptionId: invoice.subscription,
-      });
+      expect(logger.error).toHaveBeenCalledWith(
+        'handleInvoicePaid: Stripe invoice processing failed',
+        {
+          requestId: 'test-request-id',
+          teamId: mockTeam.id,
+          invoiceId: invoice.id,
+          subscriptionId: invoice.subscription,
+          error: 'Database error',
+          errorType: 'Error',
+          handlerTimeMs: expect.any(Number),
+        },
+      );
     });
   });
 
@@ -585,7 +670,11 @@ describe('Stripe Integration', () => {
 
       prismaMock.license.update.mockResolvedValue(updatedLicense as any);
 
-      await handleSubscriptionDeleted(subscription, mockTeam);
+      await handleSubscriptionDeleted(
+        'test-request-id',
+        subscription,
+        mockTeam,
+      );
 
       expect(prismaMock.license.update).toHaveBeenCalledWith({
         where: { id: '123e4567-e89b-12d3-a456-426614174000' },
@@ -596,13 +685,18 @@ describe('Stripe Integration', () => {
     });
 
     test('skips if no license ID in metadata', async () => {
-      await handleSubscriptionDeleted(mockSubscription, mockTeam);
+      await handleSubscriptionDeleted(
+        'test-request-id',
+        mockSubscription,
+        mockTeam,
+      );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: License ID not found in subscription metadata',
+        'handleSubscriptionDeleted: Stripe subscription deletion skipped - no license ID',
         {
-          subscriptionId: mockSubscription.id,
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
+          subscriptionId: mockSubscription.id,
           metadata: mockSubscription.metadata,
         },
       );
@@ -618,12 +712,21 @@ describe('Stripe Integration', () => {
 
       prismaMock.license.findUnique.mockResolvedValue(null);
 
-      await handleSubscriptionDeleted(subscription, mockTeam);
+      await handleSubscriptionDeleted(
+        'test-request-id',
+        subscription,
+        mockTeam,
+      );
 
-      expect(logger.info).toHaveBeenCalledWith('Skipping: License not found', {
-        licenseId: '123e4567-e89b-12d3-a456-426614174000',
-        subscriptionId: subscription.id,
-      });
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleSubscriptionDeleted: Stripe subscription deletion skipped - license not found',
+        {
+          requestId: 'test-request-id',
+          teamId: 'team-123',
+          subscriptionId: subscription.id,
+          licenseId: '123e4567-e89b-12d3-a456-426614174000',
+        },
+      );
     });
 
     test('handles errors gracefully', async () => {
@@ -642,15 +745,18 @@ describe('Stripe Integration', () => {
       prismaMock.license.update.mockRejectedValue(error);
 
       await expect(
-        handleSubscriptionDeleted(subscription, mockTeam),
+        handleSubscriptionDeleted('test-request-id', subscription, mockTeam),
       ).rejects.toThrow('Update failed');
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Error occurred in handleSubscriptionDeleted',
+        'handleSubscriptionDeleted: Stripe subscription deletion failed',
         {
-          error,
-          subscriptionId: subscription.id,
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
+          subscriptionId: subscription.id,
+          error: 'Update failed',
+          errorType: 'Error',
+          handlerTimeMs: expect.any(Number),
         },
       );
     });

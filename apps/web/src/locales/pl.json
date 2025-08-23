@@ -63,6 +63,9 @@
     "license_key_exists": "Klucz licencji już istnieje!",
     "customer_not_found": "Klient nie znaleziony!",
     "license_not_found": "Licencja nie znaleziona!",
+    "hwid_not_found": "Identyfikator sprzętowy nie znaleziony!",
+    "ip_not_found": "Adres IP nie znaleziony!",
+    "invalid_forgotten_value": "Nieprawidłowa wartość zapomniana!",
     "user_already_in_team": "Użytkownik z tym adresem email jest już w zespole!",
     "invitation_already_sent": "Wysłałeś już zaproszenie do tego użytkownika! Poczekaj co najmniej 15 minut przed wysłaniem kolejnego.",
     "invitation_not_found": "Zaproszenie nie znalezione! Mogło wygasnąć. Poproś właściciela zespołu o ponowne wysłanie zaproszenia.",
@@ -70,7 +73,6 @@
     "invitation_for_different_email": "Zaproszenie jest dla innego adresu email!",
     "file_too_large": "Plik jest za duży! Maksymalny rozmiar pliku to {size}.",
     "invalid_file_type": "Nieprawidłowy typ pliku! Dozwolone są tylko PNG, JPEG i WEBP.",
-    "device_timeout_positive": "Limit czasu urządzenia musi wynosić co najmniej 1 minutę!",
     "too_many_requests": "Zbyt wiele żądań! Spróbuj ponownie później.",
     "max_licenses_reached": "Twój zespół osiągnął maksymalną liczbę licencji dozwoloną w ramach obecnego planu. Aby dodać więcej licencji, ulepsz plan.",
     "max_products_reached": "Twój zespół osiągnął maksymalną liczbę produktów dozwoloną w ramach obecnego planu. Aby dodać więcej produktów, ulepsz plan.",
@@ -146,7 +148,11 @@
     "webhook_name_already_exists": "Nazwa webhooka już istnieje.",
     "webhook_url_already_exists": "Adres URL webhooka już istnieje.",
     "webhook_not_found": "Webhook nie został znaleziony.",
-    "webhook_deleted": "Webhook został pomyślnie usunięty."
+    "webhook_deleted": "Webhook został pomyślnie usunięty.",
+    "ip_timeout_max": "Limit czasu IP może wynosić maksymalnie 259200 minut.",
+    "hwid_timeout_max": "Limit czasu HWID może wynosić maksymalnie 259200 minut.",
+    "hwid_timeout_positive": "Limit czasu HWID musi wynosić co najmniej 1 minutę!",
+    "ip_timeout_positive": "Limit czasu IP musi wynosić co najmniej 1 minutę!"
   },
   "general": {
     "add": "Dodaj",
@@ -184,6 +190,8 @@
     "less_than": "Mniejszy niż",
     "ip_count": "Liczba adresów IP",
     "filter_ip_count": "Filtruj liczbę adresów IP",
+    "hwid_count": "Liczba HWID",
+    "filter_hwid_count": "Filtruj liczbę HWID",
     "license_count": "Liczba licencji",
     "filter_license_count": "Filtruj liczbę licencji",
     "min": "Min",
@@ -194,7 +202,6 @@
     "classloader": "Classloader",
     "verify": "Weryfikuj",
     "heartbeat": "Heartbeat",
-    "devices": "Urządzenia",
     "enabled": "Włączony",
     "disabled": "Wyłączony",
     "all": "Wszystkie",
@@ -303,6 +310,9 @@
     "active": "Aktywny",
     "basic": "Podstawowy",
     "inactive": "Nieaktywny",
+    "forgotten": "Zapomniany",
+    "show_forgotten": "Pokaż zapomniane",
+    "hide_forgotten": "Ukryj zapomniane",
     "billing_period_ends": "Okres rozliczeniowy kończy się",
     "plan": "Plan",
     "expiring": "Wygasający",
@@ -321,7 +331,6 @@
     "copied_to_clipboard": "Skopiowano do schowka",
     "expires_at": "Wygasa dnia",
     "upload_photo": "Prześlij zdjęcie",
-    "device_identifier": "Identyfikator urządzenia",
     "remove_photo": "Usuń zdjęcie",
     "unlock_metadata": "Odblokuj metadane",
     "locked_metadata_warning": "To pole metadanych jest zablokowane. Pola te są zazwyczaj blokowane, ponieważ są generowane przez system. Modyfikacja tego pola może powodować problemy z integracjami, które zależą od tych danych.",
@@ -356,7 +365,9 @@
     "completed_at": "Zakończono o",
     "response_information": "Informacje o odpowiedzi",
     "payload_information": "Informacje o ładunku",
-    "triggered_by": "Wywołane przez"
+    "triggered_by": "Wywołane przez",
+    "hardware_identifier": "Identyfikator sprzętu",
+    "hardware_identifiers": "Identyfikatory sprzętu"
   },
   "auth": {
     "oauth": {
@@ -507,6 +518,18 @@
       "integrations": "Integracje",
       "webhooks": "Webhooki"
     },
+    "hwid": {
+      "hwid_forgotten": "Identyfikator sprzętowy zapomniany pomyślnie",
+      "hwid_remembered": "Identyfikator sprzętowy zapamiętany pomyślnie",
+      "forget_hwid": "Zapomnij HWID",
+      "remember_hwid": "Zapamiętaj HWID"
+    },
+    "ip": {
+      "ip_forgotten": "Adres IP zapomniany pomyślnie",
+      "ip_remembered": "Adres IP zapamiętany pomyślnie",
+      "forget_ip": "Zapomnij IP",
+      "remember_ip": "Zapamiętaj IP"
+    },
     "teams": {
       "create_team": "Utwórz zespół",
       "edit_team": "Edytuj zespół",
@@ -598,7 +621,6 @@
       "license_description": "Licencje to klucze, które umożliwiają Twoim klientom korzystanie z Twoich produktów. Możesz je przypisywać klientom i śledzić ich użycie.",
       "no_products_assigned": "Brak przypisanych produktów",
       "no_customers_assigned": "Brak przypisanych klientów",
-      "no_device_data": "Brak danych urządzenia",
       "not_yet_activated": "Jeszcze nie aktywowano",
       "license_updated": "Licencja zaktualizowana",
       "license_deleted": "Licencja usunięta",
@@ -606,7 +628,8 @@
       "search_license": "Szukaj licencji...",
       "delete_license_confirm_title": "Usuń licencję",
       "delete_license_confirm_description": "Zamierzasz usunąć licencję <strong>{license}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tej licencji. Tej akcji nie można cofnąć.",
-      "concurrent_users": "Jednoczesni użytkownicy"
+      "hwid_limit": "Limit HWID",
+      "no_hwid_data": "Brak danych HWID"
     },
     "logs": {
       "no_logs": "Brak logów",
@@ -696,7 +719,11 @@
         "set_polymart_placeholder": "ustawiono zastępczy Polymart",
         "update_webhook": "zaktualizowano webhook",
         "delete_webhook": "usunął webhook",
-        "create_webhook": "utworzył webhook"
+        "create_webhook": "utworzył webhook",
+        "forget_ip": "zapomniał adresu IP",
+        "remember_ip": "zapamiętał adres IP",
+        "forget_hwid": "zapomniał identyfikatora sprzętowego",
+        "remember_hwid": "zapamiętał identyfikator sprzętowy"
       }
     },
     "members": {
@@ -727,7 +754,7 @@
       "stripe_integration_updated": "Integracja Stripe zaktualizowana",
       "stripe_integration_created": "Integracja Stripe utworzona",
       "stripe_integration_deleted": "Integracja Stripe usunięta",
-      "discord_integration_description": "Zarządzaj swoimi potrzebami licencyjnymi bezpośrednio na Discordzie. Możesz użyć bota Lukittu Discord do weryfikacji licencji, zarządzania urządzeniami i nie tylko.",
+      "discord_integration_description": "Zarządzaj swoimi potrzebami licencyjnymi bezpośrednio w Discordzie. Zablokowany bot Discord pozwala weryfikować licencje, zarządzać klientami i nie tylko – wszystko bezpośrednio z twojego serwera Discord.",
       "discord_integration_deleted": "Integracja Discord usunięta",
       "discord_integration_created": "Integracja Discord utworzona",
       "discord_integration_updated": "Integracja Discord zaktualizowana",
@@ -807,7 +834,6 @@
       "recommended_dimensions": "Zalecane wymiary: 1600x400",
       "email_settings": "Ustawienia email",
       "limits": "Limity",
-      "device_timeout": "Limit czasu urządzenia (minuty)",
       "base_64_encoded": "Kodowanie Base64",
       "plain_format": "Format prosty (PEM)",
       "rsa_public_key": "Klucz publiczny RSA 2048",
@@ -842,7 +868,9 @@
       "delete_api_key_confirm_description": "Zamierzasz usunąć klucz API o identyfikatorze <strong>{id}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tego klucza API. Tej akcji nie można cofnąć.",
       "no_api_keys": "Brak kluczy API",
       "api_key_created_description": "Klucz API utworzony pomyślnie. Przechowuj ten klucz w tajemnicy i nie udostępniaj go nikomu. <strong>Tylko teraz zobaczysz ten klucz, więc zapisz go!</strong>.",
-      "api_key_expiration_date_description": "Nie musisz ustawiać daty ważności, ale może to być przydatne ze względów bezpieczeństwa. Jeśli ustawisz datę ważności, klucz API zostanie automatycznie usunięty po tej dacie."
+      "api_key_expiration_date_description": "Nie musisz ustawiać daty ważności, ale może to być przydatne ze względów bezpieczeństwa. Jeśli ustawisz datę ważności, klucz API zostanie automatycznie usunięty po tej dacie.",
+      "hwid_timeout": "Czas oczekiwania HWID",
+      "ip_timeout": "Czas oczekiwania IP"
     },
     "blacklist": {
       "blacklist_updated": "Czarna lista zaktualizowana",
