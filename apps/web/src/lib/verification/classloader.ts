@@ -140,9 +140,7 @@ export const handleClassloader = async ({
       logger.warn('handleClassloader: Rate limit exceeded (license key)', {
         requestId,
         teamId,
-        licenseKey: payload.licenseKey
-          ? `${payload.licenseKey.substring(0, 8)}...`
-          : 'none',
+        licenseKey: payload.licenseKey,
         rateLimitKey: licenseKeyRatelimitKey,
       });
       return {
@@ -283,7 +281,7 @@ export const handleClassloader = async ({
     logger.warn('handleClassloader: Session key rate limit exceeded', {
       requestId,
       teamId,
-      sessionKeyHash: validatedSessionKeyHash.substring(0, 8) + '...',
+      sessionKeyHash: validatedSessionKeyHash,
       rateLimitKey: sessionKeyRatelimitKey,
     });
     return {
@@ -664,9 +662,7 @@ export const handleClassloader = async ({
     logger.warn('handleClassloader: Blacklist check failed', {
       requestId,
       teamId,
-      licenseKey: payload.licenseKey
-        ? `${payload.licenseKey.substring(0, 8)}...`
-        : 'none',
+      licenseKey: payload.licenseKey,
       blacklistReason: blacklistCheck.details,
       status: blacklistCheck.status,
     });
@@ -719,9 +715,7 @@ export const handleClassloader = async ({
       requestId,
       teamId,
       licenseId: license.id,
-      licenseKey: payload.licenseKey
-        ? `${payload.licenseKey.substring(0, 8)}...`
-        : 'none',
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,
@@ -807,9 +801,7 @@ export const handleClassloader = async ({
         licenseId: license.id,
         currentHwidCount: existingHwids.length,
         hwidLimit: license.hwidLimit,
-        newHwid: hardwareIdentifier
-          ? `${hardwareIdentifier.substring(0, 8)}...`
-          : 'none',
+        newHwid: hardwareIdentifier,
       });
       return {
         ...commonBase,

@@ -55,12 +55,8 @@ export async function POST(
     logger.info('License verify: Processing license verification', {
       requestId,
       teamId,
-      licenseKey: body.licenseKey
-        ? `${body.licenseKey.substring(0, 8)}...`
-        : 'none',
-      hardwareId: body.hardwareIdentifier
-        ? `${body.hardwareIdentifier.substring(0, 8)}...`
-        : 'none',
+      licenseKey: body.licenseKey,
+      hardwareId: body.hardwareIdentifier,
       ipAddress,
       country: geoData?.alpha2 || 'unknown',
       hasChallenge: !!body.challenge,

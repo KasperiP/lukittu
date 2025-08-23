@@ -355,9 +355,7 @@ export const handleHeartbeat = async ({
     logger.warn('handleHeartbeat: Blacklist check failed', {
       requestId,
       teamId,
-      licenseKey: payload.licenseKey
-        ? `${payload.licenseKey.substring(0, 8)}...`
-        : 'none',
+      licenseKey: payload.licenseKey,
       blacklistReason: blacklistCheck.details,
       status: blacklistCheck.status,
     });
@@ -469,9 +467,7 @@ export const handleHeartbeat = async ({
       requestId,
       teamId,
       licenseId: license.id,
-      licenseKey: payload.licenseKey
-        ? `${payload.licenseKey.substring(0, 8)}...`
-        : 'none',
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,
@@ -557,9 +553,7 @@ export const handleHeartbeat = async ({
         licenseId: license.id,
         currentHwidCount: existingHwids.length,
         hwidLimit: license.hwidLimit,
-        newHwid: hardwareIdentifier
-          ? `${hardwareIdentifier.substring(0, 8)}...`
-          : 'none',
+        newHwid: hardwareIdentifier,
       });
       return {
         ...commonBase,

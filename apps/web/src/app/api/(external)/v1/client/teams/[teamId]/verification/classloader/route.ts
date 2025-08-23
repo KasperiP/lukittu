@@ -63,12 +63,8 @@ export async function GET(
     logger.info('License classloader: Processing classloader download', {
       requestId,
       teamId,
-      licenseKey: payload.licenseKey
-        ? `${payload.licenseKey.substring(0, 8)}...`
-        : 'none',
-      hardwareId: payload.hardwareIdentifier
-        ? `${payload.hardwareIdentifier.substring(0, 8)}...`
-        : 'none',
+      licenseKey: payload.licenseKey,
+      hardwareId: payload.hardwareIdentifier,
       productId: payload.productId,
       version: payload.version,
       branch: payload.branch,
