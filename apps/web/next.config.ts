@@ -37,7 +37,7 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   // https://github.com/getsentry/sentry-webpack-plugin#options
 
   org: 'lukittu',
-  project: 'lukittu-web',
+  project: 'lukittu-next',
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -62,8 +62,12 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,
 
+  authToken: process.env.SENTRY_AUTH_TOKEN,
   sourcemaps: {
-    deleteSourcemapsAfterUpload: true,
+    disable: false, // Enable source maps (default: false)
+    assets: ['**/*.js', '**/*.js.map'], // Specify which files to upload
+    ignore: ['**/node_modules/**'], // Files to exclude
+    deleteSourcemapsAfterUpload: true, // Security: delete after upload
   },
 
   // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
