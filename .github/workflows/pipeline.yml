@@ -320,8 +320,6 @@ jobs:
             echo "📝 Starting migration step..."
             set +e
             cd docker
-            echo "🧹 Cleaning up any existing migration containers..."
-            IMAGE_TAG=$TAG docker compose -f docker-compose-migrate.yml down --remove-orphans
             echo "🚀 Running migration containers..."
             IMAGE_TAG=$TAG docker compose -f docker-compose-migrate.yml up --abort-on-container-exit --exit-code-from prisma
             MIGRATION_EXIT_CODE=$?
