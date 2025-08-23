@@ -36,16 +36,23 @@ type ExtendedTeam = Team & {
 };
 
 export const handleInvoicePaid = async (
+  requestId: string,
   invoice: Stripe.Invoice,
   team: ExtendedTeam,
   stripe: Stripe,
 ) => {
+  const handlerStartTime = Date.now();
+
   try {
     if (!invoice.billing_reason) {
-      logger.info('Skipping: No billing reason associated with invoice', {
-        invoiceId: invoice.id,
-        teamId: team.id,
-      });
+      logger.info(
+        'handleInvoicePaid: Stripe invoice skipped - no billing reason',
+        {
+          requestId,
+          teamId: team.id,
+          invoiceId: invoice.id,
+        },
+      );
       return;
     }
 
@@ -57,11 +64,15 @@ export const handleInvoicePaid = async (
 
     if (invoice.billing_reason === 'subscription_create') {
       if (lukittuLicenseId) {
-        logger.info('Skipping: License already exists for subscription', {
-          subscriptionId: subscription.id,
-          licenseId: lukittuLicenseId,
-          teamId: team.id,
-        });
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - license already exists',
+          {
+            requestId,
+            teamId: team.id,
+            subscriptionId: subscription.id,
+            licenseId: lukittuLicenseId,
+          },
+        );
         return;
       }
 
@@ -69,7 +80,14 @@ export const handleInvoicePaid = async (
       const stripeCustomer = await stripe.customers.retrieve(stripeCustomerId);
 
       if (stripeCustomer.deleted) {
-        logger.info('Skipping: Customer not found or deleted');
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - customer not found or deleted',
+          {
+            requestId,
+            teamId: team.id,
+            customerId: stripeCustomerId,
+          },
+        );
         return;
       }
 
@@ -84,11 +102,15 @@ export const handleInvoicePaid = async (
       const hwidLimit = product.metadata.hwid_limit as string | undefined;
 
       if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
-        logger.info('Skipping: Invalid or missing product_id in metadata', {
-          productId: lukittuProductId,
-          subscriptionId: subscription.id,
-          teamId: team.id,
-        });
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - invalid product ID',
+          {
+            requestId,
+            teamId: team.id,
+            subscriptionId: subscription.id,
+            productId: lukittuProductId,
+          },
+        );
         return;
       }
 
@@ -99,16 +121,22 @@ export const handleInvoicePaid = async (
       });
 
       if (!productExists) {
-        logger.info('Skipping: Product not found in database', {
-          productId: lukittuProductId,
-        });
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - product not found',
+          {
+            requestId,
+            teamId: team.id,
+            productId: lukittuProductId,
+          },
+        );
         return;
       }
 
       if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
         logger.info(
-          'Skipping: Team has reached the maximum number of licenses',
+          'handleInvoicePaid: Stripe invoice skipped - license limit reached',
           {
+            requestId,
             teamId: team.id,
             currentLicenses: team._count.licenses,
             maxLicenses: team.limits?.maxLicenses,
@@ -119,8 +147,9 @@ export const handleInvoicePaid = async (
 
       if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
         logger.info(
-          'Skipping: Team has reached the maximum number of customers',
+          'handleInvoicePaid: Stripe invoice skipped - customer limit reached',
           {
+            requestId,
             teamId: team.id,
             currentCustomers: team._count.customers,
             maxCustomers: team.limits?.maxCustomers,
@@ -131,13 +160,27 @@ export const handleInvoicePaid = async (
 
       const parsedIpLimit = parseInt(ipLimit || '');
       if (ipLimit && (isNaN(parsedIpLimit) || parsedIpLimit < 0)) {
-        logger.info('Skipping: Invalid ip_limit');
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - invalid IP limit',
+          {
+            requestId,
+            teamId: team.id,
+            ipLimit,
+          },
+        );
         return;
       }
 
       const parsedHwidLimit = parseInt(hwidLimit || '');
       if (hwidLimit && (isNaN(parsedHwidLimit) || parsedHwidLimit < 0)) {
-        logger.info('Skipping: Invalid hwid_limit');
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - invalid HWID limit',
+          {
+            requestId,
+            teamId: team.id,
+            hwidLimit,
+          },
+        );
         return;
       }
 
@@ -234,7 +277,9 @@ export const handleInvoicePaid = async (
         const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
         if (!licenseKey) {
-          logger.error('Failed to generate a unique license key');
+          logger.error(
+            'handleInvoicePaid: Failed to generate a unique license key',
+          );
           throw new Error('Failed to generate a unique license key');
         }
 
@@ -324,7 +369,9 @@ export const handleInvoicePaid = async (
         });
 
         if (!success) {
-          logger.error('Failed to send license distribution email');
+          logger.error(
+            'handleInvoicePaid: Failed to send license distribution email',
+          );
           throw new Error('Failed to send license distribution email');
         }
 
@@ -343,7 +390,7 @@ export const handleInvoicePaid = async (
 
       void attemptWebhookDelivery(webhookEventIds);
 
-      logger.info('License created for subscription', {
+      logger.info('handleInvoicePaid: License created for subscription', {
         subscriptionId: subscription.id,
         teamId: team.id,
         licenseId: license.id,
@@ -356,11 +403,15 @@ export const handleInvoicePaid = async (
 
     if (invoice.billing_reason === 'subscription_cycle') {
       if (!lukittuLicenseId || !regex.uuidV4.test(lukittuLicenseId)) {
-        logger.info('Skipping: No license ID found for subscription renewal', {
-          subscriptionId: subscription.id,
-          teamId: team.id,
-          licenseId: lukittuLicenseId,
-        });
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - no license ID for renewal',
+          {
+            requestId,
+            teamId: team.id,
+            subscriptionId: subscription.id,
+            licenseId: lukittuLicenseId,
+          },
+        );
         return;
       }
 
@@ -369,10 +420,15 @@ export const handleInvoicePaid = async (
       });
 
       if (!license) {
-        logger.info('Skipping: License not found for renewal', {
-          lukittuLicenseId,
-          subscriptionId: subscription.id,
-        });
+        logger.info(
+          'handleInvoicePaid: Stripe invoice skipped - license not found for renewal',
+          {
+            requestId,
+            teamId: team.id,
+            subscriptionId: subscription.id,
+            licenseId: lukittuLicenseId,
+          },
+        );
         return;
       }
 
@@ -383,46 +439,79 @@ export const handleInvoicePaid = async (
         },
       });
 
-      logger.info('License expiration updated on subscription renewal', {
-        licenseId: updatedLicense.id,
-        subscriptionId: subscription.id,
-        teamId: team.id,
-        newExpirationDate: subscription.current_period_end,
-      });
+      logger.info(
+        'handleInvoicePaid: License expiration updated on subscription renewal',
+        {
+          licenseId: updatedLicense.id,
+          subscriptionId: subscription.id,
+          teamId: team.id,
+          newExpirationDate: subscription.current_period_end,
+        },
+      );
 
       return updatedLicense;
     }
 
-    logger.info('Skipping: Unhandled billing reason', {
-      billingReason: invoice.billing_reason,
-      invoiceId: invoice.id,
-      teamId: team.id,
-      subscriptionId: invoice.subscription,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.info(
+      'handleInvoicePaid: Stripe invoice skipped - unhandled billing reason',
+      {
+        requestId,
+        teamId: team.id,
+        invoiceId: invoice.id,
+        billingReason: invoice.billing_reason,
+        subscriptionId: invoice.subscription,
+        handlerTimeMs: handlerTime,
+      },
+    );
   } catch (error) {
-    logger.error('Error in handleInvoicePaid', {
-      error,
-      invoiceId: invoice.id,
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.error('handleInvoicePaid: Stripe invoice processing failed', {
+      requestId,
       teamId: team.id,
+      invoiceId: invoice.id,
       subscriptionId: invoice.subscription,
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      handlerTimeMs: handlerTime,
     });
     throw error;
   }
 };
 
 export const handleSubscriptionDeleted = async (
+  requestId: string,
   subscription: Stripe.Subscription,
   team: ExtendedTeam,
 ) => {
+  const handlerStartTime = Date.now();
+
+  logger.info(
+    'handleSubscriptionDeleted: Processing Stripe subscription deletion',
+    {
+      requestId,
+      teamId: team.id,
+      subscriptionId: subscription.id,
+      status: subscription.status,
+      canceledAt: subscription.canceled_at,
+    },
+  );
+
   try {
     const licenseId = subscription.metadata.lukittu_license_id;
 
     if (!licenseId || !regex.uuidV4.test(licenseId)) {
-      logger.info('Skipping: License ID not found in subscription metadata', {
-        subscriptionId: subscription.id,
-        teamId: team.id,
-        metadata: subscription.metadata,
-      });
+      logger.info(
+        'handleSubscriptionDeleted: Stripe subscription deletion skipped - no license ID',
+        {
+          requestId,
+          teamId: team.id,
+          subscriptionId: subscription.id,
+          metadata: subscription.metadata,
+        },
+      );
       return;
     }
 
@@ -433,10 +522,15 @@ export const handleSubscriptionDeleted = async (
     });
 
     if (!license) {
-      logger.info('Skipping: License not found', {
-        licenseId,
-        subscriptionId: subscription.id,
-      });
+      logger.info(
+        'handleSubscriptionDeleted: Stripe subscription deletion skipped - license not found',
+        {
+          requestId,
+          teamId: team.id,
+          subscriptionId: subscription.id,
+          licenseId,
+        },
+      );
       return;
     }
 
@@ -449,44 +543,82 @@ export const handleSubscriptionDeleted = async (
       },
     });
 
-    logger.info('Subscription deleted and license expired', {
-      licenseId,
-      subscriptionId: subscription.id,
-      teamId: team.id,
-      expirationDate: new Date().toISOString(),
-    });
+    logger.info(
+      'handleSubscriptionDeleted: Subscription deleted and license expired',
+      {
+        licenseId,
+        subscriptionId: subscription.id,
+        teamId: team.id,
+        expirationDate: new Date().toISOString(),
+      },
+    );
+
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.info(
+      'handleSubscriptionDeleted: Stripe subscription deleted successfully',
+      {
+        requestId,
+        teamId: team.id,
+        subscriptionId: subscription.id,
+        licenseId: license.id,
+        handlerTimeMs: handlerTime,
+      },
+    );
 
     return updatedLicense;
   } catch (error) {
-    logger.error('Error occurred in handleSubscriptionDeleted', {
-      error,
-      subscriptionId: subscription.id,
-      teamId: team.id,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.error(
+      'handleSubscriptionDeleted: Stripe subscription deletion failed',
+      {
+        requestId,
+        teamId: team.id,
+        subscriptionId: subscription.id,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        handlerTimeMs: handlerTime,
+      },
+    );
     throw error;
   }
 };
 
 export const handleCheckoutSessionCompleted = async (
+  requestId: string,
   session: Stripe.Checkout.Session,
   team: ExtendedTeam,
   stripe: Stripe,
 ) => {
+  const handlerStartTime = Date.now();
+
   try {
     if (session.payment_status !== 'paid' || session.mode !== 'payment') {
-      logger.info('Skipping: Invalid payment status or session mode', {
-        sessionId: session.id,
-        teamId: team.id,
-        paymentStatus: session.payment_status,
-        mode: session.mode,
-      });
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid payment status or mode',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          paymentStatus: session.payment_status,
+          mode: session.mode,
+        },
+      );
       return;
     }
 
     const customer = session.customer_details;
 
     if (!customer || !customer.email) {
-      logger.info('Skipping: No customer email found in the checkout session.');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - no customer email',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+        },
+      );
       return;
     }
 
@@ -497,13 +629,26 @@ export const handleCheckoutSessionCompleted = async (
     const item = lineItems.line_items?.data[0];
     if (!item || !item.price) {
       logger.info(
-        'Skipping: No line items or price found in the checkout session.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - no line items or price',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+        },
       );
       return;
     }
 
     if (item.price.type !== 'one_time') {
-      logger.info('Skipping: Price type is not one_time.');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - not one-time price',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          priceType: item.price.type,
+        },
+      );
       return;
     }
 
@@ -512,17 +657,41 @@ export const handleCheckoutSessionCompleted = async (
     );
 
     if (paymentIntent.metadata.lukittu_license_id) {
-      logger.info('Skipping: License already exists for payment intent');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - license already exists',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          paymentIntentId: session.payment_intent,
+        },
+      );
       return;
     }
 
     if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
-      logger.info('Skipping: Team has reached the maximum number of licenses');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - license limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentLicenses: team._count.licenses,
+          maxLicenses: team.limits?.maxLicenses,
+        },
+      );
       return;
     }
 
     if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
-      logger.info('Skipping: Team has reached the maximum number of customers');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - customer limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentCustomers: team._count.customers,
+          maxCustomers: team.limits?.maxCustomers,
+        },
+      );
       return;
     }
 
@@ -541,7 +710,13 @@ export const handleCheckoutSessionCompleted = async (
 
     if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
       logger.info(
-        'Skipping: No product_id found in the product metadata or invalid product_id.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          productId: lukittuProductId,
+        },
       );
       return;
     }
@@ -554,21 +729,43 @@ export const handleCheckoutSessionCompleted = async (
     });
 
     if (!productExists) {
-      logger.info('Skipping: Product not found in database', {
-        productId: lukittuProductId,
-      });
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - product not found',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          productId: lukittuProductId,
+        },
+      );
       return;
     }
 
     const parsedIpLimit = parseInt(ipLimit || '');
     if (ipLimit && (isNaN(parsedIpLimit) || parsedIpLimit < 0)) {
-      logger.info('Skipping: Invalid ip_limit.');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid IP limit',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          ipLimit,
+        },
+      );
       return;
     }
 
     const parsedHwidLimit = parseInt(hwidLimit || '');
     if (hwidLimit && (isNaN(parsedHwidLimit) || parsedHwidLimit < 0)) {
-      logger.info('Skipping: Invalid hwid_limit.');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid HWID limit',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          hwidLimit,
+        },
+      );
       return;
     }
 
@@ -577,13 +774,27 @@ export const handleCheckoutSessionCompleted = async (
       expirationDays &&
       (isNaN(parsedExpirationDays) || parsedExpirationDays < 0)
     ) {
-      logger.info('Skipping: Invalid expiration_days.');
+      logger.info(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid expiration days',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          expirationDays,
+        },
+      );
       return;
     }
 
     if (expirationStart && !expirationDays) {
       logger.info(
-        'Skipping: expiration_start is set but expiration_days is not.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - expiration start without days',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          expirationStart,
+        },
       );
       return;
     }
@@ -595,7 +806,13 @@ export const handleCheckoutSessionCompleted = async (
       !allowedExpirationStarts.includes(expirationStart.toUpperCase())
     ) {
       logger.info(
-        'Skipping: Invalid expiration_start. Must be one of ACTIVATION or CREATION.',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid expiration start',
+        {
+          requestId,
+          teamId: team.id,
+          sessionId: session.id,
+          expirationStart,
+        },
       );
       return;
     }
@@ -715,7 +932,9 @@ export const handleCheckoutSessionCompleted = async (
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
       if (!licenseKey) {
-        logger.error('Failed to generate a unique license key');
+        logger.error(
+          'handleCheckoutSessionCompleted: Failed to generate a unique license key',
+        );
         throw new Error('Failed to generate a unique license key');
       }
 
@@ -808,7 +1027,9 @@ export const handleCheckoutSessionCompleted = async (
       });
 
       if (!success) {
-        logger.error('Failed to send license distribution email');
+        logger.error(
+          'handleCheckoutSessionCompleted: Failed to send license distribution email',
+        );
         throw new Error('Failed to send license distribution email');
       }
 
@@ -827,23 +1048,38 @@ export const handleCheckoutSessionCompleted = async (
 
     void attemptWebhookDelivery(webhookEventIds);
 
-    logger.info('Stripe checkout session completed', {
-      sessionId: session.id,
-      licenseId: license.id,
-      teamId: team.id,
-      customerEmail: customer.email,
-      productId: lukittuProductId,
-      paymentIntentId: session.payment_intent,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.info(
+      'handleCheckoutSessionCompleted: Stripe checkout session processed successfully',
+      {
+        requestId,
+        teamId: team.id,
+        sessionId: session.id,
+        licenseId: license.id,
+        customerEmail: customer.email,
+        productId: lukittuProductId,
+        paymentIntentId: session.payment_intent,
+        handlerTimeMs: handlerTime,
+      },
+    );
 
     return license;
   } catch (error) {
-    logger.error('Error occurred in handleCheckoutSessionCompleted', {
-      error,
-      sessionId: session.id,
-      teamId: team.id,
-      paymentIntentId: session.payment_intent,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.error(
+      'handleCheckoutSessionCompleted: Stripe checkout session processing failed',
+      {
+        requestId,
+        teamId: team.id,
+        sessionId: session.id,
+        paymentIntentId: session.payment_intent,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        handlerTimeMs: handlerTime,
+      },
+    );
     throw error;
   }
 };

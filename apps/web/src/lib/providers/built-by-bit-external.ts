@@ -41,22 +41,30 @@ type BuiltByBitPurchaseResult = {
 };
 
 export const handleBuiltByBitPurchase = async (
+  requestId: string,
   builtByBitData: PurchaseBuiltByBitSchema['builtByBitData'],
   lukittuData: PurchaseBuiltByBitSchema['lukittuData'],
   team: ExtendedTeam,
 ): Promise<BuiltByBitPurchaseResult> => {
+  const handlerStartTime = Date.now();
+
   try {
     const { resource: bbbResource, user: bbbUser } = builtByBitData;
     const { productId, hwidLimit, expirationStart, expirationDays, ipLimit } =
       lukittuData;
 
-    logger.info('Processing BuiltByBit purchase', {
+    logger.info('handleBuiltByBitPurchase: Processing Built-by-bit purchase', {
+      requestId,
       teamId: team.id,
       bbbResourceId: bbbResource.id,
       bbbResourceTitle: bbbResource.title,
       bbbUserId: bbbUser.id,
       bbbUsername: bbbUser.username,
       lukittuProductId: productId,
+      hwidLimit,
+      ipLimit,
+      expirationDays,
+      expirationStart,
     });
 
     // BuiltByBit doesn't send any unique identifier for the purchase
@@ -78,12 +86,16 @@ export const handleBuiltByBitPurchase = async (
     });
 
     if (existingPurchase) {
-      logger.info('Skipping: Purchase already processed', {
-        purchaseId,
-        teamId: team.id,
-        bbbResourceId: bbbResource.id,
-        bbbUserId: bbbUser.id,
-      });
+      logger.info(
+        'handleBuiltByBitPurchase: Built-by-bit purchase skipped - already processed',
+        {
+          requestId,
+          teamId: team.id,
+          purchaseId,
+          bbbResourceId: bbbResource.id,
+          bbbUserId: bbbUser.id,
+        },
+      );
       return {
         success: true,
         message: 'Purchase already processed',
@@ -98,11 +110,15 @@ export const handleBuiltByBitPurchase = async (
     });
 
     if (!productExists) {
-      logger.error('Product not found in database', {
-        teamId: team.id,
-        productId,
-        bbbResourceId: bbbResource.id,
-      });
+      logger.error(
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - product not found',
+        {
+          requestId,
+          teamId: team.id,
+          productId,
+          bbbResourceId: bbbResource.id,
+        },
+      );
       return {
         success: false,
         message: 'Product not found',
@@ -110,11 +126,15 @@ export const handleBuiltByBitPurchase = async (
     }
 
     if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
-      logger.error('Team has reached the maximum number of licenses', {
-        teamId: team.id,
-        currentLicenses: team._count.licenses,
-        maxLicenses: team.limits?.maxLicenses,
-      });
+      logger.error(
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - license limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentLicenses: team._count.licenses,
+          maxLicenses: team.limits?.maxLicenses,
+        },
+      );
       return {
         success: false,
         message: 'Team has reached the maximum number of licenses',
@@ -122,11 +142,15 @@ export const handleBuiltByBitPurchase = async (
     }
 
     if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
-      logger.error('Team has reached the maximum number of customers', {
-        teamId: team.id,
-        currentCustomers: team._count.customers,
-        maxCustomers: team.limits?.maxCustomers,
-      });
+      logger.error(
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - customer limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentCustomers: team._count.customers,
+          maxCustomers: team.limits?.maxCustomers,
+        },
+      );
       return {
         success: false,
         message: 'Team has reached the maximum number of customers',
@@ -249,7 +273,13 @@ export const handleBuiltByBitPurchase = async (
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
       if (!licenseKey) {
-        logger.error('Failed to generate a unique license key');
+        logger.error(
+          'handleBuiltByBitPurchase: Built-by-bit purchase failed - license key generation failed',
+          {
+            requestId,
+            teamId: team.id,
+          },
+        );
         return null;
       }
 
@@ -338,11 +368,15 @@ export const handleBuiltByBitPurchase = async (
     });
 
     if (!license) {
-      logger.error('Failed to create a license', {
-        teamId: team.id,
-        bbbResourceId: bbbResource.id,
-        bbbUserId: bbbUser.id,
-      });
+      logger.error(
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - license creation failed',
+        {
+          requestId,
+          teamId: team.id,
+          bbbResourceId: bbbResource.id,
+          bbbUserId: bbbUser.id,
+        },
+      );
       return {
         success: false,
         message: 'Failed to create a license',
@@ -351,33 +385,49 @@ export const handleBuiltByBitPurchase = async (
 
     void attemptWebhookDelivery(webhookEventIds);
 
-    logger.info('BuiltByBit purchase processed successfully', {
-      licenseId: license.id,
-      teamId: team.id,
-      productId,
-      bbbResourceId: bbbResource.id,
-      bbbResourceTitle: bbbResource.title,
-      bbbUserId: bbbUser.id,
-      bbbUsername: bbbUser.username,
-      hwidLimit: hwidLimit || null,
-      ipLimit: ipLimit || null,
-      expirationDays: expirationDays || null,
-      expirationStart: expirationStartFormatted,
-      addonId: bbbResource.addon?.id,
-      addonTitle: bbbResource.addon?.title,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.info(
+      'handleBuiltByBitPurchase: Built-by-bit purchase processed successfully',
+      {
+        requestId,
+        teamId: team.id,
+        licenseId: license.id,
+        productId,
+        bbbResourceId: bbbResource.id,
+        bbbResourceTitle: bbbResource.title,
+        bbbUserId: bbbUser.id,
+        bbbUsername: bbbUser.username,
+        hwidLimit: hwidLimit || null,
+        ipLimit: ipLimit || null,
+        expirationDays: expirationDays || null,
+        expirationStart: expirationStartFormatted,
+        addonId: bbbResource.addon?.id,
+        addonTitle: bbbResource.addon?.title,
+        handlerTimeMs: handlerTime,
+      },
+    );
 
     return {
       success: true,
       message: 'Purchase processed successfully',
     };
   } catch (error) {
-    logger.error('Error occurred in handleBuiltByBitPurchase', {
-      error,
-      builtByBitData,
-      lukittuData,
-      teamId: team.id,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.error(
+      'handleBuiltByBitPurchase: Built-by-bit purchase processing failed',
+      {
+        requestId,
+        teamId: team.id,
+        productId: lukittuData.productId,
+        bbbUserId: builtByBitData.user.id,
+        bbbResourceId: builtByBitData.resource.id,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        handlerTimeMs: handlerTime,
+      },
+    );
     return {
       success: false,
       message: 'An error occurred while processing the purchase',
@@ -386,17 +436,22 @@ export const handleBuiltByBitPurchase = async (
 };
 
 export const handleBuiltByBitPlaceholder = async (
+  requestId: string,
   validatedData: PlaceholderBuiltByBitSchema,
   teamId: string,
 ) => {
   try {
-    logger.info('Processing BuiltByBit placeholder request', {
-      teamId,
-      steamId: validatedData.steam_id,
-      userId: validatedData.user_id,
-      resourceId: validatedData.resource_id,
-      versionId: validatedData.version_id,
-    });
+    logger.info(
+      'handleBuiltByBitPlaceholder: Built-by-bit placeholder request started',
+      {
+        requestId,
+        teamId,
+        steamId: validatedData.steam_id,
+        userId: validatedData.user_id,
+        resourceId: validatedData.resource_id,
+        versionId: validatedData.version_id,
+      },
+    );
 
     const licenseKey = await prisma.license.findFirst({
       where: {
@@ -423,7 +478,8 @@ export const handleBuiltByBitPlaceholder = async (
     });
 
     if (!licenseKey) {
-      logger.error('License key not found for BuiltByBit user', {
+      logger.warn('handleBuiltByBitPlaceholder: License not found', {
+        requestId,
         teamId,
         userId: validatedData.user_id,
         resourceId: validatedData.resource_id,
@@ -434,12 +490,16 @@ export const handleBuiltByBitPlaceholder = async (
       };
     }
 
-    logger.info('License key found for BuiltByBit placeholder', {
-      teamId,
-      userId: validatedData.user_id,
-      resourceId: validatedData.resource_id,
-      licenseId: licenseKey.id,
-    });
+    logger.info(
+      'handleBuiltByBitPlaceholder: Built-by-bit placeholder completed',
+      {
+        requestId,
+        teamId,
+        userId: validatedData.user_id,
+        resourceId: validatedData.resource_id,
+        licenseId: licenseKey.id,
+      },
+    );
 
     const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
 
@@ -460,11 +520,15 @@ export const handleBuiltByBitPlaceholder = async (
       licenseKey: decryptedKey,
     };
   } catch (error) {
-    logger.error('Error handling BuiltByBit placeholder', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      teamId,
-    });
+    logger.error(
+      'handleBuiltByBitPlaceholder: Built-by-bit placeholder processing failed',
+      {
+        requestId,
+        teamId,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      },
+    );
     throw error;
   }
 };

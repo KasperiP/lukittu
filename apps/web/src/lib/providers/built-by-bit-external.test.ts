@@ -137,6 +137,7 @@ describe('BuiltByBit Integration', () => {
       } as any);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         mockTeam,
@@ -150,7 +151,7 @@ describe('BuiltByBit Integration', () => {
       expect(prismaMock.license.create).toHaveBeenCalled();
       expect(generateUniqueLicense).toHaveBeenCalledWith(mockTeam.id);
       expect(logger.info).toHaveBeenCalledWith(
-        'BuiltByBit purchase processed successfully',
+        'handleBuiltByBitPurchase: Built-by-bit purchase processed successfully',
         expect.any(Object),
       );
     });
@@ -161,6 +162,7 @@ describe('BuiltByBit Integration', () => {
       } as any);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         mockTeam,
@@ -173,7 +175,7 @@ describe('BuiltByBit Integration', () => {
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
       expect(prismaMock.license.create).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
-        'Skipping: Purchase already processed',
+        'handleBuiltByBitPurchase: Built-by-bit purchase skipped - already processed',
         expect.any(Object),
       );
     });
@@ -184,6 +186,7 @@ describe('BuiltByBit Integration', () => {
       prismaMock.product.findUnique.mockResolvedValueOnce(null);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         mockTeam,
@@ -196,7 +199,7 @@ describe('BuiltByBit Integration', () => {
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
       expect(prismaMock.license.create).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledWith(
-        'Product not found in database',
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - product not found',
         expect.any(Object),
       );
     });
@@ -223,6 +226,7 @@ describe('BuiltByBit Integration', () => {
       } as any);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         teamWithLicenseLimitReached as ExtendedTeam,
@@ -233,7 +237,7 @@ describe('BuiltByBit Integration', () => {
         message: 'Team has reached the maximum number of licenses',
       });
       expect(logger.error).toHaveBeenCalledWith(
-        'Team has reached the maximum number of licenses',
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - license limit reached',
         expect.any(Object),
       );
     });
@@ -260,6 +264,7 @@ describe('BuiltByBit Integration', () => {
       } as any);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         teamWithCustomerLimitReached as ExtendedTeam,
@@ -270,7 +275,7 @@ describe('BuiltByBit Integration', () => {
         message: 'Team has reached the maximum number of customers',
       });
       expect(logger.error).toHaveBeenCalledWith(
-        'Team has reached the maximum number of customers',
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - customer limit reached',
         expect.any(Object),
       );
     });
@@ -290,6 +295,7 @@ describe('BuiltByBit Integration', () => {
       (generateUniqueLicense as jest.Mock).mockResolvedValue(null);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         mockTeam,
@@ -300,7 +306,8 @@ describe('BuiltByBit Integration', () => {
         message: 'Failed to create a license',
       });
       expect(logger.error).toHaveBeenCalledWith(
-        'Failed to generate a unique license key',
+        'handleBuiltByBitPurchase: Built-by-bit purchase failed - license key generation failed',
+        expect.any(Object),
       );
     });
 
@@ -316,6 +323,7 @@ describe('BuiltByBit Integration', () => {
       prismaMock.$transaction.mockRejectedValue(error);
 
       const result = await handleBuiltByBitPurchase(
+        'test-request-id',
         mockBuiltByBitData,
         mockLukittuData,
         mockTeam,
@@ -326,7 +334,7 @@ describe('BuiltByBit Integration', () => {
         message: 'An error occurred while processing the purchase',
       });
       expect(logger.error).toHaveBeenCalledWith(
-        'Error occurred in handleBuiltByBitPurchase',
+        'handleBuiltByBitPurchase: Built-by-bit purchase processing failed',
         expect.any(Object),
       );
     });
@@ -350,6 +358,7 @@ describe('BuiltByBit Integration', () => {
       (createAuditLog as jest.Mock).mockClear();
 
       const result = await handleBuiltByBitPlaceholder(
+        'test-request-id',
         mockPlaceholderData,
         mockTeam.id,
       );
@@ -360,11 +369,11 @@ describe('BuiltByBit Integration', () => {
       });
 
       expect(logger.info).toHaveBeenCalledWith(
-        'Processing BuiltByBit placeholder request',
+        'handleBuiltByBitPlaceholder: Built-by-bit placeholder request started',
         expect.any(Object),
       );
       expect(logger.info).toHaveBeenCalledWith(
-        'License key found for BuiltByBit placeholder',
+        'handleBuiltByBitPlaceholder: Built-by-bit placeholder completed',
         expect.any(Object),
       );
       expect(createAuditLog).toHaveBeenCalledTimes(1);
@@ -374,6 +383,7 @@ describe('BuiltByBit Integration', () => {
       (prisma.license.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
       const result = await handleBuiltByBitPlaceholder(
+        'test-request-id',
         mockPlaceholderData,
         mockTeam.id,
       );
@@ -382,8 +392,8 @@ describe('BuiltByBit Integration', () => {
         status: HttpStatus.NOT_FOUND,
         message: 'License key not found',
       });
-      expect(logger.error).toHaveBeenCalledWith(
-        'License key not found for BuiltByBit user',
+      expect(logger.warn).toHaveBeenCalledWith(
+        'handleBuiltByBitPlaceholder: License not found',
         expect.any(Object),
       );
     });
@@ -396,14 +406,19 @@ describe('BuiltByBit Integration', () => {
       });
 
       await expect(
-        handleBuiltByBitPlaceholder(mockPlaceholderData, mockTeam.id),
+        handleBuiltByBitPlaceholder(
+          'test-request-id',
+          mockPlaceholderData,
+          mockTeam.id,
+        ),
       ).rejects.toThrow('Unexpected error');
 
       expect(logger.error).toHaveBeenCalledWith(
-        'Error handling BuiltByBit placeholder',
+        'handleBuiltByBitPlaceholder: Built-by-bit placeholder processing failed',
         expect.objectContaining({
           error: 'Unexpected error',
-          stack: expect.any(String),
+          errorType: 'Error',
+          requestId: 'test-request-id',
           teamId: mockTeam.id,
         }),
       );

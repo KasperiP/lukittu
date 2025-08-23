@@ -1,6 +1,7 @@
 import { HttpStatus } from '@/types/http-status';
 import {
   generateHMAC,
+  logger,
   prisma,
   regex,
   RequestStatus,
@@ -14,6 +15,7 @@ import { getReturnedFields } from './shared/shared-returned-fields';
 import { sharedVerificationHandler } from './shared/shared-verification';
 
 interface HandleHeartbeatProps {
+  requestId: string;
   teamId: string;
   ipAddress: string | null;
   geoData: CloudflareVisitorData | null;
@@ -28,12 +30,19 @@ interface HandleHeartbeatProps {
 }
 
 export const handleHeartbeat = async ({
+  requestId,
   teamId,
   ipAddress,
   geoData,
   payload,
 }: HandleHeartbeatProps) => {
+  const handlerStartTime = Date.now();
+
   if (!teamId || !regex.uuidV4.test(teamId)) {
+    logger.warn('handleHeartbeat: Invalid team UUID provided', {
+      requestId,
+      teamId,
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -51,6 +60,12 @@ export const handleHeartbeat = async ({
   const validated = await licenseHeartbeatSchema().safeParseAsync(payload);
 
   if (!validated.success) {
+    logger.warn('handleHeartbeat: Schema validation failed', {
+      requestId,
+      teamId,
+      error: validated.error.errors[0].message,
+      errors: validated.error.errors.slice(0, 3),
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -76,6 +91,12 @@ export const handleHeartbeat = async ({
     const isLimited = await isRateLimited(key, 30, 60); // 30 requests per 1 minute
 
     if (isLimited) {
+      logger.warn('handleHeartbeat: Rate limit exceeded', {
+        requestId,
+        teamId,
+        ipAddress,
+        rateLimitKey: key,
+      });
       return {
         ...validatedBody,
         status: RequestStatus.RATE_LIMIT,
@@ -113,6 +134,13 @@ export const handleHeartbeat = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !keyPair) {
+    logger.warn('handleHeartbeat: Team, settings, or keyPair not found', {
+      requestId,
+      teamId,
+      hasTeam: !!team,
+      hasSettings: !!settings,
+      hasKeyPair: !!keyPair,
+    });
     return {
       ...validatedBody,
       status: RequestStatus.TEAM_NOT_FOUND,
@@ -234,6 +262,13 @@ export const handleHeartbeat = async ({
     });
 
     if (!branchEntity) {
+      logger.warn('handleHeartbeat: Branch not found', {
+        requestId,
+        teamId,
+        licenseId: license?.id,
+        requestedBranch: branch,
+        productId: matchingProduct?.id,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -254,6 +289,13 @@ export const handleHeartbeat = async ({
     );
 
     if (filteredReleases.length === 0) {
+      logger.warn('handleHeartbeat: No releases found for branch', {
+        requestId,
+        teamId,
+        licenseId: license?.id,
+        requestedBranch: branch,
+        productId: matchingProduct?.id,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -279,6 +321,11 @@ export const handleHeartbeat = async ({
   const latestRelease = filteredReleases.find((r) => r.latest);
 
   if (!license) {
+    logger.warn('handleHeartbeat: License not found', {
+      requestId,
+      teamId,
+      licenseKeyLookup: 'redacted',
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_NOT_FOUND,
@@ -305,6 +352,15 @@ export const handleHeartbeat = async ({
   );
 
   if (blacklistCheck) {
+    logger.warn('handleHeartbeat: Blacklist check failed', {
+      requestId,
+      teamId,
+      licenseKey: payload.licenseKey
+        ? `${payload.licenseKey.substring(0, 8)}...`
+        : 'none',
+      blacklistReason: blacklistCheck.details,
+      status: blacklistCheck.status,
+    });
     return {
       ...commonBase,
       status: blacklistCheck.status,
@@ -326,6 +382,14 @@ export const handleHeartbeat = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
+    logger.warn('handleHeartbeat: Customer validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedCustomerId: customerId,
+      strictMode: strictModeNoCustomerId,
+      noMatch: noCustomerMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.CUSTOMER_NOT_FOUND,
@@ -346,6 +410,14 @@ export const handleHeartbeat = async ({
   const noProductMatch = licenseHasProducts && productId && !matchingProduct;
 
   if (strictModeNoProductId || noProductMatch) {
+    logger.warn('handleHeartbeat: Product validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedProductId: productId,
+      strictMode: strictModeNoProductId,
+      noMatch: noProductMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.PRODUCT_NOT_FOUND,
@@ -366,6 +438,15 @@ export const handleHeartbeat = async ({
   const noVersionMatch = productHasReleases && version && !matchingRelease;
 
   if (strictModeNoVersion || noVersionMatch) {
+    logger.warn('handleHeartbeat: Release/version validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedVersion: version,
+      productId: matchingProduct?.id,
+      strictMode: strictModeNoVersion,
+      noMatch: noVersionMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_NOT_FOUND,
@@ -384,6 +465,14 @@ export const handleHeartbeat = async ({
   commonBase.releaseId = matchingRelease?.id;
 
   if (license.suspended) {
+    logger.warn('handleHeartbeat: License is suspended', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      licenseKey: payload.licenseKey
+        ? `${payload.licenseKey.substring(0, 8)}...`
+        : 'none',
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_SUSPENDED,
@@ -406,6 +495,13 @@ export const handleHeartbeat = async ({
     );
 
   if (licenseExpirationCheck) {
+    logger.warn('handleHeartbeat: License expired', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      expirationReason: licenseExpirationCheck.details,
+      status: licenseExpirationCheck.status,
+    });
     return {
       ...commonBase,
       status: licenseExpirationCheck.status,
@@ -426,6 +522,14 @@ export const handleHeartbeat = async ({
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
+      logger.warn('handleHeartbeat: IP limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentIpCount: existingIps.length,
+        ipLimit: license.ipLimit,
+        newIp: ipAddress,
+      });
       return {
         ...commonBase,
         status: RequestStatus.IP_LIMIT_REACHED,
@@ -447,6 +551,16 @@ export const handleHeartbeat = async ({
     const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
     if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
+      logger.warn('handleHeartbeat: HWID limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentHwidCount: existingHwids.length,
+        hwidLimit: license.hwidLimit,
+        newHwid: hardwareIdentifier
+          ? `${hardwareIdentifier.substring(0, 8)}...`
+          : 'none',
+      });
       return {
         ...commonBase,
         status: RequestStatus.HWID_LIMIT_REACHED,
@@ -530,6 +644,19 @@ export const handleHeartbeat = async ({
     requestedBranch: branch || null,
     returnedFields: settings.returnedFields,
     license,
+  });
+
+  const handlerTime = Date.now() - handlerStartTime;
+
+  logger.info('handleHeartbeat: License heartbeat successful', {
+    requestId,
+    teamId,
+    licenseId: license.id,
+    customerId: matchingCustomer?.id,
+    productId: matchingProduct?.id,
+    releaseId: matchingRelease?.id || latestRelease?.id,
+    handlerTimeMs: handlerTime,
+    hasChallengeResponse: !!challengeResponse,
   });
 
   return {

@@ -17,6 +17,7 @@ import { downloadReleaseSchema } from '../validation/products/download-release-s
 import { sharedVerificationHandler } from './shared/shared-verification';
 
 interface HandleClassloaderProps {
+  requestId: string;
   teamId: string;
   ipAddress: string | null;
   geoData: CloudflareVisitorData | null;
@@ -32,12 +33,19 @@ interface HandleClassloaderProps {
 }
 
 export const handleClassloader = async ({
+  requestId,
   payload,
   teamId,
   ipAddress,
   geoData,
 }: HandleClassloaderProps) => {
+  const handlerStartTime = Date.now();
+
   if (!teamId || !regex.uuidV4.test(teamId)) {
+    logger.warn('handleClassloader: Invalid team UUID provided', {
+      requestId,
+      teamId,
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -55,6 +63,12 @@ export const handleClassloader = async ({
   const validated = await downloadReleaseSchema().safeParseAsync(payload);
 
   if (!validated.success) {
+    logger.warn('handleClassloader: Schema validation failed', {
+      requestId,
+      teamId,
+      error: validated.error.errors[0].message,
+      errors: validated.error.errors.slice(0, 3),
+    });
     return {
       status: RequestStatus.BAD_REQUEST,
       response: {
@@ -90,6 +104,12 @@ export const handleClassloader = async ({
     const isLimited = await isRateLimited(key, 30, 60); // 30 requests per 1 minute
 
     if (isLimited) {
+      logger.warn('handleClassloader: Rate limit exceeded (IP)', {
+        requestId,
+        teamId,
+        ipAddress,
+        rateLimitKey: key,
+      });
       return {
         ...validatedQuery,
         status: RequestStatus.RATE_LIMIT,
@@ -117,6 +137,14 @@ export const handleClassloader = async ({
     ); // 30 requests per 1 minute
 
     if (isLicenseKeyLimited) {
+      logger.warn('handleClassloader: Rate limit exceeded (license key)', {
+        requestId,
+        teamId,
+        licenseKey: payload.licenseKey
+          ? `${payload.licenseKey.substring(0, 8)}...`
+          : 'none',
+        rateLimitKey: licenseKeyRatelimitKey,
+      });
       return {
         ...validatedQuery,
         status: RequestStatus.RATE_LIMIT,
@@ -154,6 +182,17 @@ export const handleClassloader = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !limits || !keyPair) {
+    logger.warn(
+      'handleClassloader: Team, settings, limits, or keyPair not found',
+      {
+        requestId,
+        teamId,
+        hasTeam: !!team,
+        hasSettings: !!settings,
+        hasLimits: !!limits,
+        hasKeyPair: !!keyPair,
+      },
+    );
     return {
       ...validatedQuery,
       status: RequestStatus.TEAM_NOT_FOUND,
@@ -170,6 +209,11 @@ export const handleClassloader = async ({
   }
 
   if (!limits.allowClassloader) {
+    logger.warn('handleClassloader: Classloader not allowed for team plan', {
+      requestId,
+      teamId,
+      allowClassloader: limits.allowClassloader,
+    });
     return {
       ...validatedQuery,
       teamId,
@@ -196,7 +240,7 @@ export const handleClassloader = async ({
     } catch (error) {
       logger.error(
         'Error occurred while decrypting session key in download route',
-        error,
+        { requestId, teamId, error },
       );
       return null;
     }
@@ -205,6 +249,11 @@ export const handleClassloader = async ({
   const validatedSessionKey = await getSessionKey();
 
   if (!validatedSessionKey) {
+    logger.warn('handleClassloader: Session key validation failed', {
+      requestId,
+      teamId,
+      hasSessionKey: !!payload.sessionKey,
+    });
     return {
       ...validatedQuery,
       teamId,
@@ -231,6 +280,12 @@ export const handleClassloader = async ({
   ); // 1 request per 15 minutes
 
   if (isSessionKeyLimited) {
+    logger.warn('handleClassloader: Session key rate limit exceeded', {
+      requestId,
+      teamId,
+      sessionKeyHash: validatedSessionKeyHash.substring(0, 8) + '...',
+      rateLimitKey: sessionKeyRatelimitKey,
+    });
     return {
       ...validatedQuery,
       teamId,
@@ -330,6 +385,11 @@ export const handleClassloader = async ({
   };
 
   if (!license) {
+    logger.warn('handleClassloader: License not found', {
+      requestId,
+      teamId,
+      licenseKeyLookup: 'redacted',
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_NOT_FOUND,
@@ -348,6 +408,12 @@ export const handleClassloader = async ({
   commonBase.licenseKeyLookup = licenseKeyLookup;
 
   if (!matchingProduct) {
+    logger.warn('handleClassloader: Product not found', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedProductId: payload.productId,
+    });
     return {
       ...commonBase,
       status: RequestStatus.PRODUCT_NOT_FOUND,
@@ -378,6 +444,13 @@ export const handleClassloader = async ({
     });
 
     if (!branchEntity) {
+      logger.warn('handleClassloader: Branch not found', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        requestedBranch: branch,
+        productId,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -398,6 +471,13 @@ export const handleClassloader = async ({
     );
 
     if (filteredReleases.length === 0) {
+      logger.warn('handleClassloader: No releases found for branch', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        requestedBranch: branch,
+        productId,
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -420,6 +500,14 @@ export const handleClassloader = async ({
 
   if (version) {
     if (!versionMatchRelease) {
+      logger.warn('handleClassloader: Specific version not found', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        requestedVersion: version,
+        productId,
+        availableVersions: filteredReleases.map((r) => r.version),
+      });
       return {
         ...commonBase,
         status: RequestStatus.RELEASE_NOT_FOUND,
@@ -439,6 +527,13 @@ export const handleClassloader = async ({
   const latestRelease = filteredReleases.find((release) => release.latest);
 
   if (!latestRelease && !versionMatchRelease) {
+    logger.warn('handleClassloader: No releases available', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      productId,
+      requestedVersion: version,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_NOT_FOUND,
@@ -458,6 +553,14 @@ export const handleClassloader = async ({
   const fileToUse = version ? versionMatchRelease?.file : latestRelease?.file;
 
   if (!fileToUse || !releaseToUse) {
+    logger.warn('handleClassloader: File or release missing', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      productId,
+      hasFile: !!fileToUse,
+      hasRelease: !!releaseToUse,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_NOT_FOUND,
@@ -477,6 +580,13 @@ export const handleClassloader = async ({
   commonBase.releaseFileId = fileToUse.id;
 
   if (releaseToUse.status === ReleaseStatus.ARCHIVED) {
+    logger.warn('handleClassloader: Release is archived', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      releaseId: releaseToUse.id,
+      version: releaseToUse.version,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_ARCHIVED,
@@ -493,6 +603,13 @@ export const handleClassloader = async ({
   }
 
   if (releaseToUse.status === ReleaseStatus.DRAFT) {
+    logger.warn('handleClassloader: Release is draft', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      releaseId: releaseToUse.id,
+      version: releaseToUse.version,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_DRAFT,
@@ -512,6 +629,13 @@ export const handleClassloader = async ({
     const allowedLicenses = releaseToUse.allowedLicenses.map((al) => al.id);
 
     if (!allowedLicenses.includes(license.id)) {
+      logger.warn('handleClassloader: License not allowed for release', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        releaseId: releaseToUse.id,
+        allowedLicenseCount: allowedLicenses.length,
+      });
       return {
         ...commonBase,
         status: RequestStatus.NO_ACCESS_TO_RELEASE,
@@ -537,6 +661,15 @@ export const handleClassloader = async ({
   );
 
   if (blacklistCheck) {
+    logger.warn('handleClassloader: Blacklist check failed', {
+      requestId,
+      teamId,
+      licenseKey: payload.licenseKey
+        ? `${payload.licenseKey.substring(0, 8)}...`
+        : 'none',
+      blacklistReason: blacklistCheck.details,
+      status: blacklistCheck.status,
+    });
     return {
       ...commonBase,
       status: blacklistCheck.status,
@@ -558,6 +691,14 @@ export const handleClassloader = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
+    logger.warn('handleClassloader: Customer validation failed', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      requestedCustomerId: customerId,
+      strictMode: strictModeNoCustomerId,
+      noMatch: noCustomerMatch,
+    });
     return {
       ...commonBase,
       status: RequestStatus.CUSTOMER_NOT_FOUND,
@@ -574,6 +715,14 @@ export const handleClassloader = async ({
   }
 
   if (license.suspended) {
+    logger.warn('handleClassloader: License is suspended', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      licenseKey: payload.licenseKey
+        ? `${payload.licenseKey.substring(0, 8)}...`
+        : 'none',
+    });
     return {
       ...commonBase,
       status: RequestStatus.LICENSE_SUSPENDED,
@@ -596,6 +745,13 @@ export const handleClassloader = async ({
     );
 
   if (licenseExpirationCheck) {
+    logger.warn('handleClassloader: License expired', {
+      requestId,
+      teamId,
+      licenseId: license.id,
+      expirationReason: licenseExpirationCheck.details,
+      status: licenseExpirationCheck.status,
+    });
     return {
       ...commonBase,
       status: licenseExpirationCheck.status,
@@ -616,6 +772,14 @@ export const handleClassloader = async ({
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
+      logger.warn('handleClassloader: IP limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentIpCount: existingIps.length,
+        ipLimit: license.ipLimit,
+        newIp: ipAddress,
+      });
       return {
         ...commonBase,
         status: RequestStatus.IP_LIMIT_REACHED,
@@ -637,6 +801,16 @@ export const handleClassloader = async ({
     const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
     if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
+      logger.warn('handleClassloader: HWID limit reached', {
+        requestId,
+        teamId,
+        licenseId: license.id,
+        currentHwidCount: existingHwids.length,
+        hwidLimit: license.hwidLimit,
+        newHwid: hardwareIdentifier
+          ? `${hardwareIdentifier.substring(0, 8)}...`
+          : 'none',
+      });
       return {
         ...commonBase,
         status: RequestStatus.HWID_LIMIT_REACHED,
@@ -710,6 +884,13 @@ export const handleClassloader = async ({
   );
 
   if (!file) {
+    logger.error('handleClassloader: File not found in S3', {
+      requestId,
+      teamId,
+      releaseId: releaseToUse.id,
+      fileId: fileToUse.id,
+      s3Key: fileToUse.key,
+    });
     return {
       ...commonBase,
       status: RequestStatus.RELEASE_NOT_FOUND,
@@ -740,20 +921,31 @@ export const handleClassloader = async ({
       isJar,
   );
 
-  logger.info(
-    `Downloading file for team ${teamId}, release ${releaseToUse.id}, file ${fileToUse.id}`,
-    {
-      'settings.watermarking': watermarkingSettings,
-      'limits.allowWatermarking': limits.allowWatermarking,
-      isJar,
-    },
-  );
+  logger.info('handleClassloader: File download initiated', {
+    requestId,
+    teamId,
+    licenseId: license.id,
+    productId: matchingProduct.id,
+    releaseId: releaseToUse.id,
+    fileId: fileToUse.id,
+    version: releaseToUse.version,
+    watermarkingEnabled,
+    fileSize: fileToUse.size,
+    isJar,
+  });
 
   const fileStream = watermarkingEnabled
     ? await file.Body?.transformToByteArray()
     : file.Body?.transformToWebStream();
 
   if (!fileStream) {
+    logger.error('handleClassloader: Failed to get file stream', {
+      requestId,
+      teamId,
+      releaseId: releaseToUse.id,
+      fileId: fileToUse.id,
+      watermarkingEnabled,
+    });
     return {
       ...commonBase,
       status: RequestStatus.INTERNAL_SERVER_ERROR,
@@ -772,7 +964,6 @@ export const handleClassloader = async ({
   let fileStreamFormatted: ReadableStream<any> | null = null;
 
   if (watermarkingEnabled) {
-    logger.info('Watermarking enabled');
     const embedFormData = new FormData();
     embedFormData.append(
       'file',
@@ -792,6 +983,14 @@ export const handleClassloader = async ({
     )[] = [];
 
     const densities: number[] = [];
+
+    logger.info('handleClassloader: Watermarking file', {
+      requestId,
+      teamId,
+      releaseId: releaseToUse.id,
+      fileId: fileToUse.id,
+      methods: methods.join(','),
+    });
 
     if (watermarkingSettings?.staticConstantPoolSynthesis) {
       methods.push('STATIC_CONSTANT_POOL_SYNTHESIS');
@@ -841,10 +1040,14 @@ export const handleClassloader = async ({
     );
 
     if (!embedResponse.ok) {
-      logger.error(
-        `Error occurred while watermarking file for team ${teamId}`,
-        embedResponse,
-      );
+      logger.error('handleClassloader: Watermarking failed', {
+        requestId,
+        teamId,
+        releaseId: releaseToUse.id,
+        fileId: fileToUse.id,
+        status: embedResponse.status,
+        statusText: embedResponse.statusText,
+      });
       return {
         ...commonBase,
         status: RequestStatus.INTERNAL_SERVER_ERROR,
@@ -861,7 +1064,13 @@ export const handleClassloader = async ({
     }
 
     const watermarkedData = await embedResponse.arrayBuffer();
-    logger.info(`Successfully watermarked file for team ${teamId}`);
+    logger.info('handleClassloader: Watermarking completed successfully', {
+      requestId,
+      teamId,
+      releaseId: releaseToUse.id,
+      fileId: fileToUse.id,
+      watermarkedSizeBytes: watermarkedData.byteLength,
+    });
 
     // Create a readable stream with proper chunking (128KB)
     const CHUNK_SIZE = 128 * 1024; // 128KB
@@ -882,6 +1091,21 @@ export const handleClassloader = async ({
   const encryptedStream = fileStreamFormatted.pipeThrough(
     createEncryptionStream(validatedSessionKey),
   );
+
+  const handlerTime = Date.now() - handlerStartTime;
+
+  logger.info('handleClassloader: Classloader download successful', {
+    requestId,
+    teamId,
+    licenseId: license.id,
+    productId: matchingProduct.id,
+    releaseId: releaseToUse.id,
+    fileId: fileToUse.id,
+    version: releaseToUse.version,
+    watermarkingEnabled,
+    handlerTimeMs: handlerTime,
+    fileSize: fileToUse.size,
+  });
 
   return {
     stream: encryptedStream,

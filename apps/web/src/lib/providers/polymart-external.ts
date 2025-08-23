@@ -70,11 +70,21 @@ interface PolymartUserResponse {
   };
 }
 
-export const verifyPolymartSignature = (
-  payload: string,
-  signature: string,
-  webhookSecret: string,
-): boolean => {
+interface VerifyPolymartSignatureParams {
+  payload: string;
+  signature: string;
+  webhookSecret: string;
+  teamId: string;
+  requestId: string;
+}
+
+export const verifyPolymartSignature = ({
+  payload,
+  signature,
+  webhookSecret,
+  teamId,
+  requestId,
+}: VerifyPolymartSignatureParams): boolean => {
   try {
     const hmac = crypto.createHmac('sha256', webhookSecret);
     const digest = hmac.update(payload).digest('hex');
@@ -87,12 +97,30 @@ export const verifyPolymartSignature = (
       Buffer.from(digest, 'hex'),
       Buffer.from(signature, 'hex'),
     );
-  } catch {
+  } catch (error) {
+    logger.error(
+      'verifyPolymartSignature: Error verifying Polymart signature',
+      {
+        requestId,
+        teamId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
     return false;
   }
 };
 
-const getPolymartUsername = async (userId: number): Promise<string | null> => {
+interface GetPolymartUsernameParams {
+  userId: number;
+  requestId: string;
+  teamId: string;
+}
+
+const getPolymartUsername = async ({
+  userId,
+  requestId,
+  teamId,
+}: GetPolymartUsernameParams): Promise<string | null> => {
   try {
     const response = await fetch(
       `https://api.polymart.org/v1/getAccountInfo?user_id=${userId}`,
@@ -100,9 +128,11 @@ const getPolymartUsername = async (userId: number): Promise<string | null> => {
 
     if (!response.ok) {
       logger.info(
-        'Failed to get Polymart username, API returned unsuccessful status',
+        'getPolymartUsername: Polymart API returned unsuccessful status',
         {
           userId,
+          requestId,
+          teamId,
           status: response.status,
         },
       );
@@ -116,7 +146,7 @@ const getPolymartUsername = async (userId: number): Promise<string | null> => {
     }
 
     logger.info(
-      'Failed to get Polymart username, API returned unsuccessful response',
+      'getPolymartUsername: Polymart API returned unsuccessful response',
       {
         userId,
         response: data,
@@ -124,7 +154,7 @@ const getPolymartUsername = async (userId: number): Promise<string | null> => {
     );
     return null;
   } catch (error) {
-    logger.error('Error fetching Polymart username', {
+    logger.error('getPolymartUsername: Error fetching Polymart username', {
       userId,
       error: error instanceof Error ? error.message : String(error),
     });
@@ -133,21 +163,29 @@ const getPolymartUsername = async (userId: number): Promise<string | null> => {
 };
 
 export const handlePolymartPurchase = async (
+  requestId: string,
   polymartData: PurchasePolymartSchema,
   purchaseParams: PolymartPurchaseParams,
   team: ExtendedTeam,
 ): Promise<PolymartPurchaseResult> => {
+  const handlerStartTime = Date.now();
+
   try {
     const { product, user } = polymartData.payload;
     const { productId, hwidLimit, expirationStart, expirationDays, ipLimit } =
       purchaseParams;
 
-    logger.info('Processing Polymart purchase', {
+    logger.info('handlePolymartPurchase: Processing Polymart purchase', {
+      requestId,
       teamId: team.id,
       polymartProductId: product.id,
       polymartProductTitle: product.title,
       polymartUserId: user.id,
       lukittuProductId: productId,
+      ipLimit,
+      hwidLimit,
+      expirationDays,
+      expirationStart,
     });
 
     // Generate a unique purchase ID based on Polymart data
@@ -168,12 +206,16 @@ export const handlePolymartPurchase = async (
     });
 
     if (existingPurchase) {
-      logger.info('Skipping: Purchase already processed', {
-        purchaseId,
-        teamId: team.id,
-        polymartProductId: product.id,
-        polymartUserId: user.id,
-      });
+      logger.info(
+        'handlePolymartPurchase: Polymart purchase skipped - already processed',
+        {
+          requestId,
+          teamId: team.id,
+          purchaseId,
+          polymartProductId: product.id,
+          polymartUserId: user.id,
+        },
+      );
       return {
         success: true,
         message: 'Purchase already processed',
@@ -188,11 +230,15 @@ export const handlePolymartPurchase = async (
     });
 
     if (!productExists) {
-      logger.error('Product not found in database', {
-        teamId: team.id,
-        productId,
-        polymartProductId: product.id,
-      });
+      logger.error(
+        'handlePolymartPurchase: Polymart purchase failed - product not found',
+        {
+          requestId,
+          teamId: team.id,
+          productId,
+          polymartProductId: product.id,
+        },
+      );
       return {
         success: false,
         message: 'Product not found',
@@ -200,11 +246,15 @@ export const handlePolymartPurchase = async (
     }
 
     if (team._count.licenses >= (team.limits?.maxLicenses ?? 0)) {
-      logger.error('Team has reached the maximum number of licenses', {
-        teamId: team.id,
-        currentLicenses: team._count.licenses,
-        maxLicenses: team.limits?.maxLicenses,
-      });
+      logger.error(
+        'handlePolymartPurchase: Polymart purchase failed - license limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentLicenses: team._count.licenses,
+          maxLicenses: team.limits?.maxLicenses,
+        },
+      );
       return {
         success: false,
         message: 'Team has reached the maximum number of licenses',
@@ -212,11 +262,15 @@ export const handlePolymartPurchase = async (
     }
 
     if (team._count.customers >= (team.limits?.maxCustomers ?? 0)) {
-      logger.error('Team has reached the maximum number of customers', {
-        teamId: team.id,
-        currentCustomers: team._count.customers,
-        maxCustomers: team.limits?.maxCustomers,
-      });
+      logger.error(
+        'handlePolymartPurchase: Polymart purchase failed - customer limit reached',
+        {
+          requestId,
+          teamId: team.id,
+          currentCustomers: team._count.customers,
+          maxCustomers: team.limits?.maxCustomers,
+        },
+      );
       return {
         success: false,
         message: 'Team has reached the maximum number of customers',
@@ -251,14 +305,22 @@ export const handlePolymartPurchase = async (
       },
     ];
 
-    const polymartUsername = await getPolymartUsername(user.id);
+    const polymartUsername = await getPolymartUsername({
+      userId: user.id,
+      requestId,
+      teamId: team.id,
+    });
 
     if (!polymartUsername) {
-      logger.error('Failed to fetch Polymart username', {
-        userId: user.id,
-        productId: product.id,
-        teamId: team.id,
-      });
+      logger.error(
+        'handlePolymartPurchase: Polymart purchase failed - username fetch failed',
+        {
+          requestId,
+          teamId: team.id,
+          userId: user.id,
+          productId: product.id,
+        },
+      );
 
       return {
         success: false,
@@ -347,7 +409,13 @@ export const handlePolymartPurchase = async (
       const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
       if (!licenseKey) {
-        logger.error('Failed to generate a unique license key');
+        logger.error(
+          'handlePolymartPurchase: Polymart purchase failed - license key generation failed',
+          {
+            requestId,
+            teamId: team.id,
+          },
+        );
         return null;
       }
 
@@ -436,11 +504,15 @@ export const handlePolymartPurchase = async (
     });
 
     if (!license) {
-      logger.error('Failed to create a license', {
-        teamId: team.id,
-        polymartProductId: product.id,
-        polymartUserId: user.id,
-      });
+      logger.error(
+        'handlePolymartPurchase: Polymart purchase failed - license creation failed',
+        {
+          requestId,
+          teamId: team.id,
+          polymartProductId: product.id,
+          polymartUserId: user.id,
+        },
+      );
       return {
         success: false,
         message: 'Failed to create a license',
@@ -449,31 +521,47 @@ export const handlePolymartPurchase = async (
 
     void attemptWebhookDelivery(webhookEventIds);
 
-    logger.info('Polymart purchase processed successfully', {
-      licenseId: license.id,
-      teamId: team.id,
-      productId,
-      polymartProductId: product.id,
-      polymartProductTitle: product.title,
-      polymartUserId: user.id,
-      username,
-      hwidLimit: hwidLimit || null,
-      ipLimit: ipLimit || null,
-      expirationDays: expirationDays || null,
-      expirationStart: expirationStartFormatted,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.info(
+      'handlePolymartPurchase: Polymart purchase processed successfully',
+      {
+        requestId,
+        teamId: team.id,
+        licenseId: license.id,
+        productId,
+        polymartProductId: product.id,
+        polymartProductTitle: product.title,
+        polymartUserId: user.id,
+        username,
+        hwidLimit: hwidLimit || null,
+        ipLimit: ipLimit || null,
+        expirationDays: expirationDays || null,
+        expirationStart: expirationStartFormatted,
+        handlerTimeMs: handlerTime,
+      },
+    );
 
     return {
       success: true,
       message: 'Purchase processed successfully',
     };
   } catch (error) {
-    logger.error('Error occurred in handlePolymartPurchase', {
-      error,
-      polymartData,
-      purchaseParams,
-      teamId: team.id,
-    });
+    const handlerTime = Date.now() - handlerStartTime;
+
+    logger.error(
+      'handlePolymartPurchase: Polymart purchase processing failed',
+      {
+        requestId,
+        teamId: team.id,
+        productId: purchaseParams.productId,
+        polymartProductId: polymartData.payload.product.id,
+        polymartUserId: polymartData.payload.user.id,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        handlerTimeMs: handlerTime,
+      },
+    );
     return {
       success: false,
       message: 'An error occurred while processing the purchase',
@@ -482,6 +570,7 @@ export const handlePolymartPurchase = async (
 };
 
 export const handlePolymartPlaceholder = async (
+  requestId: string,
   validatedData: PlaceholderPolymartSchema,
   teamId: string,
 ) => {
@@ -489,7 +578,8 @@ export const handlePolymartPlaceholder = async (
     // Check if the timestamp is within 5 minutes (300 seconds) to prevent replay attacks
     const now = Math.floor(Date.now() / 1000);
     if (Math.abs(now - validatedData.time) > 300) {
-      logger.error('Polymart placeholder request timestamp out of range', {
+      logger.warn('handlePolymartPlaceholder: Request timestamp out of range', {
+        requestId,
         teamId,
         timestamp: validatedData.time,
         currentTime: now,
@@ -503,12 +593,16 @@ export const handlePolymartPlaceholder = async (
       };
     }
 
-    logger.info('Processing Polymart placeholder request', {
-      teamId,
-      userId: validatedData.user,
-      productId: validatedData.product,
-      placeholder: validatedData.placeholder,
-    });
+    logger.info(
+      'handlePolymartPlaceholder: Polymart placeholder request started',
+      {
+        requestId,
+        teamId,
+        userId: validatedData.user,
+        productId: validatedData.product,
+        placeholder: validatedData.placeholder,
+      },
+    );
 
     const licenseKey = await prisma.license.findFirst({
       where: {
@@ -535,7 +629,8 @@ export const handlePolymartPlaceholder = async (
     });
 
     if (!licenseKey) {
-      logger.error('License key not found for Polymart user', {
+      logger.warn('handlePolymartPlaceholder: License not found', {
+        requestId,
         teamId,
         userId: validatedData.user,
         productId: validatedData.product,
@@ -548,7 +643,8 @@ export const handlePolymartPlaceholder = async (
       };
     }
 
-    logger.info('License key found for Polymart placeholder', {
+    logger.info('handlePolymartPlaceholder: Polymart placeholder completed', {
+      requestId,
       teamId,
       userId: validatedData.user,
       productId: validatedData.product,
@@ -574,12 +670,17 @@ export const handlePolymartPlaceholder = async (
       value: decryptedKey,
     };
   } catch (error) {
-    logger.error('Error occurred in handlePolymartPlaceholder', {
-      error,
-      userId: validatedData.user,
-      productId: validatedData.product,
-      teamId,
-    });
+    logger.error(
+      'handlePolymartPlaceholder: Polymart placeholder processing failed',
+      {
+        requestId,
+        teamId,
+        userId: validatedData.user,
+        productId: validatedData.product,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      },
+    );
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: {
