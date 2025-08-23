@@ -6,17 +6,34 @@ import {
 } from '@/lib/validation/integrations/purchase-built-by-bit-schema';
 import { HttpStatus } from '@/types/http-status';
 import { logger, prisma, regex } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+
+  logger.info('BuiltByBit webhook: Request started', {
+    requestId,
+    route: '/v1/integrations/built-by-bit',
+    method: 'POST',
+    userAgent,
+    timestamp: requestTime.toISOString(),
+  });
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const teamId = searchParams.get('teamId');
 
-    logger.info('Received BuiltByBit webhook request', { teamId });
-
     if (!teamId || !regex.uuidV4.test(teamId)) {
-      logger.error('Invalid teamId in BuiltByBit webhook', { teamId });
+      logger.warn('BuiltByBit webhook: Invalid teamId provided', {
+        requestId,
+        teamId,
+        route: '/v1/integrations/built-by-bit',
+      });
       return NextResponse.json(
         {
           message: 'Invalid teamId',
@@ -29,7 +46,11 @@ export async function POST(request: NextRequest) {
     const isLimited = await isRateLimited(key, 60, 10); // 60 requests per 10 seconds
 
     if (isLimited) {
-      logger.error('Rate limited BuiltByBit webhook request', { key, teamId });
+      logger.warn('BuiltByBit webhook: Rate limit exceeded', {
+        requestId,
+        teamId,
+        rateLimitKey: key,
+      });
       return NextResponse.json(
         {
           message: 'Too many requests. Please try again later.',
@@ -42,6 +63,13 @@ export async function POST(request: NextRequest) {
     const validated = await purchaseBuiltByBitSchema().safeParseAsync(body);
 
     if (!validated.success) {
+      logger.warn('BuiltByBit webhook: Payload validation failed', {
+        requestId,
+        teamId,
+        error: validated.error.errors[0].message,
+        field: validated.error.errors[0].path[0],
+        errors: validated.error.errors.slice(0, 3),
+      });
       return NextResponse.json(
         {
           field: validated.error.errors[0].path[0],
@@ -77,14 +105,15 @@ export async function POST(request: NextRequest) {
       !team.limits ||
       !team.settings
     ) {
-      logger.error(
-        'Team not found or missing required configuration for BuiltByBit integration',
+      logger.warn(
+        'BuiltByBit webhook: Team not found or missing configuration',
         {
+          requestId,
           teamId,
-          teamFound: !!team,
-          builtByBitIntegrationExists: !!team?.builtByBitIntegration,
-          limitsExist: !!team?.limits,
-          settingsExist: !!team?.settings,
+          hasTeam: !!team,
+          hasBuiltByBitIntegration: !!team?.builtByBitIntegration,
+          hasLimits: !!team?.limits,
+          hasSettings: !!team?.settings,
         },
       );
       return NextResponse.json(
@@ -98,7 +127,12 @@ export async function POST(request: NextRequest) {
     const integration = team.builtByBitIntegration;
 
     if (apiSecret !== integration.apiSecret) {
-      logger.error('Invalid API secret for BuiltByBit webhook', { teamId });
+      logger.warn('BuiltByBit webhook: Invalid API secret', {
+        requestId,
+        teamId,
+        integrationId: integration.id,
+        hasApiSecret: !!apiSecret,
+      });
       return NextResponse.json(
         {
           message: 'Invalid API secret',
@@ -108,7 +142,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!integration.active) {
-      logger.error('BuiltByBit integration is not active', { teamId });
+      logger.warn('BuiltByBit webhook: Integration not active', {
+        requestId,
+        teamId,
+        integrationId: integration.id,
+        active: integration.active,
+      });
       return NextResponse.json(
         {
           message: 'BuiltByBit integration is not active',
@@ -117,11 +156,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const startTime = Date.now();
+
     const result = await handleBuiltByBitPurchase(
+      requestId,
       builtByBitData,
       lukittuData,
       team,
     );
+
+    const processingTime = Date.now() - startTime;
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('BuiltByBit webhook: Completed', {
+      requestId,
+      teamId,
+      success: result.success,
+      processingTimeMs: processingTime,
+      responseTimeMs: responseTime,
+      message: result.message,
+      bbbUserId: builtByBitData.user.id,
+      bbbResourceId: builtByBitData.resource.id,
+      productId: lukittuData.productId,
+    });
 
     // Might be error but we return 200 to prevent BuiltByBit from retrying the request.
     return NextResponse.json({
@@ -129,9 +186,18 @@ export async function POST(request: NextRequest) {
       message: result.message,
     });
   } catch (error) {
-    logger.error('Error processing BuiltByBit webhook', {
+    const responseTime = Date.now() - requestTime.getTime();
+    const searchParams = request.nextUrl.searchParams;
+    const teamId = searchParams.get('teamId');
+
+    logger.error('BuiltByBit webhook: Failed', {
+      requestId,
+      teamId,
+      route: '/v1/integrations/built-by-bit',
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      responseTimeMs: responseTime,
+      userAgent,
     });
 
     return NextResponse.json(

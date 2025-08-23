@@ -4,6 +4,8 @@ import { getIp } from '@/lib/utils/header-helpers';
 import { handleClassloader } from '@/lib/verification/classloader';
 import { HttpStatus } from '@/types/http-status';
 import { logger, RequestStatus, RequestType } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest } from 'next/server';
 
 export async function GET(
@@ -13,6 +15,21 @@ export async function GET(
   const requestTime = new Date();
   const params = await props.params;
   const teamId = params.teamId;
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+
+  const ipAddress = await getIp();
+  const geoData = await getCloudflareVisitorData();
+
+  logger.info('License classloader: Request started', {
+    requestId,
+    teamId,
+    route: '/v1/client/teams/[teamId]/verification/classloader',
+    method: 'GET',
+    userAgent,
+    timestamp: requestTime.toISOString(),
+  });
 
   const loggedResponseBase = {
     body: null,
@@ -43,10 +60,25 @@ export async function GET(
       branch: searchParams.get('branch') || undefined,
     };
 
-    const ipAddress = await getIp();
-    const geoData = await getCloudflareVisitorData();
+    logger.info('License classloader: Processing classloader download', {
+      requestId,
+      teamId,
+      licenseKey: payload.licenseKey
+        ? `${payload.licenseKey.substring(0, 8)}...`
+        : 'none',
+      hardwareId: payload.hardwareIdentifier
+        ? `${payload.hardwareIdentifier.substring(0, 8)}...`
+        : 'none',
+      productId: payload.productId,
+      version: payload.version,
+      branch: payload.branch,
+      hasSessionKey: !!payload.sessionKey,
+      ipAddress,
+      country: geoData?.alpha2 || 'unknown',
+    });
 
     const result = await handleClassloader({
+      requestId,
       teamId,
       ipAddress,
       geoData,
@@ -54,6 +86,17 @@ export async function GET(
     });
 
     if ('stream' in result) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.info('License classloader: Completed - streaming file', {
+        requestId,
+        teamId,
+        status: RequestStatus.VALID,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.OK,
+        contentLength: result.headers?.['X-File-Size'] || 'unknown',
+      });
+
       // Log successful request
       logRequest({
         hardwareIdentifier: payload.hardwareIdentifier,
@@ -79,15 +122,37 @@ export async function GET(
       });
     }
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('License classloader: Completed', {
+      requestId,
+      teamId,
+      status: result.status,
+      valid: result.response.result.valid,
+      responseTimeMs: responseTime,
+      statusCode: result.httpStatus,
+    });
+
     return loggedResponse({
       ...loggedResponseBase,
       ...result,
     });
   } catch (error) {
-    logger.error(
-      "Error occurred in '(external)/v1/client/teams/[teamid]/verification/classloader' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('License classloader: Failed', {
+      requestId,
+      teamId,
+      route: '/v1/client/teams/[teamId]/verification/classloader',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return loggedResponse({
