@@ -27,7 +27,6 @@ import {
 import { TeamContext } from '@/providers/TeamProvider';
 import { AlertTriangle, ArrowDownUp, CheckCircle, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import useSWR from 'swr';
@@ -68,7 +67,6 @@ export default function RequestLogsPreviewTable({
   licenseId,
 }: RequestLogsPreviewTableProps) {
   const t = useTranslations();
-  const router = useRouter();
   const [timeRange, setTimeRange] = useState('7d');
   const teamCtx = useContext(TeamContext);
 
@@ -165,11 +163,7 @@ export default function RequestLogsPreviewTable({
               ) : (
                 <TableBody>
                   {logs.map((log) => (
-                    <TableRow
-                      key={log.id}
-                      className="cursor-pointer"
-                      onClick={() => router.push(`/dashboard/logs/${log.id}`)}
-                    >
+                    <TableRow key={log.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {log.alpha2 && (
