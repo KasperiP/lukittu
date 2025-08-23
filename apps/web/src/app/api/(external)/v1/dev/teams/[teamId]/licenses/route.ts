@@ -271,6 +271,9 @@ export async function POST(
         const response: IExternalDevResponse = {
           data: {
             ...license,
+
+            /** @deprecated Use hwidLimit */
+            seats: license.hwidLimit,
             licenseKey,
             licenseKeyLookup: undefined,
           },

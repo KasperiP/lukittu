@@ -71,6 +71,9 @@ export const getReturnedFields = ({
 
   if (returnedFields.licenseHwidLimit && license.hwidLimit !== undefined) {
     licenseData.hwidLimit = license.hwidLimit;
+
+    /** @deprecated Use hwidLimit */
+    (licenseData as any).seats = license.hwidLimit;
   }
 
   if (returnedFields.licenseExpirationType) {

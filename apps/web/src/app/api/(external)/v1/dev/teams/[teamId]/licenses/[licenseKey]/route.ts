@@ -120,6 +120,9 @@ export async function GET(
       {
         data: {
           ...license,
+
+          /** @deprecated Use hwidLimit */
+          seats: license.hwidLimit,
           licenseKey,
         },
         result: {
@@ -154,7 +157,7 @@ export async function GET(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   props: { params: Promise<{ teamId: string; licenseKey: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
