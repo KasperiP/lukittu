@@ -9,8 +9,8 @@ import Stripe from 'stripe';
 
 export async function GET() {
   try {
-    const reqHeaders = await headers();
-    const authorizationHeader = reqHeaders.get('authorization');
+    const headersList = await headers();
+    const authorizationHeader = headersList.get('authorization');
     const internalApiKey = process.env.INTERNAL_API_KEY;
 
     const isAuthorized =
