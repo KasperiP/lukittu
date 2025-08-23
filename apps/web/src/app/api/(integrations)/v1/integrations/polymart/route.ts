@@ -34,9 +34,17 @@ export async function POST(request: NextRequest) {
     const ipLimit = searchParams.get('ipLimit')
       ? parseInt(searchParams.get('ipLimit') || '0', 10)
       : null;
-    const hwidLimit = searchParams.get('hwidLimit')
-      ? parseInt(searchParams.get('hwidLimit') || '0', 10)
+
+    /**
+     * @deprecated use hwidLimit. Only for backward compatibility.
+     */
+    const legacySeats = searchParams.get('seats')
+      ? parseInt(searchParams.get('seats') || '0', 10)
       : null;
+    const hwidLimit =
+      (searchParams.get('hwidLimit')
+        ? parseInt(searchParams.get('hwidLimit') || '0', 10)
+        : null) || legacySeats;
     const expirationDays = searchParams.get('expirationDays')
       ? parseInt(searchParams.get('expirationDays') || '0', 10)
       : null;

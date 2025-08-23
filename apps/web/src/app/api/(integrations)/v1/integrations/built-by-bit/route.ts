@@ -59,7 +59,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = (await request.json()) as PurchaseBuiltByBitSchema;
+    const rawBody = (await request.json()) as PurchaseBuiltByBitSchema;
+
+    /**
+     * @deprecated use hwidLimit. Only for backward compatibility.
+     */
+    const legacySeats = (rawBody.lukittuData as any).seats as
+      | string
+      | undefined;
+
+    const body = {
+      ...rawBody,
+      lukittuData: {
+        ...rawBody.lukittuData,
+        hwidLimit: rawBody.lukittuData.hwidLimit || legacySeats,
+      },
+    };
+
     const validated = await purchaseBuiltByBitSchema().safeParseAsync(body);
 
     if (!validated.success) {

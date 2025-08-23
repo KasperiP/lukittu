@@ -99,7 +99,13 @@ export const handleInvoicePaid = async (
 
       const lukittuProductId = product.metadata.product_id;
       const ipLimit = product.metadata.ip_limit as string | undefined;
-      const hwidLimit = product.metadata.hwid_limit as string | undefined;
+
+      /**
+       * @deprecated use hwid_limit. Only for backward compatibility.
+       */
+      const legacySeats = product.metadata.seats as string | undefined;
+      const hwidLimit =
+        product.metadata.hwid_limit || (legacySeats as string | undefined);
 
       if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
         logger.info(
@@ -700,7 +706,14 @@ export const handleCheckoutSessionCompleted = async (
     );
     const lukittuProductId = product.metadata.product_id;
     const ipLimit = product.metadata.ip_limit as string | undefined;
-    const hwidLimit = product.metadata.hwid_limit as string | undefined;
+
+    /**
+     * @deprecated use hwid_limit. Only for backward compatibility.
+     */
+    const legacySeats = product.metadata.seats as string | undefined;
+    const hwidLimit = (product.metadata.hwid_limit || legacySeats) as
+      | string
+      | undefined;
     const expirationDays = product.metadata.expiration_days as
       | string
       | undefined;
