@@ -1,0 +1,174 @@
+openapi: 3.0.1
+info:
+  title: Lukittu API
+  description: |
+    The Lukittu API provides comprehensive license management and verification services for software products.
+    
+    ## Authentication
+    
+    **Client Endpoints** (`/api/v1/client/*`): No authentication required. These are public endpoints for license verification.
+    
+    **Developer Endpoints** (`/api/v1/dev/*`): Require API key authentication via Bearer token.
+    
+    ## API Types
+    
+    - **Client API**: Used by your software to verify licenses, send heartbeats, and download releases
+    - **Developer API**: Used for programmatic license management from your backend systems
+    
+    ## Rate Limiting
+    
+    All endpoints are rate-limited to prevent abuse. If you exceed the rate limit, you'll receive a 429 status code.
+    
+    ## Response Format
+    
+    All responses follow a consistent format with `data` and `result` objects:
+    
+    ```json
+    {
+      "data": {}, // Response data (null for errors)
+      "result": {
+        "timestamp": "2023-09-15T14:30:00Z",
+        "valid": true,
+        "details": "Human-readable message",
+        "code": "SUCCESS_CODE" // Optional error/success code
+      }
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: Lukittu Community
+    url: https://discord.lukittu.com
+
+servers:
+  - url: https://app.lukittu.com
+    description: Production server
+
+tags:
+  - name: Client - Verify
+    description: |
+      Client endpoints for license verification, heartbeat monitoring, and file downloads.
+      These endpoints are used directly by your software applications.
+  - name: Dev - Licenses
+    description: |
+      Developer endpoints for license management operations.
+      These endpoints require API key authentication.
+  - name: Dev - Customers
+    description: |
+      Developer endpoints for customer management operations.
+      These endpoints require API key authentication.
+
+# Import all path definitions
+paths:
+  # Client endpoints
+  /api/v1/client/teams/{teamId}/verification/verify:
+    $ref: './paths/client/verification.yaml#/paths/~1api~1v1~1client~1teams~1{teamId}~1verification~1verify'
+  
+  /api/v1/client/teams/{teamId}/verification/heartbeat:
+    $ref: './paths/client/verification.yaml#/paths/~1api~1v1~1client~1teams~1{teamId}~1verification~1heartbeat'
+  
+  /api/v1/client/teams/{teamId}/verification/classloader:
+    $ref: './paths/client/classloader.yaml#/paths/~1api~1v1~1client~1teams~1{teamId}~1verification~1classloader'
+  
+  # Developer endpoints
+  /api/v1/dev/teams/{teamId}/licenses:
+    $ref: './paths/dev/licenses.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses'
+  
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}:
+    $ref: './paths/dev/licenses.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}'
+  
+  /api/v1/dev/teams/{teamId}/licenses/{licenseKey}:
+    $ref: './paths/dev/licenses.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1{licenseKey}'
+  
+  # Developer customer endpoints
+  /api/v1/dev/teams/{teamId}/customers:
+    $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers'
+  
+  /api/v1/dev/teams/{teamId}/customers/{customerId}:
+    $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers~1{customerId}'
+
+# Import all component definitions
+components:
+  # Schemas
+  schemas:
+    # Common schemas
+    StandardResult:
+      $ref: './components/schemas/common.yaml#/components/schemas/StandardResult'
+    ErrorResponse:
+      $ref: './components/schemas/common.yaml#/components/schemas/ErrorResponse'
+    SuccessResponse:
+      $ref: './components/schemas/common.yaml#/components/schemas/SuccessResponse'
+    Metadata:
+      $ref: './components/schemas/common.yaml#/components/schemas/Metadata'
+    UUID:
+      $ref: './components/schemas/common.yaml#/components/schemas/UUID'
+    LicenseKey:
+      $ref: './components/schemas/common.yaml#/components/schemas/LicenseKey'
+    
+    # License schemas
+    LicenseData:
+      $ref: './components/schemas/license.yaml#/components/schemas/LicenseData'
+    LicenseResponse:
+      $ref: './components/schemas/license.yaml#/components/schemas/LicenseResponse'
+    CreateLicenseRequest:
+      $ref: './components/schemas/license.yaml#/components/schemas/CreateLicenseRequest'
+    VerifyLicenseRequest:
+      $ref: './components/schemas/license.yaml#/components/schemas/VerifyLicenseRequest'
+    HeartbeatRequest:
+      $ref: './components/schemas/license.yaml#/components/schemas/HeartbeatRequest'
+    VerificationResponse:
+      $ref: './components/schemas/license.yaml#/components/schemas/VerificationResponse'
+    LicenseDeletionResponse:
+      $ref: './components/schemas/license.yaml#/components/schemas/LicenseDeletionResponse'
+    LicenseListResponse:
+      $ref: './components/schemas/license.yaml#/components/schemas/LicenseListResponse'
+    
+    # Customer schemas
+    CustomerData:
+      $ref: './components/schemas/customer.yaml#/components/schemas/CustomerData'
+    CustomerResponse:
+      $ref: './components/schemas/customer.yaml#/components/schemas/CustomerResponse'
+    CustomerRequest:
+      $ref: './components/schemas/customer.yaml#/components/schemas/CustomerRequest'
+    Address:
+      $ref: './components/schemas/customer.yaml#/components/schemas/Address'
+    
+    # Product schemas
+    ProductData:
+      $ref: './components/schemas/product.yaml#/components/schemas/ProductData'
+    ProductResponse:
+      $ref: './components/schemas/product.yaml#/components/schemas/ProductResponse'
+
+  # Parameters
+  parameters:
+    TeamId:
+      $ref: './components/parameters/common.yaml#/components/parameters/TeamId'
+    LicenseId:
+      $ref: './components/parameters/common.yaml#/components/parameters/LicenseId'
+    LicenseKeyPath:
+      $ref: './components/parameters/common.yaml#/components/parameters/LicenseKeyPath'
+    CustomerIdPath:
+      $ref: './components/parameters/common.yaml#/components/parameters/CustomerIdPath'
+    Page:
+      $ref: './components/parameters/pagination.yaml#/components/parameters/Page'
+    PageSize:
+      $ref: './components/parameters/pagination.yaml#/components/parameters/PageSize'
+
+  # Responses
+  responses:
+    BadRequest:
+      $ref: './components/responses/common.yaml#/components/responses/BadRequest'
+    Unauthorized:
+      $ref: './components/responses/common.yaml#/components/responses/Unauthorized'
+    Forbidden:
+      $ref: './components/responses/common.yaml#/components/responses/Forbidden'
+    NotFound:
+      $ref: './components/responses/common.yaml#/components/responses/NotFound'
+    RateLimit:
+      $ref: './components/responses/common.yaml#/components/responses/RateLimit'
+    InternalServerError:
+      $ref: './components/responses/common.yaml#/components/responses/InternalServerError'
+
+  # Security schemes
+  securitySchemes:
+    bearerAuth:
+      $ref: './components/security/schemes.yaml#/components/securitySchemes/bearerAuth'

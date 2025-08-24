@@ -91,7 +91,6 @@ export default function SetLicenseModal() {
       hwidLimit: null,
       expirationType: 'NEVER',
       metadata: [],
-      sendEmailDelivery: false,
     },
   });
 

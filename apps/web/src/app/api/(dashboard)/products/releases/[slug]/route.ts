@@ -291,7 +291,7 @@ export async function PUT(
     await prisma.$transaction(
       async (prisma) => {
         const existingReleaseFile = await prisma.releaseFile.findUnique({
-          where: { releaseId },
+          where: { releaseId, release: { teamId: team.id } },
         });
 
         const newFileUploaded = file && existingReleaseFile;

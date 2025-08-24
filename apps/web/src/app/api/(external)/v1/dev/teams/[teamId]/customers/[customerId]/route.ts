@@ -1,9 +1,9 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import {
-  SetLicenseScheama,
-  setLicenseSchema,
-} from '@/lib/validation/licenses/set-license-schema';
+  setCustomerSchema,
+  SetCustomerSchema,
+} from '@/lib/validation/customers/set-customer-schema';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -11,27 +11,24 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  createCustomerPayload,
   createWebhookEvents,
-  decryptLicenseKey,
-  deleteLicensePayload,
-  encryptLicenseKey,
-  generateHMAC,
+  deleteCustomerPayload,
   logger,
   prisma,
   regex,
-  updateLicensePayload,
   WebhookEventType,
 } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   _request: NextRequest,
-  props: { params: Promise<{ teamId: string; licenseId: string }> },
+  props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
 
   try {
-    const { teamId, licenseId } = params;
+    const { teamId, customerId } = params;
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
       return NextResponse.json(
@@ -49,12 +46,12 @@ export async function GET(
       );
     }
 
-    if (!licenseId || !regex.uuidV4.test(licenseId)) {
+    if (!customerId || !regex.uuidV4.test(customerId)) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'Invalid licenseId',
+            details: 'Invalid customerId',
             timestamp: new Date(),
             valid: false,
           },
@@ -83,31 +80,23 @@ export async function GET(
       );
     }
 
-    const license = await prisma.license.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: {
-        id: licenseId,
+        id: customerId,
         teamId,
       },
       include: {
-        customers: {
-          include: {
-            metadata: true,
-          },
-        },
-        products: {
-          include: {
-            metadata: true,
-          },
-        },
+        metadata: true,
+        address: true,
       },
     });
 
-    if (!license) {
+    if (!customer) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'License not found',
+            details: 'Customer not found',
             timestamp: new Date(),
             valid: false,
           },
@@ -120,15 +109,9 @@ export async function GET(
 
     return NextResponse.json(
       {
-        data: {
-          ...license,
-
-          /** @deprecated Use hwidLimit */
-          seats: license.hwidLimit,
-          licenseKey: decryptLicenseKey(license.licenseKey),
-        },
+        data: customer,
         result: {
-          details: 'License found',
+          details: 'Customer found',
           timestamp: new Date(),
           valid: true,
         },
@@ -139,7 +122,7 @@ export async function GET(
     );
   } catch (error) {
     logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]' route",
+      "Error in '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
       error,
     );
     return NextResponse.json(
@@ -160,12 +143,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  props: { params: Promise<{ teamId: string; licenseId: string }> },
+  props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
 
   try {
-    const { teamId, licenseId } = params;
+    const { teamId, customerId } = params;
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
       return NextResponse.json(
@@ -183,12 +166,12 @@ export async function PUT(
       );
     }
 
-    if (!licenseId || !regex.uuidV4.test(licenseId)) {
+    if (!customerId || !regex.uuidV4.test(customerId)) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'Invalid licenseId',
+            details: 'Invalid customerId',
             timestamp: new Date(),
             valid: false,
           },
@@ -217,61 +200,38 @@ export async function PUT(
       );
     }
 
-    const body = (await request.json()) as SetLicenseScheama;
-    const validated = await setLicenseSchema().safeParseAsync(body);
+    const body = (await request.json()) as SetCustomerSchema;
+    const validated = await setCustomerSchema().safeParseAsync(body);
 
     if (!validated.success) {
       return NextResponse.json(
         {
-          data: validated.error.errors.map((error) => ({
-            message: error.message,
-            path: error.path,
-          })),
+          data: null,
           result: {
-            details: 'Invalid request body',
+            details: validated.error.errors[0].message,
             timestamp: new Date(),
             valid: false,
           },
         },
-        {
-          status: HttpStatus.BAD_REQUEST,
-        },
+        { status: HttpStatus.BAD_REQUEST },
       );
     }
 
-    const {
-      licenseKey,
-      customerIds,
-      expirationDate,
-      expirationDays,
-      expirationStart,
-      expirationType,
-      ipLimit,
-      metadata,
-      productIds,
-      hwidLimit,
-      suspended,
-    } = validated.data;
+    const { email, fullName, metadata, address, username } = validated.data;
 
-    // Verify the license exists and belongs to this team
-    const existingLicense = await prisma.license.findUnique({
+    const existingCustomer = await prisma.customer.findUnique({
       where: {
-        id: licenseId,
+        id: customerId,
         teamId,
-      },
-      select: {
-        id: true,
-        licenseKey: true,
-        licenseKeyLookup: true,
       },
     });
 
-    if (!existingLicense) {
+    if (!existingCustomer) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'License not found',
+            details: 'Customer not found',
             timestamp: new Date(),
             valid: false,
           },
@@ -282,109 +242,18 @@ export async function PUT(
       );
     }
 
-    // Validate products and customers belong to the team
-    const productsPromise = prisma.product.findMany({
-      where: {
-        teamId: team.id,
-        id: {
-          in: productIds,
-        },
-      },
-    });
-
-    const customersPromise = prisma.customer.findMany({
-      where: {
-        teamId: team.id,
-        id: {
-          in: customerIds,
-        },
-      },
-    });
-
-    const [products, customers] = await Promise.all([
-      productsPromise,
-      customersPromise,
-    ]);
-
-    if (products.length !== productIds.length) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Invalid productIds',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
-    if (customers.length !== customerIds.length) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Invalid customerIds',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
-    // Handle license key change if provided
-    let encryptedLicenseKey = existingLicense.licenseKey;
-    let hmac = existingLicense.licenseKeyLookup;
-
-    if (licenseKey !== decryptLicenseKey(existingLicense.licenseKey)) {
-      // Check if the new license key is already in use
-      const existingKeyCheck = await prisma.license.findFirst({
-        where: {
-          licenseKeyLookup: generateHMAC(`${licenseKey}:${teamId}`),
-          NOT: {
-            id: licenseId,
-          },
-        },
-      });
-
-      if (existingKeyCheck) {
-        return NextResponse.json(
-          {
-            data: null,
-            result: {
-              details: 'License key already exists',
-              timestamp: new Date(),
-              valid: false,
-            },
-          },
-          { status: HttpStatus.BAD_REQUEST },
-        );
-      }
-
-      encryptedLicenseKey = encryptLicenseKey(licenseKey);
-      hmac = generateHMAC(`${licenseKey}:${teamId}`);
-    }
-
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
-      const updatedLicense = await prisma.license.update({
+      const updatedCustomer = await prisma.customer.update({
         where: {
-          id: licenseId,
           teamId,
+          id: customerId,
         },
         data: {
-          expirationDate,
-          expirationDays,
-          expirationStart: expirationStart || 'CREATION',
-          expirationType,
-          ipLimit,
-          licenseKey: encryptedLicenseKey,
-          licenseKeyLookup: hmac,
-          suspended,
-          hwidLimit,
+          email,
+          fullName,
+          username,
           metadata: {
             deleteMany: {},
             createMany: {
@@ -394,28 +263,27 @@ export async function PUT(
               })),
             },
           },
-          products: {
-            set: productIds.map((id) => ({ id })),
-          },
-          customers: {
-            set: customerIds.map((id) => ({ id })),
+          address: {
+            upsert: {
+              create: {
+                ...address,
+              },
+              update: {
+                ...address,
+              },
+            },
           },
         },
         include: {
-          customers: true,
-          products: true,
           metadata: true,
+          address: true,
         },
       });
 
       const response: IExternalDevResponse = {
-        data: {
-          ...updatedLicense,
-          licenseKey,
-          licenseKeyLookup: undefined,
-        },
+        data: updatedCustomer,
         result: {
-          details: 'License updated',
+          details: 'Customer updated',
           timestamp: new Date(),
           valid: true,
         },
@@ -423,9 +291,9 @@ export async function PUT(
 
       await createAuditLog({
         teamId: team.id,
-        action: AuditLogAction.UPDATE_LICENSE,
-        targetId: licenseId,
-        targetType: AuditLogTargetType.LICENSE,
+        action: AuditLogAction.UPDATE_CUSTOMER,
+        targetId: customerId,
+        targetType: AuditLogTargetType.CUSTOMER,
         requestBody: body,
         responseBody: response,
         source: AuditLogSource.API_KEY,
@@ -433,9 +301,9 @@ export async function PUT(
       });
 
       webhookEventIds = await createWebhookEvents({
-        eventType: WebhookEventType.LICENSE_UPDATED,
+        eventType: WebhookEventType.CUSTOMER_UPDATED,
         teamId: team.id,
-        payload: updateLicensePayload(updatedLicense),
+        payload: createCustomerPayload(updatedCustomer),
         source: AuditLogSource.API_KEY,
         tx: prisma,
       });
@@ -445,12 +313,10 @@ export async function PUT(
 
     void attemptWebhookDelivery(webhookEventIds);
 
-    return NextResponse.json(response, {
-      status: HttpStatus.OK,
-    });
+    return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {
     logger.error(
-      "Error in PUT '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]' route",
+      "Error in PUT '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
       error,
     );
 
@@ -488,12 +354,12 @@ export async function PUT(
 
 export async function DELETE(
   _request: NextRequest,
-  props: { params: Promise<{ teamId: string; licenseId: string }> },
+  props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
 
   try {
-    const { teamId, licenseId } = params;
+    const { teamId, customerId } = params;
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
       return NextResponse.json(
@@ -511,12 +377,12 @@ export async function DELETE(
       );
     }
 
-    if (!licenseId || !regex.uuidV4.test(licenseId)) {
+    if (!customerId || !regex.uuidV4.test(customerId)) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'Invalid licenseId',
+            details: 'Invalid customerId',
             timestamp: new Date(),
             valid: false,
           },
@@ -545,24 +411,23 @@ export async function DELETE(
       );
     }
 
-    const license = await prisma.license.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: {
-        id: licenseId,
+        id: customerId,
         teamId,
       },
       include: {
-        products: true,
-        customers: true,
         metadata: true,
+        address: true,
       },
     });
 
-    if (!license) {
+    if (!customer) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: 'License not found',
+            details: 'Customer not found',
             timestamp: new Date(),
             valid: false,
           },
@@ -576,19 +441,20 @@ export async function DELETE(
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
-      await prisma.license.delete({
+      await prisma.customer.delete({
         where: {
-          id: license.id,
+          id: customer.id,
+          teamId,
         },
       });
 
       const response: IExternalDevResponse = {
         data: {
-          licenseId,
+          customerId,
           deleted: true,
         },
         result: {
-          details: 'License deleted successfully',
+          details: 'Customer deleted successfully',
           timestamp: new Date(),
           valid: true,
         },
@@ -596,9 +462,9 @@ export async function DELETE(
 
       await createAuditLog({
         teamId: team.id,
-        action: AuditLogAction.DELETE_LICENSE,
-        targetId: license.id,
-        targetType: AuditLogTargetType.LICENSE,
+        action: AuditLogAction.DELETE_CUSTOMER,
+        targetId: customer.id,
+        targetType: AuditLogTargetType.CUSTOMER,
         requestBody: null,
         responseBody: response,
         source: AuditLogSource.API_KEY,
@@ -606,9 +472,9 @@ export async function DELETE(
       });
 
       webhookEventIds = await createWebhookEvents({
-        eventType: WebhookEventType.LICENSE_DELETED,
+        eventType: WebhookEventType.CUSTOMER_DELETED,
         teamId: team.id,
-        payload: deleteLicensePayload(license),
+        payload: deleteCustomerPayload(customer),
         source: AuditLogSource.API_KEY,
         tx: prisma,
       });
@@ -623,7 +489,7 @@ export async function DELETE(
     });
   } catch (error) {
     logger.error(
-      "Error in DELETE '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]' route",
+      "Error in DELETE '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
       error,
     );
     return NextResponse.json(

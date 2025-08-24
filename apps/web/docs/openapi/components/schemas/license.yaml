@@ -1,0 +1,327 @@
+components:
+  schemas:
+    # License expiration types
+    ExpirationType:
+      type: string
+      enum:
+        - NEVER
+        - DATE
+        - DURATION
+      description: Defines how license expiration is calculated
+
+    # Expiration start types
+    ExpirationStart:
+      type: string
+      enum:
+        - CREATION
+        - ACTIVATION
+      description: Defines when the license expiration countdown begins
+
+    # Base license data structure
+    LicenseData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Unique license identifier
+        licenseKey:
+          $ref: './common.yaml#/components/schemas/LicenseKey'
+        ipLimit:
+          type: integer
+          nullable: true
+          minimum: 0
+          description: Maximum number of different IP addresses that can use this license
+        hwidLimit:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Maximum number of different hardware IDs that can use this license
+        expirationType:
+          $ref: '#/components/schemas/ExpirationType'
+        expirationStart:
+          $ref: '#/components/schemas/ExpirationStart'
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Specific expiration date (when expirationType is DATE)
+        expirationDays:
+          type: integer
+          nullable: true
+          minimum: 1
+          description: Number of days until expiration (when expirationType is DURATION)
+        suspended:
+          type: boolean
+          description: Whether the license is suspended
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+        teamId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Team that owns this license
+        createdByUserId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: User who created this license
+        createdAt:
+          type: string
+          format: date-time
+          description: License creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: License last update timestamp
+        lastActiveAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last activity timestamp for this license
+        seats:
+          type: integer
+          nullable: true
+          deprecated: true
+          description: "@deprecated Use hwidLimit instead. Kept for backward compatibility."
+      required:
+        - id
+        - licenseKey
+        - expirationType
+        - suspended
+        - teamId
+        - createdByUserId
+        - createdAt
+        - updatedAt
+
+    # License response with full data and relationships
+    LicenseResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              allOf:
+                - $ref: '#/components/schemas/LicenseData'
+                - type: object
+                  properties:
+                    customers:
+                      type: array
+                      items:
+                        $ref: './customer.yaml#/components/schemas/CustomerData'
+                      description: Customers associated with this license
+                    products:
+                      type: array
+                      items:
+                        $ref: './product.yaml#/components/schemas/ProductData'
+                      description: Products associated with this license
+
+    # License creation request
+    CreateLicenseRequest:
+      type: object
+      properties:
+        customerIds:
+          type: array
+          items:
+            $ref: './common.yaml#/components/schemas/UUID'
+          description: Customer UUIDs to associate with this license
+        productIds:
+          type: array
+          items:
+            $ref: './common.yaml#/components/schemas/UUID'
+          description: Product UUIDs to associate with this license
+        expirationType:
+          $ref: '#/components/schemas/ExpirationType'
+        expirationStart:
+          $ref: '#/components/schemas/ExpirationStart'
+          nullable: true
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Required when expirationType is DATE
+        expirationDays:
+          type: integer
+          minimum: 1
+          nullable: true
+          description: Required when expirationType is DURATION
+        ipLimit:
+          type: integer
+          minimum: 0
+          nullable: true
+        hwidLimit:
+          type: integer
+          minimum: 1
+          nullable: true
+        suspended:
+          type: boolean
+          description: Whether to create the license in suspended state
+        sendEmailDelivery:
+          type: boolean
+          description: Whether to send license details via email
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+      required:
+        - expirationType
+        - suspended
+        - sendEmailDelivery
+        - productIds
+        - customerIds
+        - metadata
+
+    # License verification request
+    VerifyLicenseRequest:
+      type: object
+      properties:
+        licenseKey:
+          $ref: './common.yaml#/components/schemas/LicenseKey'
+        customerId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Customer UUID (required if strict customers enabled)
+        productId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Product UUID (required if strict products enabled)
+        challenge:
+          $ref: './common.yaml#/components/schemas/Challenge'
+        version:
+          $ref: './common.yaml#/components/schemas/Version'
+        hardwareIdentifier:
+          $ref: './common.yaml#/components/schemas/HardwareIdentifier'
+        branch:
+          $ref: './common.yaml#/components/schemas/BranchName'
+      required:
+        - licenseKey
+
+    # License heartbeat request
+    HeartbeatRequest:
+      type: object
+      properties:
+        licenseKey:
+          $ref: './common.yaml#/components/schemas/LicenseKey'
+        customerId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        productId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        challenge:
+          $ref: './common.yaml#/components/schemas/Challenge'
+        version:
+          $ref: './common.yaml#/components/schemas/Version'
+        hardwareIdentifier:
+          $ref: './common.yaml#/components/schemas/HardwareIdentifier'
+        branch:
+          $ref: './common.yaml#/components/schemas/BranchName'
+      required:
+        - licenseKey
+        - hardwareIdentifier
+
+    # License verification/heartbeat response data
+    VerificationResponseData:
+      type: object
+      properties:
+        license:
+          type: object
+          description: License details (included based on ReturnedFields configuration)
+          properties:
+            ipLimit:
+              type: integer
+              nullable: true
+              description: Maximum IP addresses allowed
+            hwidLimit:
+              type: integer
+              nullable: true
+              description: Maximum hardware IDs allowed
+            expirationType:
+              $ref: '#/components/schemas/ExpirationType'
+            expirationStart:
+              $ref: '#/components/schemas/ExpirationStart'
+            expirationDate:
+              type: string
+              format: date-time
+              nullable: true
+            expirationDays:
+              type: integer
+              nullable: true
+            metadata:
+              type: array
+              description: License metadata (filtered by ReturnedFields)
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+                required:
+                  - key
+                  - value
+        customers:
+          type: array
+          description: Customer details (included based on ReturnedFields configuration)
+          items:
+            $ref: './customer.yaml#/components/schemas/CustomerVerificationData'
+        products:
+          type: array
+          description: Product details (included based on ReturnedFields configuration)
+          items:
+            $ref: './product.yaml#/components/schemas/ProductVerificationData'
+      nullable: true
+
+    # License verification success response
+    VerificationResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/VerificationResponseData'
+            result:
+              allOf:
+                - $ref: './common.yaml#/components/schemas/StandardResult'
+                - type: object
+                  properties:
+                    code:
+                      type: string
+                      enum: [VALID]
+                    challengeResponse:
+                      type: string
+                      description: Signed challenge response (present if challenge was provided)
+                  required:
+                    - code
+
+    # License deletion response
+    LicenseDeletionResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                licenseId:
+                  $ref: './common.yaml#/components/schemas/UUID'
+                  description: ID of the deleted license
+                licenseKey:
+                  $ref: './common.yaml#/components/schemas/LicenseKey'
+                  description: Key of the deleted license
+                deleted:
+                  type: boolean
+                  enum: [true]
+                  description: Confirmation that license was deleted
+              anyOf:
+                - required: [licenseId, deleted]
+                - required: [licenseKey, deleted]
+
+    # License list response
+    LicenseListResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                licenses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/LicenseData'
+                hasNextPage:
+                  type: boolean
+                  description: Whether more pages are available
+              required:
+                - licenses
+                - hasNextPage

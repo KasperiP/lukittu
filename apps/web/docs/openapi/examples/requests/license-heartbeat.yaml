@@ -1,0 +1,38 @@
+# License heartbeat request examples
+examples:
+  basic-heartbeat:
+    summary: "Basic heartbeat request"
+    description: "Minimal heartbeat request with required parameters"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+
+  heartbeat-with-tracking:
+    summary: "Heartbeat with version and branch tracking"
+    description: "Heartbeat request that tracks software version and branch"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      version: "1.2.3"
+      branch: "main"
+
+  secure-heartbeat:
+    summary: "Secure heartbeat with challenge"
+    description: "Heartbeat with challenge signing for security"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      challenge: "heartbeatChallenge987654321XYZ"
+      version: "1.2.3"
+
+  full-heartbeat:
+    summary: "Complete heartbeat request"
+    description: "Heartbeat request with all optional parameters"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      customerId: "789e0123-e89b-12d3-a456-426614174222"
+      productId: "012e3456-e89b-12d3-a456-426614174333"
+      challenge: "heartbeatChallenge987654321XYZ"
+      version: "1.2.3"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      branch: "main"

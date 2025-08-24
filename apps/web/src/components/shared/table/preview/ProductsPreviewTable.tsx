@@ -125,7 +125,6 @@ export default function ProductsPreviewTable({
         locked: boolean;
       }[],
       hwidLimit: license.hwidLimit,
-      sendEmailDelivery: false,
       suspended: license.suspended,
     });
 

@@ -1,0 +1,130 @@
+components:
+  schemas:
+    # Base customer data structure
+    CustomerData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Unique customer identifier
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Customer email address
+        fullName:
+          type: string
+          nullable: true
+          description: Customer full name
+        username:
+          type: string
+          nullable: true
+          description: Customer username
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+        address:
+          $ref: '#/components/schemas/Address'
+          nullable: true
+          description: Customer address information
+        teamId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Team that owns this customer
+        createdByUserId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: User who created this customer record
+        createdAt:
+          type: string
+          format: date-time
+          description: Customer record creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Customer record last update timestamp
+      required:
+        - id
+        - teamId
+        - createdByUserId
+        - createdAt
+        - updatedAt
+
+    # Customer data returned in verification responses (filtered by ReturnedFields)
+    CustomerVerificationData:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Customer email address
+        fullName:
+          type: string
+          description: Customer full name
+        username:
+          type: string
+          description: Customer username
+        metadata:
+          type: array
+          description: Customer metadata (filtered by ReturnedFields configuration)
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+            required:
+              - key
+              - value
+
+    # Address schema
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+          nullable: true
+          description: Street address
+        city:
+          type: string
+          nullable: true
+          description: City
+        state:
+          type: string
+          nullable: true
+          description: State or province
+        country:
+          type: string
+          nullable: true
+          description: Country
+        postalCode:
+          type: string
+          nullable: true
+          description: Postal or ZIP code
+
+    # Customer creation/update request
+    CustomerRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+        fullName:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+        address:
+          $ref: '#/components/schemas/Address'
+          nullable: true
+
+    # Customer response with full data
+    CustomerResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/CustomerData'
