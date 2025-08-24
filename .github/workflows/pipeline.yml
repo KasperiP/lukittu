@@ -212,6 +212,7 @@ jobs:
           NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
           NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
           EOF
 
       - name: Login to Docker Registry
