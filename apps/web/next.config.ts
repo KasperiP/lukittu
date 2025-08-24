@@ -39,9 +39,6 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   org: 'lukittu',
   project: 'lukittu-next',
 
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
@@ -65,8 +62,12 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   sourcemaps: {
     disable: false, // Enable source maps (default: false)
-    assets: ['**/*.js', '**/*.js.map'], // Specify which files to upload
-    ignore: ['**/node_modules/**'], // Files to exclude
+    ignore: [
+      '**/node_modules/**',
+      '**/coverage/**',
+      '**/syncTranslations.js',
+      '**/checkTranslations.js',
+    ], // Files to exclude
     deleteSourcemapsAfterUpload: true, // Security: delete after upload
   },
 
