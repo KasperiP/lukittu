@@ -18,7 +18,7 @@ export function TargetFilterChip({
 }: TargetFilterChipProps) {
   const t = useTranslations();
 
-  const targetTypes = [
+  const targetTypes: AuditLogTargetType[] = [
     AuditLogTargetType.BLACKLIST,
     AuditLogTargetType.BRANCH,
     AuditLogTargetType.TEAM,
@@ -26,6 +26,9 @@ export function TargetFilterChip({
     AuditLogTargetType.PRODUCT,
     AuditLogTargetType.RELEASE,
     AuditLogTargetType.LICENSE,
+    AuditLogTargetType.WEBHOOK,
+    AuditLogTargetType.HARDWARE_IDENTIFIER,
+    AuditLogTargetType.IP_ADDRESS,
   ];
 
   const activeValue = () => {
@@ -38,7 +41,7 @@ export function TargetFilterChip({
       activeValue={activeValue()}
       isActive={targetType !== 'all'}
       label={t('general.target')}
-      popoverContentClassName="min-w-[320px]"
+      popoverContentClassName="min-w-[320px] md:w-auto"
       popoverTitle={t('general.select_target')}
       onApply={() => {
         setTargetType(tempTargetType);
