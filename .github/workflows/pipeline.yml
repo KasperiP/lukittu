@@ -211,6 +211,7 @@ jobs:
           NEXT_PUBLIC_DISCORD_CLIENT_ID=${{ secrets.NEXT_PUBLIC_DISCORD_CLIENT_ID }}
           NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
           NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           EOF
 
       - name: Login to Docker Registry
