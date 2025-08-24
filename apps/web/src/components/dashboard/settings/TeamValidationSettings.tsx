@@ -70,6 +70,7 @@ const minutesToDuration = (minutes: number | null): DurationValue => {
 
 const durationToMinutes = (duration: DurationValue): number | null => {
   if (duration.value === null) return null;
+  if (!TIME_UNITS[duration.unit]) return null;
   return duration.value * TIME_UNITS[duration.unit].multiplier;
 };
 
@@ -288,9 +289,11 @@ export default function TeamValidationSettings({
                     </FormControl>
                     <Select
                       value={hwidDuration.unit}
-                      onValueChange={(unit: TimeUnit) =>
-                        handleHwidDurationChange({ ...hwidDuration, unit })
-                      }
+                      onValueChange={(unit: TimeUnit) => {
+                        if (unit in TIME_UNITS) {
+                          handleHwidDurationChange({ ...hwidDuration, unit });
+                        }
+                      }}
                     >
                       <FormControl>
                         <SelectTrigger
@@ -348,9 +351,11 @@ export default function TeamValidationSettings({
                     </FormControl>
                     <Select
                       value={ipDuration.unit}
-                      onValueChange={(unit: TimeUnit) =>
-                        handleIpDurationChange({ ...ipDuration, unit })
-                      }
+                      onValueChange={(unit: TimeUnit) => {
+                        if (unit in TIME_UNITS) {
+                          handleIpDurationChange({ ...ipDuration, unit });
+                        }
+                      }}
                     >
                       <FormControl>
                         <SelectTrigger
