@@ -122,7 +122,6 @@ export default function CustomersPreviewTable({
         locked: boolean;
       }[],
       hwidLimit: license.hwidLimit,
-      sendEmailDelivery: false,
       suspended: license.suspended,
     });
 

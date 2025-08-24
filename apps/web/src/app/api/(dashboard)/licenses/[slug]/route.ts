@@ -257,7 +257,7 @@ export async function PUT(
     const hmac = generateHMAC(`${licenseKey}:${team.id}`);
 
     const licenseExists = await prisma.license.findUnique({
-      where: { id: licenseId },
+      where: { id: licenseId, teamId: team.id },
     });
 
     if (!licenseExists) {
@@ -332,7 +332,7 @@ export async function PUT(
 
     const response = await prisma.$transaction(async (prisma) => {
       const updatedLicense = await prisma.license.update({
-        where: { id: licenseId },
+        where: { id: licenseId, teamId: team.id },
         data: {
           expirationDate,
           expirationDays,

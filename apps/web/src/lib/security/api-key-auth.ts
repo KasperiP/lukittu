@@ -1,9 +1,9 @@
-import { Limits, logger, prisma, regex, Team } from '@lukittu/shared';
+import { Limits, logger, prisma, regex, Settings, Team } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
 import 'server-only';
 
-type TeamWithLimits = Team & { limits: Limits };
+type TeamWithLimits = Team & { limits: Limits; settings: Settings };
 
 export const verifyApiAuthorization = async (
   teamId: string,

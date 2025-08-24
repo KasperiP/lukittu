@@ -1,0 +1,321 @@
+paths:
+  /api/v1/dev/teams/{teamId}/licenses:
+    get:
+      summary: "List Licenses"
+      operationId: "listLicenses"
+      description: |
+        Retrieve a paginated list of licenses for the specified team.
+        Results can be filtered by product and customer associations.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/Page'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/PageSize'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/SortColumn'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/SortDirection'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/ProductIdsFilter'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/CustomerIdsFilter'
+      responses:
+        '200':
+          description: "Licenses retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseListResponse'
+              example:
+                data:
+                  licenses:
+                    - id: "456e7890-e89b-12d3-a456-426614174111"
+                      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+                      expirationType: "NEVER"
+                      suspended: false
+                      ipLimit: null
+                      hwidLimit: null
+                      metadata: []
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      createdByUserId: "789e0123-e89b-12d3-a456-426614174222"
+                      createdAt: "2023-09-15T14:30:00Z"
+                      updatedAt: "2023-09-15T14:30:00Z"
+                      lastActiveAt: null
+                  hasNextPage: false
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Licenses retrieved successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    post:
+      summary: "Create License"
+      operationId: "createLicense"
+      description: |
+        Create a new license with the specified configuration.
+        The license will be automatically generated with a unique key.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/schemas/license.yaml#/components/schemas/CreateLicenseRequest'
+            examples:
+              basic-license:
+                summary: "Basic perpetual license"
+                value:
+                  expirationType: "NEVER"
+                  suspended: false
+                  sendEmailDelivery: false
+                  productIds: ["012e3456-e89b-12d3-a456-426614174333"]
+                  customerIds: ["789e0123-e89b-12d3-a456-426614174222"]
+                  metadata: []
+              timed-license:
+                summary: "30-day license with limits"
+                value:
+                  expirationType: "DURATION"
+                  expirationStart: "ACTIVATION"
+                  expirationDays: 30
+                  ipLimit: 5
+                  hwidLimit: 3
+                  suspended: false
+                  sendEmailDelivery: true
+                  productIds: ["012e3456-e89b-12d3-a456-426614174333"]
+                  customerIds: ["789e0123-e89b-12d3-a456-426614174222"]
+                  metadata:
+                    - key: "tier"
+                      value: "premium"
+                      locked: false
+      responses:
+        '200':
+          description: "License created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseResponse'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}:
+    get:
+      summary: "Get License by ID"
+      operationId: "getLicenseById"
+      description: "Retrieve a specific license by its unique identifier."
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+      responses:
+        '200':
+          description: "License found"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseResponse'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: "Delete License by ID"
+      operationId: "deleteLicenseById"
+      description: |
+        Delete a license by its unique identifier. 
+        **This operation is permanent and cannot be undone.**
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+      responses:
+        '200':
+          description: "License successfully deleted"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseDeletionResponse'
+              example:
+                data:
+                  licenseId: "456e7890-e89b-12d3-a456-426614174111"
+                  deleted: true
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "License deleted successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    put:
+      summary: "Update License"
+      operationId: "updateLicense"
+      description: |
+        Update an existing license's properties including expiration, limits, metadata, 
+        associated products, and customers. Can also update the license key itself.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - licenseKey
+                - expirationType
+                - suspended
+                - productIds
+                - customerIds
+                - metadata
+              properties:
+                licenseKey:
+                  $ref: '../../components/schemas/common.yaml#/components/schemas/LicenseKey'
+                expirationType:
+                  type: string
+                  enum: ['DATE', 'DURATION', 'NEVER']
+                  description: "How the license expires"
+                expirationStart:
+                  type: string
+                  enum: ['CREATION', 'ACTIVATION']
+                  nullable: true
+                  description: "When duration-based expiration starts"
+                expirationDate:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  description: "Exact expiration date (for DATE expiration)"
+                expirationDays:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+                  description: "Number of days until expiration (for DURATION expiration)"
+                suspended:
+                  type: boolean
+                  description: "Whether the license is suspended"
+                productIds:
+                  type: array
+                  items:
+                    $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+                  description: "Array of product IDs to associate with this license"
+                customerIds:
+                  type: array
+                  items:
+                    $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+                  description: "Array of customer IDs to associate with this license"
+                hwidLimit:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+                  description: "Maximum number of hardware identifiers"
+                ipLimit:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+                  description: "Maximum number of IP addresses"
+                metadata:
+                  $ref: '../../components/schemas/common.yaml#/components/schemas/Metadata'
+            examples:
+              update-expiration:
+                summary: "Update license expiration"
+                value:
+                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+                  expirationType: "DURATION"
+                  expirationStart: "ACTIVATION"
+                  expirationDate: null
+                  expirationDays: 90
+                  suspended: false
+                  productIds: ["123e4567-e89b-12d3-a456-426614174000"]
+                  customerIds: ["789e0123-e89b-12d3-a456-426614174222"]
+                  hwidLimit: 3
+                  ipLimit: 5
+                  metadata: []
+      responses:
+        '200':
+          description: "License updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseResponse'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/dev/teams/{teamId}/licenses/{licenseKey}:
+    get:
+      summary: "Get License by Key"
+      operationId: "getLicenseByKey"
+      description: "Retrieve a specific license by its license key."
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseKeyPath'
+      responses:
+        '200':
+          description: "License found"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseResponse'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: "Delete License by Key"
+      operationId: "deleteLicenseByKey"
+      description: |
+        Delete a license by its license key. 
+        **This operation is permanent and cannot be undone.**
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseKeyPath'
+      responses:
+        '200':
+          description: "License successfully deleted"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license.yaml#/components/schemas/LicenseDeletionResponse'
+              example:
+                data:
+                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+                  deleted: true
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "License deleted successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []

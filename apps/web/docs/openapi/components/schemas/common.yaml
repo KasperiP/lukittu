@@ -1,0 +1,159 @@
+components:
+  schemas:
+    # Standard result structure used across all API responses
+    StandardResult:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the response was generated
+        valid:
+          type: boolean
+          description: Indicates whether the operation was successful
+        details:
+          type: string
+          description: Human-readable description of the result
+      required:
+        - timestamp
+        - valid
+        - details
+
+    # Error response structure
+    ErrorResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Additional error-related data
+          nullable: true
+        result:
+          allOf:
+            - $ref: '#/components/schemas/StandardResult'
+            - type: object
+              properties:
+                valid:
+                  type: boolean
+                  enum: [false]
+                  description: Always false for error responses
+                code:
+                  type: string
+                  description: Error code indicating the specific issue
+                  enum:
+                    - INTERNAL_SERVER_ERROR
+                    - BAD_REQUEST
+                    - LICENSE_NOT_FOUND
+                    - IP_LIMIT_REACHED
+                    - HWID_LIMIT_REACHED
+                    - PRODUCT_NOT_FOUND
+                    - CUSTOMER_NOT_FOUND
+                    - LICENSE_EXPIRED
+                    - LICENSE_SUSPENDED
+                    - TEAM_NOT_FOUND
+                    - RATE_LIMIT
+                    - HARDWARE_IDENTIFIER_BLACKLISTED
+                    - COUNTRY_BLACKLISTED
+                    - IP_BLACKLISTED
+                    - RELEASE_NOT_FOUND
+                    - FORBIDDEN
+                    - UNAUTHORIZED
+                    - INVALID_SESSION_KEY
+                    - NO_ACCESS_TO_RELEASE
+                    - RELEASE_ARCHIVED
+                    - RELEASE_DRAFT
+              required:
+                - code
+      required:
+        - result
+
+    # Success response structure
+    SuccessResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          description: Response data
+        result:
+          allOf:
+            - $ref: '#/components/schemas/StandardResult'
+            - type: object
+              properties:
+                valid:
+                  type: boolean
+                  enum: [true]
+                  description: Always true for success responses
+      required:
+        - data
+        - result
+
+    # Metadata array structure used across entities
+    Metadata:
+      type: array
+      description: Key-value metadata pairs
+      items:
+        type: object
+        properties:
+          key:
+            type: string
+            description: Metadata key
+          value:
+            type: string
+            description: Metadata value
+          locked:
+            type: boolean
+            description: Whether this metadata field is locked from client modification
+        required:
+          - key
+          - value
+          - locked
+
+    # UUID pattern for consistent validation
+    UUID:
+      type: string
+      format: uuid
+      description: UUID v4 identifier
+
+    # License key pattern
+    LicenseKey:
+      type: string
+      pattern: '^[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}$'
+      description: 'Lukittu license key format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX where X is an uppercase letter (A-Z) or digit (0-9)'
+
+    # Hardware identifier pattern
+    HardwareIdentifier:
+      type: string
+      minLength: 10
+      maxLength: 1000
+      pattern: '^[^\s]+$'
+      description: Unique hardware identifier for client device (no spaces allowed)
+
+    # Version string pattern
+    Version:
+      type: string
+      minLength: 3
+      maxLength: 255
+      pattern: '^[^\s]+$'
+      description: Software version identifier (no spaces allowed)
+
+    # Branch name pattern
+    BranchName:
+      type: string
+      minLength: 2
+      maxLength: 255
+      pattern: '^[a-zA-Z0-9_-]+$'
+      description: Product branch name
+
+    # Challenge string for verification
+    Challenge:
+      type: string
+      maxLength: 1000
+      pattern: '^[^\s]+$'
+      description: Client-generated random string for request signing (no spaces allowed)
+
+    # Session key for classloader
+    SessionKey:
+      type: string
+      minLength: 10
+      maxLength: 1000
+      pattern: '^[^\s]+$'
+      description: Unique session identifier for encrypted file download (no spaces allowed)

@@ -1,0 +1,139 @@
+components:
+  schemas:
+    # Base product data structure
+    ProductData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Unique product identifier
+        name:
+          type: string
+          description: Product name
+        url:
+          type: string
+          nullable: true
+          description: Product URL or homepage
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+        teamId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Team that owns this product
+        createdByUserId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: User who created this product
+        createdAt:
+          type: string
+          format: date-time
+          description: Product creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Product last update timestamp
+      required:
+        - id
+        - name
+        - teamId
+        - createdByUserId
+        - createdAt
+        - updatedAt
+
+    # Product data returned in verification responses (filtered by ReturnedFields)
+    ProductVerificationData:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Product name
+        url:
+          type: string
+          description: Product URL
+        latestRelease:
+          type: object
+          description: Information about the latest release for this product
+          properties:
+            version:
+              type: string
+              description: Latest release version
+            createdAt:
+              type: string
+              format: date-time
+              description: When the release was created
+          required:
+            - version
+            - createdAt
+        metadata:
+          type: array
+          description: Product metadata (filtered by ReturnedFields configuration)
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+            required:
+              - key
+              - value
+
+    # Product creation/update request
+    ProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        url:
+          type: string
+          nullable: true
+          format: uri
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+      required:
+        - name
+
+    # Product response with full data
+    ProductResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ProductData'
+
+    # Release status enumeration
+    ReleaseStatus:
+      type: string
+      enum:
+        - PUBLISHED
+        - DRAFT
+        - ARCHIVED
+        - DEPRECATED
+      description: Status of a product release
+
+    # Release data structure
+    ReleaseData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+        version:
+          $ref: './common.yaml#/components/schemas/Version'
+        status:
+          $ref: '#/components/schemas/ReleaseStatus'
+        productId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - version
+        - status
+        - productId
+        - createdAt
+        - updatedAt

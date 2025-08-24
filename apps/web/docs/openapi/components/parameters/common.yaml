@@ -1,0 +1,121 @@
+components:
+  parameters:
+    # Team ID path parameter - used across all endpoints
+    TeamId:
+      name: teamId
+      in: path
+      required: true
+      description: "Your team's UUID. You can find this value in your team's settings on the Lukittu dashboard."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "123e4567-e89b-12d3-a456-426614174000"
+
+    # License ID path parameter
+    LicenseId:
+      name: licenseId
+      in: path
+      required: true
+      description: "The unique identifier (UUID v4) of the license."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "456e7890-e89b-12d3-a456-426614174111"
+
+    # License Key path parameter
+    LicenseKeyPath:
+      name: licenseKey
+      in: path
+      required: true
+      description: "The Lukittu license key to operate on."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/LicenseKey'
+      example: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+
+    # License Key query parameter
+    LicenseKeyQuery:
+      name: licenseKey
+      in: query
+      required: true
+      description: "The Lukittu license key for verification."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/LicenseKey'
+      example: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+
+    # Customer ID path parameter
+    CustomerIdPath:
+      name: customerId
+      in: path
+      required: true
+      description: "The unique identifier (UUID v4) of the customer."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "789e0123-e89b-12d3-a456-426614174222"
+
+    # Customer ID query parameter
+    CustomerId:
+      name: customerId
+      in: query
+      required: false
+      description: "The customer's UUID (UUID v4). Required if strict customers are enabled and the license has customers attached."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "789e0123-e89b-12d3-a456-426614174222"
+
+    # Product ID query parameter
+    ProductId:
+      name: productId
+      in: query
+      required: false
+      description: "The product's UUID (UUID v4). Required if strict products are enabled and the license has products attached."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "012e3456-e89b-12d3-a456-426614174333"
+
+    # Product ID query parameter (required for classloader)
+    ProductIdRequired:
+      name: productId
+      in: query
+      required: true
+      description: "The product's UUID (UUID v4). Required to download the correct product release."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: "012e3456-e89b-12d3-a456-426614174333"
+
+    # Hardware identifier parameter
+    HardwareIdentifier:
+      name: hardwareIdentifier
+      in: query
+      required: true
+      description: "A unique identifier for the client device. Typically a hardware ID that remains consistent across sessions."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/HardwareIdentifier'
+      example: "ABC123DEF456GHI789JKL012MNO345PQR678"
+
+    # Session key parameter for classloader
+    SessionKey:
+      name: sessionKey
+      in: query
+      required: true
+      description: "A unique session identifier for encrypted file download. Must be encrypted using the team's public key."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/SessionKey'
+      example: "randomSessionKey123456789"
+
+    # Version parameter
+    Version:
+      name: version
+      in: query
+      required: false
+      description: "The version number of your software. Useful for tracking which releases are actively being used."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/Version'
+      example: "1.2.3"
+
+    # Branch parameter
+    Branch:
+      name: branch
+      in: query
+      required: false
+      description: "The branch name of your product. This allows targeting specific release branches."
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/BranchName'
+      example: "main"

@@ -1,0 +1,17 @@
+components:
+  securitySchemes:
+    # Bearer token authentication for API endpoints
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: apiKey
+      description: |
+        API key authentication for development endpoints.
+        
+        You can create API keys in your team's settings on the Lukittu dashboard.
+        Include the API key in the Authorization header as: `Bearer YOUR_API_KEY`
+        
+        Example:
+        ```
+        Authorization: Bearer lukittu_api_key_abc123def456...
+        ```

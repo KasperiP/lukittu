@@ -15,8 +15,8 @@
     "test:watch": "jest --watch",
     "check-translations": "node src/locales/checkTranslations.js",
     "sync-translations": "node src/locales/syncTranslations.js",
-    "bundle-docs": "npx @redocly/cli bundle ./docs/openapi.json --output ./docs/bundled-openapi.json",
-    "preview-docs": "npx @redocly/cli preview-docs ./docs/openapi.json"
+    "bundle-docs": "npx @redocly/cli bundle ./docs/openapi/openapi.yaml --output ./docs/bundled-openapi.json",
+    "bundle-docs:html": "npx @redocly/cli build-docs ./docs/openapi/openapi.yaml --output ./docs/bundled-openapi.html"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.864.0",

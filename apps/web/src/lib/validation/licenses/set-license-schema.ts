@@ -21,12 +21,16 @@ const createBaseLicenseSchema = (t?: I18nTranslator) =>
       hwidLimit: z.number().min(1).positive().int().nullable(),
       ipLimit: z.number().positive().int().nullable(),
       metadata: metadataSchema(t),
-      sendEmailDelivery: z.boolean(),
     })
     .strict();
 
+const createBaseLicenseSchemaWithEmail = (t?: I18nTranslator) =>
+  createBaseLicenseSchema(t).extend({
+    sendEmailDelivery: z.boolean(),
+  });
+
 export const createLicenseSchema = (t?: I18nTranslator) =>
-  createBaseLicenseSchema(t)
+  createBaseLicenseSchemaWithEmail(t)
     .refine(
       (data) => {
         if (data.expirationType === 'DURATION') {

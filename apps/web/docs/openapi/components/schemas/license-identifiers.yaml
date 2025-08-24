@@ -1,0 +1,203 @@
+components:
+  schemas:
+    # Hardware Identifier Status
+    HwidStatus:
+      type: string
+      enum:
+        - active
+        - inactive
+        - forgotten
+      description: Current status of the hardware identifier
+
+    # IP Address Status
+    IpStatus:
+      type: string
+      enum:
+        - active
+        - inactive
+        - forgotten
+      description: Current status of the IP address
+
+    # Hardware Identifier Data
+    HardwareIdentifierData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Hardware identifier ID
+        identifier:
+          type: string
+          description: The hardware identifier string
+        status:
+          $ref: '#/components/schemas/HwidStatus'
+        forgotten:
+          type: boolean
+          description: Whether this HWID has been marked as forgotten
+        licenseId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        teamId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: When this HWID was last seen
+        createdAt:
+          type: string
+          format: date-time
+          description: When this HWID was first created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When this HWID was last updated
+      required:
+        - id
+        - identifier
+        - status
+        - forgotten
+        - licenseId
+        - teamId
+        - lastSeenAt
+        - createdAt
+        - updatedAt
+
+    # IP Address Data
+    IpAddressData:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: IP address ID
+        address:
+          type: string
+          description: The IP address
+          example: "192.168.1.100"
+        status:
+          $ref: '#/components/schemas/IpStatus'
+        forgotten:
+          type: boolean
+          description: Whether this IP address has been marked as forgotten
+        country:
+          type: string
+          nullable: true
+          description: Country name where the IP is located
+          example: "United States"
+        alpha2:
+          type: string
+          nullable: true
+          description: ISO 3166-1 alpha-2 country code
+          example: "US"
+        alpha3:
+          type: string
+          nullable: true
+          description: ISO 3166-1 alpha-3 country code
+          example: "USA"
+        licenseId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        teamId:
+          $ref: './common.yaml#/components/schemas/UUID'
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: When this IP address was last seen
+        createdAt:
+          type: string
+          format: date-time
+          description: When this IP address was first created
+        updatedAt:
+          type: string
+          format: date-time
+          description: When this IP address was last updated
+      required:
+        - id
+        - address
+        - status
+        - forgotten
+        - licenseId
+        - teamId
+        - lastSeenAt
+        - createdAt
+        - updatedAt
+
+    # Hardware Identifiers List Response
+    HardwareIdentifiersListResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                hwids:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/HardwareIdentifierData'
+                totalResults:
+                  type: integer
+                  description: Total number of hardware identifiers
+                hasNextPage:
+                  type: boolean
+                  description: Whether there are more results available
+              required:
+                - hwids
+                - totalResults
+                - hasNextPage
+
+    # IP Addresses List Response
+    IpAddressesListResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                ipAddresses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/IpAddressData'
+                totalResults:
+                  type: integer
+                  description: Total number of IP addresses
+                hasNextPage:
+                  type: boolean
+                  description: Whether there are more results available
+              required:
+                - ipAddresses
+                - totalResults
+                - hasNextPage
+
+    # Hardware Identifier Update Response
+    HardwareIdentifierUpdateResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                hwidId:
+                  $ref: './common.yaml#/components/schemas/UUID'
+                forgotten:
+                  type: boolean
+                  description: Current forgotten status
+              required:
+                - hwidId
+                - forgotten
+
+    # IP Address Update Response
+    IpAddressUpdateResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                ipId:
+                  $ref: './common.yaml#/components/schemas/UUID'
+                forgotten:
+                  type: boolean
+                  description: Current forgotten status
+              required:
+                - ipId
+                - forgotten

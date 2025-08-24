@@ -23,6 +23,7 @@ import {
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
+  LicenseStatus,
   logger,
   prisma,
   Prisma,
@@ -39,6 +40,40 @@ export async function POST(
 
   try {
     const { teamId } = params;
+
+    if (!teamId || !regex.uuidV4.test(teamId)) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid teamId',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        {
+          status: HttpStatus.BAD_REQUEST,
+        },
+      );
+    }
+
+    const { team } = await verifyApiAuthorization(teamId);
+
+    if (!team) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid API key',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        {
+          status: HttpStatus.UNAUTHORIZED,
+        },
+      );
+    }
 
     const body = (await request.json()) as CreateLicenseSchema;
     const validated = await createLicenseSchema().safeParseAsync(body);
@@ -75,24 +110,6 @@ export async function POST(
       suspended,
       sendEmailDelivery,
     } = body;
-
-    const { team } = await verifyApiAuthorization(teamId);
-
-    if (!team) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Invalid API key',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        {
-          status: HttpStatus.UNAUTHORIZED,
-        },
-      );
-    }
 
     const licenseAmount = await prisma.license.count({
       where: {
@@ -397,6 +414,22 @@ export async function GET(
   try {
     const { teamId } = params;
 
+    if (!teamId || !regex.uuidV4.test(teamId)) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid teamId',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        {
+          status: HttpStatus.BAD_REQUEST,
+        },
+      );
+    }
+
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
@@ -427,6 +460,7 @@ export async function GET(
     const allowedSortDirections = ['asc', 'desc'] as const;
     const allowedSortColumns = ['createdAt', 'updatedAt'] as const;
 
+    // Parse and validate parameters
     const rawPage = parseInt(searchParams.get('page') as string);
     const rawPageSize = parseInt(searchParams.get('pageSize') as string);
     const rawSortColumn = searchParams.get('sortColumn');
@@ -434,15 +468,17 @@ export async function GET(
       'sortDirection',
     ) as (typeof allowedSortDirections)[number];
 
-    // Validate and sanitize input parameters
     const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : DEFAULT_PAGE;
+
     const pageSize =
       !isNaN(rawPageSize) && allowedPageSizes.includes(rawPageSize)
         ? Math.min(rawPageSize, MAX_PAGE_SIZE)
         : DEFAULT_PAGE_SIZE;
+
     const sortDirection = allowedSortDirections.includes(rawSortDirection)
       ? rawSortDirection
       : DEFAULT_SORT_DIRECTION;
+
     const sortColumn =
       rawSortColumn &&
       allowedSortColumns.includes(
@@ -451,9 +487,37 @@ export async function GET(
         ? rawSortColumn
         : DEFAULT_SORT_COLUMN;
 
+    // Parse search and filtering parameters
+    const search = searchParams.get('search') || '';
     const productIds = searchParams.get('productIds') || '';
     const customerIds = searchParams.get('customerIds') || '';
+    let metadata = searchParams.get('metadataKey') as string | undefined;
+    let metadataValue = searchParams.get('metadataValue') as string | undefined;
+    const status = searchParams.get('status') as LicenseStatus | null;
 
+    // Metadata validation
+    if ((metadata && !metadataValue) || (!metadata && metadataValue)) {
+      metadata = undefined;
+      metadataValue = undefined;
+    }
+
+    if (metadata && metadataValue) {
+      if (metadata.length < 1 || metadata.length > 255) {
+        metadata = undefined;
+        metadataValue = undefined;
+      }
+      if (
+        metadataValue &&
+        (metadataValue.length < 1 || metadataValue.length > 255)
+      ) {
+        metadata = undefined;
+        metadataValue = undefined;
+      }
+    }
+
+    const hasValidMetadata = Boolean(metadata && metadataValue);
+
+    // Format product and customer IDs
     const productIdsFormatted = productIds
       .split(',')
       .filter((id) => regex.uuidV4.test(id));
@@ -464,8 +528,117 @@ export async function GET(
 
     const skip = (page - 1) * pageSize;
 
+    // License key search support
+    const isFullLicense = search.match(regex.licenseKey);
+    const licenseKeyLookup = isFullLicense
+      ? generateHMAC(`${search}:${teamId}`)
+      : undefined;
+
+    // Status filtering
+    const currentDate = new Date();
+    const thirtyDaysAgo = new Date(
+      currentDate.getTime() - 30 * 24 * 60 * 60 * 1000,
+    );
+
+    let statusFilter: Prisma.LicenseWhereInput = {};
+
+    if (status) {
+      switch (status) {
+        case LicenseStatus.ACTIVE:
+          statusFilter = {
+            suspended: false,
+            lastActiveAt: {
+              gt: thirtyDaysAgo,
+            },
+            OR: [
+              { expirationType: 'NEVER' },
+              {
+                AND: [
+                  {
+                    expirationType: {
+                      in: ['DATE', 'DURATION'],
+                    },
+                  },
+                  {
+                    expirationDate: {
+                      gt: currentDate,
+                    },
+                  },
+                  {
+                    expirationDate: {
+                      gt: new Date(
+                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+                      ),
+                    },
+                  },
+                ],
+              },
+            ],
+          };
+          break;
+        case LicenseStatus.INACTIVE:
+          statusFilter = {
+            suspended: false,
+            lastActiveAt: {
+              lte: thirtyDaysAgo,
+            },
+            OR: [
+              { expirationType: 'NEVER' },
+              {
+                AND: [
+                  { expirationType: { in: ['DATE', 'DURATION'] } },
+                  {
+                    expirationDate: {
+                      gt: currentDate,
+                    },
+                  },
+                  {
+                    expirationDate: {
+                      gt: new Date(
+                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+                      ),
+                    },
+                  },
+                ],
+              },
+            ],
+          };
+          break;
+        case LicenseStatus.EXPIRING:
+          statusFilter = {
+            suspended: false,
+            expirationType: {
+              in: ['DATE', 'DURATION'],
+            },
+            expirationDate: {
+              gt: currentDate,
+              lt: new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000),
+            },
+          };
+          break;
+        case LicenseStatus.EXPIRED:
+          statusFilter = {
+            suspended: false,
+            expirationType: {
+              in: ['DATE', 'DURATION'],
+            },
+            expirationDate: {
+              lt: currentDate,
+            },
+          };
+          break;
+        case LicenseStatus.SUSPENDED:
+          statusFilter = {
+            suspended: true,
+          };
+          break;
+      }
+    }
+
     const where = {
+      ...statusFilter,
       teamId,
+      licenseKeyLookup,
       products: productIdsFormatted.length
         ? {
             some: {
@@ -484,30 +657,49 @@ export async function GET(
             },
           }
         : undefined,
+      metadata: hasValidMetadata
+        ? {
+            some: {
+              key: metadata,
+              value: {
+                contains: metadataValue,
+                mode: 'insensitive',
+              },
+            },
+          }
+        : undefined,
     } as Prisma.LicenseWhereInput;
 
-    const licenses = await prisma.license.findMany({
-      where,
-      skip,
-      take: pageSize + 1,
-      orderBy: {
-        [sortColumn]: sortDirection,
-      },
-      include: {
-        metadata: true,
-      },
-    });
+    // Get total count and licenses
+    const [totalResults, licenses] = await prisma.$transaction([
+      prisma.license.count({ where }),
+      prisma.license.findMany({
+        where,
+        skip,
+        take: pageSize + 1,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        include: {
+          products: true,
+          customers: true,
+          metadata: true,
+        },
+      }),
+    ]);
 
     const hasNextPage = licenses.length > pageSize;
 
     const formattedLicenses = licenses.slice(0, pageSize).map((license) => ({
       ...license,
       licenseKey: decryptLicenseKey(license.licenseKey),
+      licenseKeyLookup: undefined,
     }));
 
     const response: IExternalDevResponse = {
       data: {
         hasNextPage,
+        totalResults,
         licenses: formattedLicenses,
       },
       result: {

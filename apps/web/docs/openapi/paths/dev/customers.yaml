@@ -1,0 +1,376 @@
+paths:
+  /api/v1/dev/teams/{teamId}/customers:
+    get:
+      summary: "List Customers"
+      operationId: "listCustomers"
+      description: |
+        Retrieve a paginated list of customers for the specified team.
+        Supports search, pagination, and sorting capabilities.
+      tags:
+        - Dev - Customers
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/Page'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/PageSize'
+        - name: sortColumn
+          in: query
+          required: false
+          description: "Column to sort by"
+          schema:
+            type: string
+            enum: ['fullName', 'createdAt', 'updatedAt', 'email', 'username']
+            default: 'createdAt'
+          example: "createdAt"
+        - name: sortDirection
+          in: query
+          required: false
+          description: "Sort direction"
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+          example: "desc"
+        - name: search
+          in: query
+          required: false
+          description: "Search customers by email, full name, or username"
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          example: "john@example.com"
+      responses:
+        '200':
+          description: "Customers retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      hasNextPage:
+                        type: boolean
+                        description: "Whether there are more customers available"
+                        example: true
+                      customers:
+                        type: array
+                        items:
+                          $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerData'
+                  result:
+                    $ref: '../../components/schemas/common.yaml#/components/schemas/StandardResult'
+              example:
+                data:
+                  hasNextPage: false
+                  customers:
+                    - id: "789e0123-e89b-12d3-a456-426614174222"
+                      email: "john@example.com"
+                      fullName: "John Doe"
+                      username: "johndoe"
+                      metadata:
+                        - key: "tier"
+                          value: "premium"
+                          locked: false
+                      address:
+                        street: "123 Main St"
+                        city: "Anytown"
+                        state: "CA"
+                        country: "US"
+                        postalCode: "12345"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      createdByUserId: "456e7890-e89b-12d3-a456-426614174111"
+                      createdAt: "2023-09-15T14:30:00Z"
+                      updatedAt: "2023-09-15T14:30:00Z"
+                    - id: "890f1234-e89b-12d3-a456-426614174333"
+                      email: "jane@example.com"
+                      fullName: "Jane Smith"
+                      username: "janesmith"
+                      metadata: []
+                      address:
+                        street: "456 Oak Ave"
+                        city: "Elsewhere"
+                        state: "NY"
+                        country: "US"
+                        postalCode: "54321"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      createdByUserId: "456e7890-e89b-12d3-a456-426614174111"
+                      createdAt: "2023-09-14T10:15:00Z"
+                      updatedAt: "2023-09-14T10:15:00Z"
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Customers found"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    post:
+      summary: "Create Customer"
+      operationId: "createCustomer"
+      description: |
+        Create a new customer record for the specified team.
+        Customers can be associated with licenses for tracking and management.
+      tags:
+        - Dev - Customers
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerRequest'
+            examples:
+              basic-customer:
+                summary: "Basic customer with email"
+                value:
+                  email: "customer@example.com"
+                  fullName: "John Doe"
+                  username: "johndoe"
+                  metadata: []
+                  address:
+                    street: "123 Main St"
+                    city: "Anytown"
+                    state: "CA"
+                    country: "US"
+                    postalCode: "12345"
+              customer-with-metadata:
+                summary: "Customer with custom metadata"
+                value:
+                  email: "premium@example.com"
+                  fullName: "Jane Smith"
+                  username: "janesmith"
+                  metadata:
+                    - key: "tier"
+                      value: "premium"
+                      locked: false
+                    - key: "company"
+                      value: "Example Corp"
+                      locked: true
+                  address:
+                    street: "456 Business Ave"
+                    city: "Enterprise City"
+                    state: "NY"
+                    country: "US"
+                    postalCode: "54321"
+      responses:
+        '201':
+          description: "Customer created successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerResponse'
+              example:
+                data:
+                  id: "789e0123-e89b-12d3-a456-426614174222"
+                  email: "customer@example.com"
+                  fullName: "John Doe"
+                  username: "johndoe"
+                  metadata:
+                    - key: "tier"
+                      value: "standard"
+                      locked: false
+                  address:
+                    street: "123 Main St"
+                    city: "Anytown"
+                    state: "CA"
+                    country: "US"
+                    postalCode: "12345"
+                  teamId: "123e4567-e89b-12d3-a456-426614174000"
+                  createdByUserId: "456e7890-e89b-12d3-a456-426614174111"
+                  createdAt: "2023-09-15T14:30:00Z"
+                  updatedAt: "2023-09-15T14:30:00Z"
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Customer created"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/dev/teams/{teamId}/customers/{customerId}:
+    get:
+      summary: "Get Customer by ID"
+      operationId: "getCustomerById"
+      description: |
+        Retrieve detailed information about a specific customer by their unique identifier.
+      tags:
+        - Dev - Customers
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/CustomerIdPath'
+      responses:
+        '200':
+          description: "Customer found successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerResponse'
+              example:
+                data:
+                  id: "789e0123-e89b-12d3-a456-426614174222"
+                  email: "customer@example.com"
+                  fullName: "John Doe"
+                  username: "johndoe"
+                  metadata:
+                    - key: "tier"
+                      value: "premium"
+                      locked: false
+                  address:
+                    street: "123 Main St"
+                    city: "Anytown"
+                    state: "CA"
+                    country: "US"
+                    postalCode: "12345"
+                  teamId: "123e4567-e89b-12d3-a456-426614174000"
+                  createdByUserId: "456e7890-e89b-12d3-a456-426614174111"
+                  createdAt: "2023-09-15T14:30:00Z"
+                  updatedAt: "2023-09-15T14:30:00Z"
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Customer found"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    put:
+      summary: "Update Customer"
+      operationId: "updateCustomer"
+      description: |
+        Update an existing customer's information including email, name, metadata, and address.
+      tags:
+        - Dev - Customers
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/CustomerIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerRequest'
+            examples:
+              update-email:
+                summary: "Update customer email and name"
+                value:
+                  email: "newemail@example.com"
+                  fullName: "John Updated Doe"
+                  username: "johnupdated"
+                  metadata: []
+                  address:
+                    street: "456 Updated St"
+                    city: "New City"
+                    state: "NY"
+                    country: "US"
+                    postalCode: "54321"
+              add-metadata:
+                summary: "Add custom metadata to customer"
+                value:
+                  email: "premium@example.com"
+                  fullName: "Jane Premium Smith"
+                  username: "janepremium"
+                  metadata:
+                    - key: "tier"
+                      value: "enterprise"
+                      locked: false
+                    - key: "support_level"
+                      value: "priority"
+                      locked: true
+                  address:
+                    street: "789 Enterprise Blvd"
+                    city: "Business City"
+                    state: "CA"
+                    country: "US"
+                    postalCode: "98765"
+      responses:
+        '200':
+          description: "Customer updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/customer.yaml#/components/schemas/CustomerResponse'
+              example:
+                data:
+                  id: "789e0123-e89b-12d3-a456-426614174222"
+                  email: "newemail@example.com"
+                  fullName: "John Updated Doe"
+                  username: "johnupdated"
+                  metadata:
+                    - key: "tier"
+                      value: "premium"
+                      locked: false
+                  address:
+                    street: "456 Updated St"
+                    city: "New City"
+                    state: "NY"
+                    country: "US"
+                    postalCode: "54321"
+                  teamId: "123e4567-e89b-12d3-a456-426614174000"
+                  createdByUserId: "456e7890-e89b-12d3-a456-426614174111"
+                  createdAt: "2023-09-15T14:30:00Z"
+                  updatedAt: "2023-09-15T14:35:00Z"
+                result:
+                  timestamp: "2023-09-15T14:35:00Z"
+                  valid: true
+                  details: "Customer updated"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: "Delete Customer by ID"
+      operationId: "deleteCustomer"
+      description: |
+        Permanently delete a customer and all associated data including metadata and address information.
+        **Warning**: This action cannot be undone.
+      tags:
+        - Dev - Customers
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/CustomerIdPath'
+      responses:
+        '200':
+          description: "Customer deleted successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      customerId:
+                        $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+                      deleted:
+                        type: boolean
+                        example: true
+                  result:
+                    $ref: '../../components/schemas/common.yaml#/components/schemas/StandardResult'
+              example:
+                data:
+                  customerId: "789e0123-e89b-12d3-a456-426614174222"
+                  deleted: true
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Customer deleted successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []

@@ -1,0 +1,39 @@
+# License verification request examples
+examples:
+  basic-verification:
+    summary: "Basic license verification"
+    description: "Minimal request to verify a license key"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+
+  secure-verification:
+    summary: "Secure verification with challenge"
+    description: "Verification request with challenge signing for enhanced security"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      challenge: "randomChallenge123456789ABC"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      version: "1.2.3"
+
+  strict-validation:
+    summary: "Strict validation with customer and product"
+    description: "Verification with customer and product validation enabled"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      customerId: "789e0123-e89b-12d3-a456-426614174222"
+      productId: "012e3456-e89b-12d3-a456-426614174333"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      version: "1.2.3"
+      branch: "main"
+
+  full-verification:
+    summary: "Complete verification request"
+    description: "Verification request with all optional parameters"
+    value:
+      licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+      customerId: "789e0123-e89b-12d3-a456-426614174222"
+      productId: "012e3456-e89b-12d3-a456-426614174333"
+      challenge: "randomChallenge123456789ABC"
+      version: "1.2.3"
+      hardwareIdentifier: "ABC123DEF456GHI789JKL012MNO345"
+      branch: "main"
