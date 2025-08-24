@@ -1123,5 +1123,10 @@ export const handleClassloader = async ({
           }
         : {}),
     },
+    loggingData: {
+      licenseKeyLookup,
+      releaseId: releaseToUse.id,
+      releaseFileId: fileToUse.id,
+    },
   };
 };

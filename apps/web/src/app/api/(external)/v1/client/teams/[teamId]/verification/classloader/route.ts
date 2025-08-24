@@ -104,13 +104,13 @@ export async function GET(
         status: RequestStatus.VALID,
         customerId: payload.customerId,
         productId: payload.productId,
-        licenseKeyLookup: undefined,
+        licenseKeyLookup: result.loggingData?.licenseKeyLookup,
         teamId,
         type: RequestType.DOWNLOAD,
         statusCode: HttpStatus.OK,
         method: request.method,
-        releaseId: undefined,
-        releaseFileId: undefined,
+        releaseId: result.loggingData?.releaseId,
+        releaseFileId: result.loggingData?.releaseFileId,
       });
 
       return new Response(result.stream, {
