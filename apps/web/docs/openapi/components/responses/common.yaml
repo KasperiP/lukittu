@@ -11,32 +11,32 @@ components:
             $ref: '../schemas/common.yaml#/components/schemas/ErrorResponse'
           examples:
             validation_error:
-              summary: "Validation error (400)"
+              summary: 'Validation error (400)'
               value:
                 data: null
                 result:
-                  timestamp: "2023-09-15T14:30:00Z"
+                  timestamp: '2023-09-15T14:30:00Z'
                   valid: false
-                  details: "Invalid request parameters"
-                  code: "BAD_REQUEST"
+                  details: 'Invalid request parameters'
+                  code: 'BAD_REQUEST'
             license_not_found:
-              summary: "License not found (404)"
+              summary: 'License not found (404)'
               value:
                 data: null
                 result:
-                  timestamp: "2023-09-15T14:30:00Z"
+                  timestamp: '2023-09-15T14:30:00Z'
                   valid: false
-                  details: "License not found"
-                  code: "LICENSE_NOT_FOUND"
+                  details: 'License not found'
+                  code: 'LICENSE_NOT_FOUND'
             rate_limit:
-              summary: "Rate limit exceeded (429)"
+              summary: 'Rate limit exceeded (429)'
               value:
                 data: null
                 result:
-                  timestamp: "2023-09-15T14:30:00Z"
+                  timestamp: '2023-09-15T14:30:00Z'
                   valid: false
-                  details: "Rate limit exceeded"
-                  code: "RATE_LIMIT"
+                  details: 'Rate limit exceeded'
+                  code: 'RATE_LIMIT'
 
     # Legacy aliases for backward compatibility
     BadRequest:

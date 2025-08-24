@@ -1,12 +1,12 @@
 paths:
   /api/v1/client/teams/{teamId}/verification/classloader:
     get:
-      summary: "Download Release"
-      operationId: "downloadRelease"
+      summary: 'Download Release'
+      operationId: 'downloadRelease'
       description: |
         The Classloader endpoint is used to download a release file. It is primarily intended for programming languages 
         that support loading business logic code directly from a remote server into memory. For example, this is commonly used with Java classloaders.
-        
+
         The downloaded file is encrypted using the session key provided in the request. The client must decrypt the file using the same session key.
       tags:
         - Client - Verify
@@ -21,66 +21,66 @@ paths:
         - $ref: '../../components/parameters/common.yaml#/components/parameters/Branch'
       responses:
         '200':
-          description: "Successful response with encrypted file download"
+          description: 'Successful response with encrypted file download'
           headers:
             Content-Type:
-              description: "The MIME type of the file"
+              description: 'The MIME type of the file'
               schema:
                 type: string
-              example: "application/octet-stream"
+              example: 'application/octet-stream'
             X-File-Size:
-              description: "Size of the file in bytes"
+              description: 'Size of the file in bytes'
               schema:
                 type: string
-              example: "1048576"
+              example: '1048576'
             X-Product-Name:
-              description: "Name of the product"
+              description: 'Name of the product'
               schema:
                 type: string
-              example: "My Software"
+              example: 'My Software'
             X-Release-Status:
-              description: "Status of the release"
+              description: 'Status of the release'
               schema:
                 $ref: '../../components/schemas/product.yaml#/components/schemas/ReleaseStatus'
-              example: "PUBLISHED"
+              example: 'PUBLISHED'
             X-Release-Created-At:
-              description: "Creation date of the release"
+              description: 'Creation date of the release'
               schema:
                 type: string
                 format: date-time
-              example: "2023-09-15T14:30:00Z"
+              example: '2023-09-15T14:30:00Z'
             X-File-Created-At:
-              description: "Creation date of the file"
+              description: 'Creation date of the file'
               schema:
                 type: string
                 format: date-time
-              example: "2023-09-15T14:25:00Z"
+              example: '2023-09-15T14:25:00Z'
             X-Version:
-              description: "Version of the release being downloaded"
+              description: 'Version of the release being downloaded'
               schema:
                 type: string
-              example: "1.2.3"
+              example: '1.2.3'
             X-Latest-Version:
-              description: "Latest version available (may differ from downloaded version)"
+              description: 'Latest version available (may differ from downloaded version)'
               schema:
                 type: string
-              example: "1.2.4"
+              example: '1.2.4'
             X-Lukittu-Version:
-              description: "Version of the Lukittu platform"
+              description: 'Version of the Lukittu platform'
               schema:
                 type: string
-              example: "2.1.0"
+              example: '2.1.0'
             X-Main-Class:
-              description: "Main class name for Java JAR files"
+              description: 'Main class name for Java JAR files'
               schema:
                 type: string
-              example: "com.example.Main"
+              example: 'com.example.Main'
           content:
             application/octet-stream:
               schema:
                 type: string
                 format: binary
-                description: "Encrypted file content"
+                description: 'Encrypted file content'
         '4XX':
           $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
         '5XX':

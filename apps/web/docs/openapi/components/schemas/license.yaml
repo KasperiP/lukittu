@@ -78,7 +78,7 @@ components:
           type: integer
           nullable: true
           deprecated: true
-          description: "@deprecated Use hwidLimit instead. Kept for backward compatibility."
+          description: '@deprecated Use hwidLimit instead. Kept for backward compatibility.'
       required:
         - id
         - licenseKey

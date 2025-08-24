@@ -1,12 +1,12 @@
 paths:
   /api/v1/client/teams/{teamId}/verification/verify:
     post:
-      summary: "Verify License"
-      operationId: "verifyLicense"
+      summary: 'Verify License'
+      operationId: 'verifyLicense'
       description: |
         This endpoint is used to validate a license key with the Lukittu backend. 
         Typically, you should call this endpoint when your software starts and act based on the response provided.
-        
+
         **Important Note**: If you are using a programming language that supports loading business logic code remotely 
         (e.g., Java with a Remote ClassLoader), you should not use this endpoint. Instead, use the "classloader" endpoint for enhanced security.
       tags:
@@ -21,59 +21,59 @@ paths:
               $ref: '../../components/schemas/license.yaml#/components/schemas/VerifyLicenseRequest'
             examples:
               basic-verification:
-                summary: "Basic license verification"
+                summary: 'Basic license verification'
                 value:
-                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
+                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
               with-challenge:
-                summary: "Verification with challenge for security"
+                summary: 'Verification with challenge for security'
                 value:
-                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
-                  challenge: "randomChallenge123456"
-                  hardwareIdentifier: "ABC123DEF456GHI789"
-                  version: "1.2.3"
+                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
+                  challenge: 'randomChallenge123456'
+                  hardwareIdentifier: 'ABC123DEF456GHI789'
+                  version: '1.2.3'
               strict-validation:
-                summary: "Verification with strict customer and product validation"
+                summary: 'Verification with strict customer and product validation'
                 value:
-                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
-                  customerId: "789e0123-e89b-12d3-a456-426614174222"
-                  productId: "012e3456-e89b-12d3-a456-426614174333"
-                  hardwareIdentifier: "ABC123DEF456GHI789"
+                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
+                  customerId: '789e0123-e89b-12d3-a456-426614174222'
+                  productId: '012e3456-e89b-12d3-a456-426614174333'
+                  hardwareIdentifier: 'ABC123DEF456GHI789'
       responses:
         '200':
-          description: "Successful license verification response"
+          description: 'Successful license verification response'
           content:
             application/json:
               schema:
                 $ref: '../../components/schemas/license.yaml#/components/schemas/VerificationResponse'
               examples:
                 valid-license:
-                  summary: "Valid license with data"
+                  summary: 'Valid license with data'
                   value:
                     data:
                       license:
                         ipLimit: 5
                         hwidLimit: 3
-                        expirationType: "DURATION"
-                        expirationStart: "ACTIVATION"
+                        expirationType: 'DURATION'
+                        expirationStart: 'ACTIVATION'
                         expirationDays: 30
                         metadata:
-                          - key: "tier"
-                            value: "premium"
+                          - key: 'tier'
+                            value: 'premium'
                       customers:
-                        - email: "customer@example.com"
-                          fullName: "John Doe"
+                        - email: 'customer@example.com'
+                          fullName: 'John Doe'
                       products:
-                        - name: "My Software"
-                          url: "https://example.com"
+                        - name: 'My Software'
+                          url: 'https://example.com'
                           latestRelease:
-                            version: "1.2.3"
-                            createdAt: "2023-09-15T14:30:00Z"
+                            version: '1.2.3'
+                            createdAt: '2023-09-15T14:30:00Z'
                     result:
-                      timestamp: "2023-09-15T14:30:00Z"
+                      timestamp: '2023-09-15T14:30:00Z'
                       valid: true
-                      details: "License is valid and active"
-                      code: "VALID"
-                      challengeResponse: "signedChallengeResponse123"
+                      details: 'License is valid and active'
+                      code: 'VALID'
+                      challengeResponse: 'signedChallengeResponse123'
         '4XX':
           $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
         '5XX':
@@ -82,8 +82,8 @@ paths:
 
   /api/v1/client/teams/{teamId}/verification/heartbeat:
     post:
-      summary: "License Heartbeat"
-      operationId: "licenseHeartbeat"
+      summary: 'License Heartbeat'
+      operationId: 'licenseHeartbeat'
       description: |
         The Heartbeat endpoint is used to determine whether a specific device is still active. 
         You should call this endpoint at regular intervals (e.g., once every 30 minutes). 
@@ -100,20 +100,20 @@ paths:
               $ref: '../../components/schemas/license.yaml#/components/schemas/HeartbeatRequest'
             examples:
               basic-heartbeat:
-                summary: "Basic heartbeat request"
+                summary: 'Basic heartbeat request'
                 value:
-                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
-                  hardwareIdentifier: "ABC123DEF456GHI789"
+                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
+                  hardwareIdentifier: 'ABC123DEF456GHI789'
               with-version-tracking:
-                summary: "Heartbeat with version and branch tracking"
+                summary: 'Heartbeat with version and branch tracking'
                 value:
-                  licenseKey: "ABCD1-EFGH2-IJKL3-MNOP4-QRST5"
-                  hardwareIdentifier: "ABC123DEF456GHI789"
-                  version: "1.2.3"
-                  branch: "main"
+                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
+                  hardwareIdentifier: 'ABC123DEF456GHI789'
+                  version: '1.2.3'
+                  branch: 'main'
       responses:
         '200':
-          description: "Successful heartbeat response"
+          description: 'Successful heartbeat response'
           content:
             application/json:
               schema:
@@ -123,12 +123,12 @@ paths:
                   license:
                     ipLimit: 5
                     hwidLimit: 3
-                    expirationType: "NEVER"
+                    expirationType: 'NEVER'
                 result:
-                  timestamp: "2023-09-15T14:30:00Z"
+                  timestamp: '2023-09-15T14:30:00Z'
                   valid: true
-                  details: "Heartbeat successful"
-                  code: "VALID"
+                  details: 'Heartbeat successful'
+                  code: 'VALID'
         '4XX':
           $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
         '5XX':

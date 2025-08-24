@@ -70,7 +70,7 @@ components:
         address:
           type: string
           description: The IP address
-          example: "192.168.1.100"
+          example: '192.168.1.100'
         status:
           $ref: '#/components/schemas/IpStatus'
         forgotten:
@@ -80,17 +80,17 @@ components:
           type: string
           nullable: true
           description: Country name where the IP is located
-          example: "United States"
+          example: 'United States'
         alpha2:
           type: string
           nullable: true
           description: ISO 3166-1 alpha-2 country code
-          example: "US"
+          example: 'US'
         alpha3:
           type: string
           nullable: true
           description: ISO 3166-1 alpha-3 country code
-          example: "USA"
+          example: 'USA'
         licenseId:
           $ref: './common.yaml#/components/schemas/UUID'
         teamId:
