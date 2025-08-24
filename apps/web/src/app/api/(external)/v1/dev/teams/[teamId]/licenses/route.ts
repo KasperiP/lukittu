@@ -6,6 +6,7 @@ import {
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { isRateLimited } from '@/lib/security/rate-limiter';
+import { getIp } from '@/lib/utils/header-helpers';
 import {
   CreateLicenseSchema,
   createLicenseSchema,
@@ -30,6 +31,8 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
@@ -37,11 +40,35 @@ export async function POST(
   props: { params: Promise<{ teamId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId } = params;
+    logger.info('Dev API: Create license request started', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/licenses',
+      method: 'POST',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid teamId provided for license creation', {
+        requestId,
+        providedTeamId: teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
       return NextResponse.json(
         {
           data: null,
@@ -60,6 +87,17 @@ export async function POST(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: API key authentication failed', {
+        requestId,
+        teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.UNAUTHORIZED,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -76,9 +114,26 @@ export async function POST(
     }
 
     const body = (await request.json()) as CreateLicenseSchema;
+
     const validated = await createLicenseSchema().safeParseAsync(body);
 
     if (!validated.success) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: License creation validation failed', {
+        requestId,
+        teamId,
+        validationErrors: validated.error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+          code: err.code,
+        })),
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: validated.error.errors.map((error) => ({
@@ -118,6 +173,19 @@ export async function POST(
     });
 
     if (licenseAmount >= team.limits.maxLicenses) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: License limit exceeded', {
+        requestId,
+        teamId,
+        currentCount: licenseAmount,
+        maxAllowed: team.limits.maxLicenses,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.FORBIDDEN,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -157,6 +225,24 @@ export async function POST(
     ]);
 
     if (products.length !== productIds.length) {
+      const responseTime = Date.now() - requestTime.getTime();
+      const foundProductIds = products.map((p) => p.id);
+      const missingProductIds = productIds.filter(
+        (id) => !foundProductIds.includes(id),
+      );
+
+      logger.warn('Dev API: Referenced products not found', {
+        requestId,
+        teamId,
+        requestedProductIds: productIds,
+        foundProductIds,
+        missingProductIds,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -171,6 +257,24 @@ export async function POST(
     }
 
     if (customers.length !== customerIds.length) {
+      const responseTime = Date.now() - requestTime.getTime();
+      const foundCustomerIds = customers.map((c) => c.id);
+      const missingCustomerIds = customerIds.filter(
+        (id) => !foundCustomerIds.includes(id),
+      );
+
+      logger.warn('Dev API: Referenced customers not found', {
+        requestId,
+        teamId,
+        requestedCustomerIds: customerIds,
+        foundCustomerIds,
+        missingCustomerIds,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -187,6 +291,18 @@ export async function POST(
     const licenseKey = await generateUniqueLicense(teamId);
 
     if (!licenseKey) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.error('Dev API: License key generation failed', {
+        requestId,
+        teamId,
+        error: 'generateUniqueLicense returned null',
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -253,9 +369,15 @@ export async function POST(
             const key = `email-delivery:${team.id}`;
             const isLimited = await isRateLimited(key, 50, 86400); // 50 requests per day
             if (isLimited) {
-              logger.error(
-                `Rate limit exceeded for email delivery for team ${team.id}`,
-              );
+              logger.warn('Dev API: Email delivery rate limit exceeded', {
+                requestId,
+                teamId: team.id,
+                rateLimitKey: key,
+                dailyLimit: 50,
+                responseTimeMs: Date.now() - requestTime.getTime(),
+                ipAddress,
+                userAgent,
+              });
               throw new RateLimitExceededError();
             }
 
@@ -278,7 +400,17 @@ export async function POST(
 
             if (!success) {
               logger.error(
-                `Failed to send email delivery for license ${license.id}`,
+                'Dev API: Email delivery failed during license creation',
+                {
+                  requestId,
+                  teamId: team.id,
+                  licenseId: license.id,
+                  recipientCount: customerEmails.length,
+                  customerEmails,
+                  responseTimeMs: Date.now() - requestTime.getTime(),
+                  ipAddress,
+                  userAgent,
+                },
               );
               throw new EmailDeliveryError();
             }
@@ -325,9 +457,31 @@ export async function POST(
 
       void attemptWebhookDelivery(webhookEventIds);
 
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.info('Dev API: License created successfully', {
+        requestId,
+        teamId,
+        licenseId: response.data.id,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.OK,
+        emailDelivery: sendEmailDelivery || false,
+      });
+
       return NextResponse.json(response);
     } catch (txError) {
-      logger.error('Transaction error:', txError);
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.error('Dev API: License creation transaction failed', {
+        requestId,
+        teamId,
+        route: '/v1/dev/teams/[teamId]/licenses',
+        error: txError instanceof Error ? txError.message : String(txError),
+        errorType: txError?.constructor?.name || 'Unknown',
+        responseTimeMs: responseTime,
+        ipAddress,
+        userAgent,
+      });
 
       if (txError instanceof RateLimitExceededError) {
         return NextResponse.json(
@@ -368,10 +522,21 @@ export async function POST(
       );
     }
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Create license failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/licenses',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -410,11 +575,36 @@ export async function GET(
   props: { params: Promise<{ teamId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId } = params;
+    logger.info('Dev API: Get licenses request started', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/licenses',
+      method: 'GET',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid teamId provided for license listing', {
+        requestId,
+        providedTeamId: teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -433,6 +623,20 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for license listing',
+        {
+          requestId,
+          teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -709,12 +913,32 @@ export async function GET(
       },
     };
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Licenses retrieved successfully', {
+      requestId,
+      teamId,
+      totalResults,
+      returnedCount: formattedLicenses.length,
+      hasNextPage,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response);
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get licenses failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/licenses',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,

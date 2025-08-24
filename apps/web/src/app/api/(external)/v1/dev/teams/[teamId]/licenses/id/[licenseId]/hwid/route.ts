@@ -1,7 +1,10 @@
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
+import { getIp } from '@/lib/utils/header-helpers';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import { logger, Prisma, prisma, regex } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 type HwidStatus = 'active' | 'inactive' | 'forgotten';
@@ -11,11 +14,40 @@ export async function GET(
   props: { params: Promise<{ teamId: string; licenseId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
+  const { teamId, licenseId } = params;
+
+  logger.info('Dev API: Get HWIDs request started', {
+    requestId,
+    teamId,
+    licenseId,
+    route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid',
+    method: 'GET',
+    userAgent,
+    ipAddress,
+    timestamp: requestTime.toISOString(),
+  });
 
   try {
-    const { teamId, licenseId } = params;
-
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for HWID retrieval',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -32,6 +64,21 @@ export async function GET(
     }
 
     if (!licenseId || !regex.uuidV4.test(licenseId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid licenseId format provided for HWID retrieval',
+        {
+          requestId,
+          teamId,
+          providedLicenseId: licenseId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -50,6 +97,18 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: API key authentication failed for HWID retrieval', {
+        requestId,
+        teamId,
+        licenseId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.UNAUTHORIZED,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -77,6 +136,18 @@ export async function GET(
     });
 
     if (!licenseExists) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: License not found for HWID retrieval', {
+        requestId,
+        teamId,
+        licenseId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -171,6 +242,18 @@ export async function GET(
       };
     });
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Get HWIDs completed successfully', {
+      requestId,
+      teamId,
+      licenseId,
+      hwidCount: formattedHwids.length,
+      totalResults,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(
       {
         data: {
@@ -189,10 +272,20 @@ export async function GET(
       },
     );
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get HWIDs failed', {
+      requestId,
+      teamId,
+      licenseId,
+      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
+
     return NextResponse.json(
       {
         data: null,

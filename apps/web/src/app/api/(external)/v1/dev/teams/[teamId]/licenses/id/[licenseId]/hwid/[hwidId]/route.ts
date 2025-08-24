@@ -1,5 +1,6 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
+import { getIp } from '@/lib/utils/header-helpers';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -10,6 +11,8 @@ import {
   prisma,
   regex,
 } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function PATCH(
@@ -19,11 +22,41 @@ export async function PATCH(
   },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
+  const { teamId, licenseId, hwidId } = params;
+
+  logger.info('Dev API: Manage HWID request started', {
+    requestId,
+    teamId,
+    licenseId,
+    hwidId,
+    route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]',
+    method: 'PATCH',
+    userAgent,
+    ipAddress,
+    timestamp: requestTime.toISOString(),
+  });
 
   try {
-    const { teamId, licenseId, hwidId } = params;
-
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for HWID management',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -40,6 +73,21 @@ export async function PATCH(
     }
 
     if (!licenseId || !regex.uuidV4.test(licenseId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid licenseId format provided for HWID management',
+        {
+          requestId,
+          teamId,
+          providedLicenseId: licenseId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -56,6 +104,22 @@ export async function PATCH(
     }
 
     if (!hwidId || !regex.uuidV4.test(hwidId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid hwidId format provided for HWID management',
+        {
+          requestId,
+          teamId,
+          licenseId,
+          providedHwidId: hwidId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -74,6 +138,22 @@ export async function PATCH(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for HWID management',
+        {
+          requestId,
+          teamId,
+          licenseId,
+          hwidId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -93,6 +173,24 @@ export async function PATCH(
     const { forgotten } = body;
 
     if (typeof forgotten !== 'boolean') {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid forgotten value provided for HWID management',
+        {
+          requestId,
+          teamId,
+          licenseId,
+          hwidId,
+          providedValue: forgotten,
+          expectedType: 'boolean',
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -127,6 +225,22 @@ export async function PATCH(
       existingHwid.licenseId !== licenseId ||
       existingHwid.teamId !== teamId
     ) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Hardware identifier not found for management', {
+        requestId,
+        teamId,
+        licenseId,
+        hwidId,
+        existingHwidFound: !!existingHwid,
+        licenseIdMatch: existingHwid?.licenseId === licenseId,
+        teamIdMatch: existingHwid?.teamId === teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -184,14 +298,39 @@ export async function PATCH(
       return response;
     });
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Manage HWID completed successfully', {
+      requestId,
+      teamId,
+      licenseId,
+      hwidId,
+      action: forgotten ? 'forgotten' : 'remembered',
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response, {
       status: HttpStatus.OK,
     });
   } catch (error) {
-    logger.error(
-      "Error in PATCH '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Manage HWID failed', {
+      requestId,
+      teamId,
+      licenseId,
+      hwidId,
+      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

@@ -1,5 +1,6 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
+import { getIp } from '@/lib/utils/header-helpers';
 import {
   setCustomerSchema,
   SetCustomerSchema,
@@ -19,6 +20,8 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -26,11 +29,40 @@ export async function GET(
   props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId, customerId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId, customerId } = params;
+    logger.info('Dev API: Get customer by ID request started', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      method: 'GET',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for customer lookup',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -47,6 +79,21 @@ export async function GET(
     }
 
     if (!customerId || !regex.uuidV4.test(customerId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid customerId format provided for customer lookup',
+        {
+          requestId,
+          teamId,
+          providedCustomerId: customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -65,6 +112,21 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for customer lookup',
+        {
+          requestId,
+          teamId,
+          customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -92,6 +154,18 @@ export async function GET(
     });
 
     if (!customer) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer not found for lookup', {
+        requestId,
+        teamId,
+        customerId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -107,6 +181,20 @@ export async function GET(
       );
     }
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Customer found successfully', {
+      requestId,
+      teamId,
+      customerId,
+      customerEmail: customer.email,
+      customerName: customer.fullName,
+      hasAddress: !!customer.address,
+      metadataCount: customer.metadata.length,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(
       {
         data: customer,
@@ -121,10 +209,19 @@ export async function GET(
       },
     );
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get customer by ID failed', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,
@@ -146,11 +243,40 @@ export async function PUT(
   props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId, customerId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId, customerId } = params;
+    logger.info('Dev API: Update customer request started', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      method: 'PUT',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for customer update',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -167,6 +293,21 @@ export async function PUT(
     }
 
     if (!customerId || !regex.uuidV4.test(customerId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid customerId format provided for customer update',
+        {
+          requestId,
+          teamId,
+          providedCustomerId: customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -185,6 +326,21 @@ export async function PUT(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for customer update',
+        {
+          requestId,
+          teamId,
+          customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -201,9 +357,27 @@ export async function PUT(
     }
 
     const body = (await request.json()) as SetCustomerSchema;
+
     const validated = await setCustomerSchema().safeParseAsync(body);
 
     if (!validated.success) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer update validation failed', {
+        requestId,
+        teamId,
+        customerId,
+        validationErrors: validated.error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+          code: err.code,
+        })),
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -227,6 +401,18 @@ export async function PUT(
     });
 
     if (!existingCustomer) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer not found for update', {
+        requestId,
+        teamId,
+        customerId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -313,12 +499,36 @@ export async function PUT(
 
     void attemptWebhookDelivery(webhookEventIds);
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Customer updated successfully', {
+      requestId,
+      teamId,
+      customerId,
+      customerEmail: response.data.email,
+      customerName: response.data.fullName,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {
-    logger.error(
-      "Error in PUT '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Update customer failed', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -357,11 +567,40 @@ export async function DELETE(
   props: { params: Promise<{ teamId: string; customerId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId, customerId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId, customerId } = params;
+    logger.info('Dev API: Delete customer request started', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      method: 'DELETE',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for customer deletion',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -378,6 +617,21 @@ export async function DELETE(
     }
 
     if (!customerId || !regex.uuidV4.test(customerId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid customerId format provided for customer deletion',
+        {
+          requestId,
+          teamId,
+          providedCustomerId: customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -396,6 +650,21 @@ export async function DELETE(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for customer deletion',
+        {
+          requestId,
+          teamId,
+          customerId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -423,6 +692,18 @@ export async function DELETE(
     });
 
     if (!customer) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer not found for deletion', {
+        requestId,
+        teamId,
+        customerId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -484,14 +765,35 @@ export async function DELETE(
 
     void attemptWebhookDelivery(webhookEventIds);
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Customer deleted successfully', {
+      requestId,
+      teamId,
+      customerId,
+      customerEmail: customer.email,
+      customerName: customer.fullName,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response, {
       status: HttpStatus.OK,
     });
   } catch (error) {
-    logger.error(
-      "Error in DELETE '(external)/v1/dev/teams/[teamId]/customers/[customerId]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Delete customer failed', {
+      requestId,
+      teamId,
+      customerId,
+      route: '/v1/dev/teams/[teamId]/customers/[customerId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,

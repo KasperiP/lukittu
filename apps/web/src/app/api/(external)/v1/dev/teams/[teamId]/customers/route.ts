@@ -1,5 +1,6 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
+import { getIp } from '@/lib/utils/header-helpers';
 import {
   SetCustomerSchema,
   setCustomerSchema,
@@ -19,6 +20,8 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -26,11 +29,36 @@ export async function GET(
   props: { params: Promise<{ teamId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId } = params;
+    logger.info('Dev API: Get customers request started', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/customers',
+      method: 'GET',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid teamId provided for customer listing', {
+        requestId,
+        providedTeamId: teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -49,6 +77,20 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for customer listing',
+        {
+          requestId,
+          teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -144,6 +186,21 @@ export async function GET(
 
     // License ID validation
     if (licenseId && !regex.uuidV4.test(licenseId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid licenseId format provided for customer filtering',
+        {
+          requestId,
+          teamId,
+          providedLicenseId: licenseId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -288,12 +345,32 @@ export async function GET(
       },
     };
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Customers retrieved successfully', {
+      requestId,
+      teamId,
+      totalResults,
+      returnedCount: formattedCustomers.length,
+      hasNextPage,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response);
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/customers' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get customers failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/customers',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,
@@ -315,11 +392,36 @@ export async function POST(
   props: { params: Promise<{ teamId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId } = params;
+    logger.info('Dev API: Create customer request started', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/customers',
+      method: 'POST',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid teamId provided for customer creation', {
+        requestId,
+        providedTeamId: teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -338,6 +440,20 @@ export async function POST(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for customer creation',
+        {
+          requestId,
+          teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -354,9 +470,26 @@ export async function POST(
     }
 
     const body = (await request.json()) as SetCustomerSchema;
+
     const validated = await setCustomerSchema().safeParseAsync(body);
 
     if (!validated.success) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer creation validation failed', {
+        requestId,
+        teamId,
+        validationErrors: validated.error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message,
+          code: err.code,
+        })),
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -379,6 +512,19 @@ export async function POST(
     });
 
     if (customerAmount >= team.limits.maxCustomers) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Customer limit exceeded', {
+        requestId,
+        teamId,
+        currentCount: customerAmount,
+        maxAllowed: team.limits.maxCustomers,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -456,12 +602,34 @@ export async function POST(
 
     void attemptWebhookDelivery(webhookEventIds);
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Customer created successfully', {
+      requestId,
+      teamId,
+      customerId: response.data.id,
+      email: response.data.email,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.CREATED,
+    });
+
     return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/customers' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Create customer failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/customers',
+      error: error instanceof Error ? error.message : String(error),
+      errorType:
+        error instanceof SyntaxError
+          ? 'SyntaxError'
+          : error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(

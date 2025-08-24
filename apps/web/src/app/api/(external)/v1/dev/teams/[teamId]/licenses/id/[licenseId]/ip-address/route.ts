@@ -1,8 +1,11 @@
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { iso3toIso2, iso3ToName } from '@/lib/utils/country-helpers';
+import { getIp } from '@/lib/utils/header-helpers';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import { logger, Prisma, prisma, regex } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 type IpStatus = 'active' | 'inactive' | 'forgotten';
@@ -12,11 +15,40 @@ export async function GET(
   props: { params: Promise<{ teamId: string; licenseId: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
+  const { teamId, licenseId } = params;
+
+  logger.info('Dev API: Get IP addresses request started', {
+    requestId,
+    teamId,
+    licenseId,
+    route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/ip-address',
+    method: 'GET',
+    userAgent,
+    ipAddress,
+    timestamp: requestTime.toISOString(),
+  });
 
   try {
-    const { teamId, licenseId } = params;
-
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for IP address retrieval',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -33,6 +65,21 @@ export async function GET(
     }
 
     if (!licenseId || !regex.uuidV4.test(licenseId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid licenseId format provided for IP address retrieval',
+        {
+          requestId,
+          teamId,
+          providedLicenseId: licenseId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -51,6 +98,21 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for IP address retrieval',
+        {
+          requestId,
+          teamId,
+          licenseId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -78,6 +140,18 @@ export async function GET(
     });
 
     if (!licenseExists) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: License not found for IP address retrieval', {
+        requestId,
+        teamId,
+        licenseId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -178,6 +252,18 @@ export async function GET(
       };
     });
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Get IP addresses completed successfully', {
+      requestId,
+      teamId,
+      licenseId,
+      ipCount: formattedIpAddresses.length,
+      totalResults,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(
       {
         data: {
@@ -196,10 +282,20 @@ export async function GET(
       },
     );
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses/id/[licenseId]/ip-address' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get IP addresses failed', {
+      requestId,
+      teamId,
+      licenseId,
+      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/ip-address',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
+
     return NextResponse.json(
       {
         data: null,

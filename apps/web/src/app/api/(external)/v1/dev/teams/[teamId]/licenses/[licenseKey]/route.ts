@@ -1,5 +1,6 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
+import { getIp } from '@/lib/utils/header-helpers';
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -15,6 +16,8 @@ import {
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
+import crypto from 'crypto';
+import { headers } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
@@ -22,11 +25,40 @@ export async function GET(
   props: { params: Promise<{ teamId: string; licenseKey: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId, licenseKey } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId, licenseKey } = params;
+    logger.info('Dev API: Get license by key request started', {
+      requestId,
+      teamId,
+      licenseKey,
+      route: '/v1/dev/teams/[teamId]/licenses/[licenseKey]',
+      method: 'GET',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for license lookup',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -43,6 +75,19 @@ export async function GET(
     }
 
     if (!licenseKey || !regex.licenseKey.test(licenseKey)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid license key format provided', {
+        requestId,
+        teamId,
+        providedLicenseKey: licenseKey,
+        expectedFormat: 'Valid license key pattern',
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -61,6 +106,18 @@ export async function GET(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: API key authentication failed for license lookup', {
+        requestId,
+        teamId,
+        licenseKey,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.UNAUTHORIZED,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -101,6 +158,16 @@ export async function GET(
     });
 
     if (!license) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.info('Dev API: License not found', {
+        requestId,
+        teamId,
+        licenseKey,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -115,6 +182,19 @@ export async function GET(
         },
       );
     }
+
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: License found successfully', {
+      requestId,
+      teamId,
+      licenseKey,
+      licenseId: license.id,
+      customerCount: license.customers.length,
+      productCount: license.products.length,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
 
     return NextResponse.json(
       {
@@ -136,10 +216,19 @@ export async function GET(
       },
     );
   } catch (error) {
-    logger.error(
-      "Error in '(external)/v1/dev/teams/[teamId]/licenses/[licenseKey]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get license by key failed', {
+      requestId,
+      teamId,
+      licenseKey,
+      route: '/v1/dev/teams/[teamId]/licenses/[licenseKey]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,
@@ -161,11 +250,40 @@ export async function DELETE(
   props: { params: Promise<{ teamId: string; licenseKey: string }> },
 ): Promise<NextResponse<IExternalDevResponse>> {
   const params = await props.params;
+  const { teamId, licenseKey } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
 
   try {
-    const { teamId, licenseKey } = params;
+    logger.info('Dev API: Delete license by key request started', {
+      requestId,
+      teamId,
+      licenseKey,
+      route: '/v1/dev/teams/[teamId]/licenses/[licenseKey]',
+      method: 'DELETE',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: Invalid teamId format provided for license deletion',
+        {
+          requestId,
+          providedTeamId: teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -182,6 +300,19 @@ export async function DELETE(
     }
 
     if (!licenseKey || !regex.licenseKey.test(licenseKey)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid license key format provided for deletion', {
+        requestId,
+        teamId,
+        providedLicenseKey: licenseKey,
+        expectedFormat: 'Valid license key pattern',
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -200,6 +331,21 @@ export async function DELETE(
     const { team } = await verifyApiAuthorization(teamId);
 
     if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for license deletion',
+        {
+          requestId,
+          teamId,
+          licenseKey,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
       return NextResponse.json(
         {
           data: null,
@@ -232,6 +378,19 @@ export async function DELETE(
     });
 
     if (!license) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: License not found for deletion', {
+        requestId,
+        teamId,
+        licenseKey,
+        hmacGenerated: hmac.substring(0, 8) + '...',
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -293,14 +452,36 @@ export async function DELETE(
 
     void attemptWebhookDelivery(webhookEventIds);
 
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: License deleted successfully', {
+      requestId,
+      teamId,
+      licenseKey,
+      licenseId: license.id,
+      customerCount: license.customers.length,
+      productCount: license.products.length,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
     return NextResponse.json(response, {
       status: HttpStatus.OK,
     });
   } catch (error) {
-    logger.error(
-      "Error in DELETE '(external)/v1/dev/teams/[teamId]/licenses/[licenseKey]' route",
-      error,
-    );
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Delete license by key failed', {
+      requestId,
+      teamId,
+      licenseKey,
+      route: '/v1/dev/teams/[teamId]/licenses/[licenseKey]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json(
       {
         data: null,
