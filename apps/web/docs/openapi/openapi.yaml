@@ -79,6 +79,20 @@ paths:
   /api/v1/dev/teams/{teamId}/licenses/{licenseKey}:
     $ref: './paths/dev/licenses.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1{licenseKey}'
   
+  # Developer license HWID endpoints
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/hwid:
+    $ref: './paths/dev/license-hwids.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}~1hwid'
+  
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/hwid/{hwidId}:
+    $ref: './paths/dev/license-hwids.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}~1hwid~1{hwidId}'
+  
+  # Developer license IP address endpoints
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/ip-address:
+    $ref: './paths/dev/license-ips.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}~1ip-address'
+  
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/ip-address/{ipId}:
+    $ref: './paths/dev/license-ips.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}~1ip-address~1{ipId}'
+  
   # Developer customer endpoints
   /api/v1/dev/teams/{teamId}/customers:
     $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers'

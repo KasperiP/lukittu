@@ -1,0 +1,146 @@
+paths:
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/ip-address:
+    get:
+      summary: "List License IP Addresses"
+      operationId: "listLicenseIpAddresses"
+      description: |
+        Retrieve a paginated list of IP addresses associated with a specific license.
+        Includes status calculation based on team timeout settings, country information, and filtering options.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/Page'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/PageSize'
+        - name: sortColumn
+          in: query
+          description: "Column to sort by"
+          required: false
+          schema:
+            type: string
+            enum: ['lastSeenAt', 'createdAt']
+            default: 'lastSeenAt'
+        - name: sortDirection
+          in: query
+          description: "Sort direction"
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+        - name: showForgotten
+          in: query
+          description: "Whether to include forgotten IP addresses"
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: "IP addresses retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license-identifiers.yaml#/components/schemas/IpAddressesListResponse'
+              example:
+                data:
+                  ipAddresses:
+                    - id: "789e0123-e89b-12d3-a456-426614174333"
+                      address: "192.168.1.100"
+                      status: "active"
+                      forgotten: false
+                      country: "United States"
+                      alpha2: "US"
+                      alpha3: "USA"
+                      licenseId: "456e7890-e89b-12d3-a456-426614174111"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      lastSeenAt: "2023-09-15T14:25:00Z"
+                      createdAt: "2023-09-15T10:00:00Z"
+                      updatedAt: "2023-09-15T14:25:00Z"
+                    - id: "890e1234-e89b-12d3-a456-426614174444"
+                      address: "10.0.0.50"
+                      status: "inactive"
+                      forgotten: false
+                      country: "Canada"
+                      alpha2: "CA"
+                      alpha3: "CAN"
+                      licenseId: "456e7890-e89b-12d3-a456-426614174111"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      lastSeenAt: "2023-09-14T08:00:00Z"
+                      createdAt: "2023-09-14T08:00:00Z"
+                      updatedAt: "2023-09-14T08:00:00Z"
+                  totalResults: 2
+                  hasNextPage: false
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "IP addresses retrieved successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/ip-address/{ipId}:
+    patch:
+      summary: "Update IP Address Status"
+      operationId: "updateIpAddressStatus"
+      description: |
+        Update the forgotten status of an IP address. This allows you to 
+        "forget" (soft delete) or "remember" (restore) IP addresses.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+        - name: ipId
+          in: path
+          required: true
+          description: "IP address ID"
+          schema:
+            $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - forgotten
+              properties:
+                forgotten:
+                  type: boolean
+                  description: "Whether to mark this IP address as forgotten"
+            examples:
+              forget-ip:
+                summary: "Forget IP address"
+                value:
+                  forgotten: true
+              remember-ip:
+                summary: "Remember IP address"
+                value:
+                  forgotten: false
+      responses:
+        '200':
+          description: "IP address updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license-identifiers.yaml#/components/schemas/IpAddressUpdateResponse'
+              example:
+                data:
+                  ipId: "789e0123-e89b-12d3-a456-426614174333"
+                  forgotten: true
+                  updated: true
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "IP address forgotten successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []

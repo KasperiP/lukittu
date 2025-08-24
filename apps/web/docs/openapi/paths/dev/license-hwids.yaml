@@ -1,0 +1,140 @@
+paths:
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/hwid:
+    get:
+      summary: "List License Hardware Identifiers"
+      operationId: "listLicenseHwids"
+      description: |
+        Retrieve a paginated list of hardware identifiers (HWIDs) associated with a specific license.
+        Includes status calculation based on team timeout settings and filtering options.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/Page'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/PageSize'
+        - name: sortColumn
+          in: query
+          description: "Column to sort by"
+          required: false
+          schema:
+            type: string
+            enum: ['lastSeenAt', 'createdAt']
+            default: 'lastSeenAt'
+        - name: sortDirection
+          in: query
+          description: "Sort direction"
+          required: false
+          schema:
+            type: string
+            enum: ['asc', 'desc']
+            default: 'desc'
+        - name: showForgotten
+          in: query
+          description: "Whether to include forgotten hardware identifiers"
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: "Hardware identifiers retrieved successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license-identifiers.yaml#/components/schemas/HardwareIdentifiersListResponse'
+              example:
+                data:
+                  hwids:
+                    - id: "789e0123-e89b-12d3-a456-426614174333"
+                      identifier: "HWID-ABC123-XYZ789"
+                      status: "active"
+                      forgotten: false
+                      licenseId: "456e7890-e89b-12d3-a456-426614174111"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      lastSeenAt: "2023-09-15T14:25:00Z"
+                      createdAt: "2023-09-15T10:00:00Z"
+                      updatedAt: "2023-09-15T14:25:00Z"
+                    - id: "890e1234-e89b-12d3-a456-426614174444"
+                      identifier: "HWID-DEF456-UVW012"
+                      status: "inactive"
+                      forgotten: false
+                      licenseId: "456e7890-e89b-12d3-a456-426614174111"
+                      teamId: "123e4567-e89b-12d3-a456-426614174000"
+                      lastSeenAt: "2023-09-14T08:00:00Z"
+                      createdAt: "2023-09-14T08:00:00Z"
+                      updatedAt: "2023-09-14T08:00:00Z"
+                  totalResults: 2
+                  hasNextPage: false
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Hardware identifiers retrieved successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
+  /api/v1/dev/teams/{teamId}/licenses/id/{licenseId}/hwid/{hwidId}:
+    patch:
+      summary: "Update Hardware Identifier Status"
+      operationId: "updateHwidStatus"
+      description: |
+        Update the forgotten status of a hardware identifier. This allows you to 
+        "forget" (soft delete) or "remember" (restore) hardware identifiers.
+      tags:
+        - Dev - Licenses
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/LicenseId'
+        - name: hwidId
+          in: path
+          required: true
+          description: "Hardware identifier ID"
+          schema:
+            $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - forgotten
+              properties:
+                forgotten:
+                  type: boolean
+                  description: "Whether to mark this hardware identifier as forgotten"
+            examples:
+              forget-hwid:
+                summary: "Forget hardware identifier"
+                value:
+                  forgotten: true
+              remember-hwid:
+                summary: "Remember hardware identifier"
+                value:
+                  forgotten: false
+      responses:
+        '200':
+          description: "Hardware identifier updated successfully"
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/license-identifiers.yaml#/components/schemas/HardwareIdentifierUpdateResponse'
+              example:
+                data:
+                  hwidId: "789e0123-e89b-12d3-a456-426614174333"
+                  forgotten: true
+                  updated: true
+                result:
+                  timestamp: "2023-09-15T14:30:00Z"
+                  valid: true
+                  details: "Hardware identifier forgotten successfully"
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
