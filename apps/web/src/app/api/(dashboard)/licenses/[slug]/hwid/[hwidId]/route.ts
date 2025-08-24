@@ -126,6 +126,7 @@ export async function PATCH(
         where: {
           id: hwidId,
           licenseId,
+          teamId: team.id,
         },
         data: {
           forgotten: Boolean(forgotten),

@@ -144,32 +144,6 @@ export async function GET(
       }),
     ]);
 
-    // Get team settings for timeout calculation
-    const teamSettings = await prisma.settings.findUnique({
-      where: {
-        teamId,
-      },
-      select: {
-        ipTimeout: true,
-      },
-    });
-
-    if (!teamSettings) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Team settings not found',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        {
-          status: HttpStatus.NOT_FOUND,
-        },
-      );
-    }
-
     const formattedIpAddresses = ipAddresses.map((ip) => {
       if (ip.forgotten) {
         return {
@@ -181,7 +155,7 @@ export async function GET(
         };
       }
 
-      const ipAddressTimeout = teamSettings?.ipTimeout || null;
+      const ipAddressTimeout = team.settings?.ipTimeout || null;
 
       const lastSeenAt = new Date(ip.lastSeenAt);
       const now = new Date();

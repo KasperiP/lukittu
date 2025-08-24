@@ -143,32 +143,6 @@ export async function GET(
       }),
     ]);
 
-    // Get team settings for timeout calculation
-    const teamSettings = await prisma.settings.findUnique({
-      where: {
-        teamId,
-      },
-      select: {
-        hwidTimeout: true,
-      },
-    });
-
-    if (!teamSettings) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Team settings not found',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        {
-          status: HttpStatus.NOT_FOUND,
-        },
-      );
-    }
-
     const formattedHwids = hardwareIdentifiers.map((hwid) => {
       if (hwid.forgotten) {
         return {
@@ -177,7 +151,7 @@ export async function GET(
         };
       }
 
-      const hwidTimeout = teamSettings?.hwidTimeout || null;
+      const hwidTimeout = team.settings?.hwidTimeout || null;
 
       const lastSeenAt = new Date(hwid.lastSeenAt);
       const now = new Date();

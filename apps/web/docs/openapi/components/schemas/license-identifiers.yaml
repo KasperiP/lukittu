@@ -180,13 +180,9 @@ components:
                 forgotten:
                   type: boolean
                   description: Current forgotten status
-                updated:
-                  type: boolean
-                  description: Whether the update was successful
               required:
                 - hwidId
                 - forgotten
-                - updated
 
     # IP Address Update Response
     IpAddressUpdateResponse:
@@ -202,10 +198,6 @@ components:
                 forgotten:
                   type: boolean
                   description: Current forgotten status
-                updated:
-                  type: boolean
-                  description: Whether the update was successful
               required:
                 - ipId
                 - forgotten
-                - updated

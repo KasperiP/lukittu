@@ -133,7 +133,6 @@ paths:
                 data:
                   ipId: "789e0123-e89b-12d3-a456-426614174333"
                   forgotten: true
-                  updated: true
                 result:
                   timestamp: "2023-09-15T14:30:00Z"
                   valid: true

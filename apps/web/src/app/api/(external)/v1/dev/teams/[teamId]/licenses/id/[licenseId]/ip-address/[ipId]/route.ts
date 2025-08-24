@@ -146,6 +146,8 @@ export async function PATCH(
       await prisma.ipAddress.update({
         where: {
           id: ipId,
+          licenseId,
+          teamId,
         },
         data: {
           forgotten: Boolean(forgotten),
@@ -156,7 +158,6 @@ export async function PATCH(
         data: {
           ipId,
           forgotten: Boolean(forgotten),
-          updated: true,
         },
         result: {
           details: forgotten

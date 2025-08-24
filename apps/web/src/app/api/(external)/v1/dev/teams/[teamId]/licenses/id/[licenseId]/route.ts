@@ -342,6 +342,7 @@ export async function PUT(
       // Check if the new license key is already in use
       const existingKeyCheck = await prisma.license.findFirst({
         where: {
+          teamId: team.id,
           licenseKeyLookup: generateHMAC(`${licenseKey}:${teamId}`),
           NOT: {
             id: licenseId,
@@ -579,6 +580,7 @@ export async function DELETE(
       await prisma.license.delete({
         where: {
           id: license.id,
+          teamId: team.id,
         },
       });
 

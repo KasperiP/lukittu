@@ -146,6 +146,8 @@ export async function PATCH(
       await prisma.hardwareIdentifier.update({
         where: {
           id: hwidId,
+          licenseId,
+          teamId,
         },
         data: {
           forgotten: Boolean(forgotten),
@@ -156,7 +158,6 @@ export async function PATCH(
         data: {
           hwidId,
           forgotten: Boolean(forgotten),
-          updated: true,
         },
         result: {
           details: forgotten
