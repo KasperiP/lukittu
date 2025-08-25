@@ -56,6 +56,21 @@ export const handleInvoicePaid = async (
       return;
     }
 
+    // At the beginning, after the billing_reason check
+    if (!invoice.subscription || typeof invoice.subscription !== 'string') {
+      logger.info(
+        'handleInvoicePaid: Stripe invoice skipped - not a subscription invoice',
+        {
+          requestId,
+          teamId: team.id,
+          invoiceId: invoice.id,
+          billingReason: invoice.billing_reason,
+          subscriptionId: invoice.subscription,
+        },
+      );
+      return;
+    }
+
     const subscription = await stripe.subscriptions.retrieve(
       invoice.subscription as string,
     );

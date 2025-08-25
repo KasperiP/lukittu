@@ -571,6 +571,27 @@ describe('Stripe Integration', () => {
       );
     });
 
+    test('skips if no subscription ID', async () => {
+      const invoice = {
+        ...mockInvoice,
+        billing_reason: 'manual' as Stripe.Invoice.BillingReason,
+        subscription: null,
+      };
+
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleInvoicePaid: Stripe invoice skipped - not a subscription invoice',
+        {
+          requestId: 'test-request-id',
+          teamId: mockTeam.id,
+          invoiceId: invoice.id,
+          billingReason: invoice.billing_reason,
+          subscriptionId: invoice.subscription,
+        },
+      );
+    });
+
     test('skips if license already exists for subscription_create', async () => {
       const invoice = {
         ...mockInvoice,
