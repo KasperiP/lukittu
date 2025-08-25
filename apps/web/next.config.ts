@@ -14,6 +14,7 @@ const withNextIntl = createNextIntlPlugin({
 const nextConfig: NextConfig = {
   reactStrictMode: false, // TODO: Enable, fixes react-leaflet for nextjs 15
   output: 'standalone',
+  typedRoutes: true,
   poweredByHeader: false,
   outputFileTracingRoot: path.join(__dirname, '../../'),
   env: {
