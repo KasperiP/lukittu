@@ -11,7 +11,7 @@
 
 # [Lukittu](https://lukittu.com)
 
-**Lukittu** (a Finnish word meaning *"locked"*) is a modern software licensing service that provides robust APIs to enhance the security and trackability of your applications. It introduces a licensing layer to protect proprietary software from unauthorized sharing and misuse, offering benefits such as enhanced security, usage analytics, easy integration, and flexible licensing. Lukittu is particularly suitable for applications like game scripts and add-ons running on client servers, including platforms like Minecraft, FiveM, and Roblox.
+**Lukittu** (a Finnish word meaning _"locked"_) is a modern software licensing service that provides robust APIs to enhance the security and trackability of your applications. It introduces a licensing layer to protect proprietary software from unauthorized sharing and misuse, offering benefits such as enhanced security, usage analytics, easy integration, and flexible licensing. Lukittu is particularly suitable for applications like game scripts and add-ons running on client servers, including platforms like Minecraft, FiveM, and Roblox.
 
 ## Features
 
