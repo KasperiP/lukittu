@@ -239,7 +239,7 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
                         <User className="h-4 w-4 shrink-0" />
                         <Link
                           className="text-primary hover:underline"
-                          href={`/dashboard/users/${license.createdBy.id}`}
+                          href={`/dashboard/team/members?memberId=${license.createdBy.id}`}
                         >
                           {license.createdBy.fullName}
                         </Link>

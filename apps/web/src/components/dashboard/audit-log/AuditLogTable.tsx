@@ -143,7 +143,7 @@ const ExpandedContent = React.memo(
                 </h3>
                 <Link
                   className="truncate text-sm font-semibold text-primary hover:underline"
-                  href={`/dashboard/${auditLog.targetType.toLowerCase()}s/${auditLog.targetId}`}
+                  href={`/dashboard/${auditLog.targetType.toLowerCase() as 'customer' | 'license' | 'product'}s/${auditLog.targetId}`}
                   title={auditLog.targetId}
                 >
                   {auditLog.targetId}

@@ -13,16 +13,17 @@ import {
   Users,
   Webhook,
 } from 'lucide-react';
+import { Route } from 'next';
 import { Messages } from 'next-intl';
 
 type Submenu = {
-  href: string;
+  href: Route;
   translation: keyof Messages['dashboard']['navigation'];
   active: boolean;
 };
 
 type Menu = {
-  href: string;
+  href: Route;
   translation: keyof Messages['dashboard']['navigation'];
   active: boolean;
   icon: LucideIcon;
@@ -136,7 +137,7 @@ export function getMenuList(pathname: string): Group[] {
       groupTranslation: '',
       menus: [
         {
-          href: '',
+          href: '' as Route,
           translation: 'team',
           active: pathname.startsWith('/dashboard/team'),
           icon: Shield,

@@ -33,6 +33,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
 import { AlertCircle, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -86,7 +87,7 @@ export default function RegisterCard() {
     });
 
     if (response.redirected) {
-      return router.push(response.url);
+      return router.push(response.url as Route);
     }
 
     const data = (await response.json()) as IAuthRegisterResponse;

@@ -16,3 +16,6 @@ tsconfig.tsbuildinfo
 npm-debug.log
 README.md
 .next
+.pnpm-debug.log*
+docker
+docs

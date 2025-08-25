@@ -44,6 +44,7 @@ import {
   Rocket,
   Search,
 } from 'lucide-react';
+import { Route } from 'next';
 import { Messages, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -83,7 +84,7 @@ interface MenuProps {
 }
 
 interface FlatMenuItem {
-  href: string;
+  href: Route;
   translation: string;
   isSubmenu?: boolean;
   parentTranslation?: string;

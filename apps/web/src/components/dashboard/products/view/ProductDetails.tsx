@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Copy, User } from 'lucide-react';
+import { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -74,7 +75,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 product.url ? (
                   <Link
                     className="block truncate text-primary hover:underline"
-                    href={product.url}
+                    href={product.url as Route}
                   >
                     {product.url}
                   </Link>
@@ -123,7 +124,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                         <User className="h-4 w-4 shrink-0" />
                         <Link
                           className="text-primary hover:underline"
-                          href={`/dashboard/users/${product.createdBy.id}`}
+                          href={`/dashboard/team/members?memberId=${product.createdBy.id}`}
                         >
                           {product.createdBy.fullName}
                         </Link>

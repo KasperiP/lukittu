@@ -37,6 +37,7 @@ import {
   Rss,
   Search,
 } from 'lucide-react';
+import { Route } from 'next';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -267,7 +268,7 @@ export function ProductsTable() {
                             {product.url ? (
                               <Link
                                 className="line-clamp-1 break-all text-sm font-semibold text-primary"
-                                href={product.url}
+                                href={product.url as Route}
                               >
                                 {product.url}
                               </Link>

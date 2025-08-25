@@ -203,7 +203,7 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
                         <UserIcon className="h-4 w-4 shrink-0" />
                         <Link
                           className="text-primary hover:underline"
-                          href={`/dashboard/users/${webhook.createdBy.id}`}
+                          href={`/dashboard/team/members?memberId=${webhook.createdBy.id}`}
                         >
                           {webhook.createdBy.fullName}
                         </Link>

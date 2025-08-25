@@ -274,7 +274,7 @@ export function WebhookEventDetailsModal({
                     <UserIcon className="h-4 w-4 shrink-0" />
                     <Link
                       className="text-sm text-primary hover:underline"
-                      href={`/dashboard/users/${event.user.id}`}
+                      href={`/dashboard/team/members?memberId=${event.user.id}`}
                     >
                       {event.user.fullName}
                     </Link>

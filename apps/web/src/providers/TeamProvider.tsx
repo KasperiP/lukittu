@@ -1,6 +1,7 @@
 'use client';
 import { ITeamsAcceptInviteResponse } from '@/app/api/(dashboard)/teams/invite/[slug]/route';
 import { Limits, regex, Subscription, Team } from '@lukittu/shared';
+import { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -111,7 +112,7 @@ export const TeamProvider = ({ children }: { children: React.ReactNode }) => {
         toast.error(error.message ?? t('general.server_error'));
       } finally {
         if (invite && pathname) {
-          router.replace(pathname);
+          router.replace(pathname as Route);
         }
       }
     })();

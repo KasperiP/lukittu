@@ -123,7 +123,7 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
                         <User className="h-4 w-4 shrink-0" />
                         <Link
                           className="text-primary hover:underline"
-                          href={`/dashboard/users/${customer.createdBy.id}`}
+                          href={`/dashboard/team/members?memberId=${customer.createdBy.id}`}
                         >
                           {customer.createdBy.fullName}
                         </Link>
