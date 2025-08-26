@@ -1889,6 +1889,23 @@ async function finalizeLicenseCreation(
       expirationDays = null;
     }
 
+    // Calculate expiration date for DURATION + CREATION
+    if (state.expirationType === LicenseExpirationType.DURATION) {
+      if (!expirationDays) {
+        throw new Error('Expiration days must be set for duration licenses');
+      }
+
+      if (expirationStart === LicenseExpirationStart.CREATION) {
+        const creationDate = new Date();
+        expirationDate = new Date(
+          creationDate.getTime() + expirationDays * 24 * 60 * 60 * 1000,
+        );
+      } else {
+        // For ACTIVATION, expirationDate is set upon first activation
+        expirationDate = null;
+      }
+    }
+
     const hmac = generateHMAC(`${state.licenseKey}:${state.teamId}`);
     const encryptedLicenseKey = encryptLicenseKey(state.licenseKey);
     let webhookEventIds: string[] = [];

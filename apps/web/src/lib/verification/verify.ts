@@ -490,27 +490,31 @@ export const handleVerify = async ({
       licenseKeyLookup,
     );
 
-  if (licenseExpirationCheck) {
+  if (!licenseExpirationCheck.success) {
     logger.warn('handleVerify: License expired', {
       requestId,
       teamId,
       licenseId: license.id,
-      expirationReason: licenseExpirationCheck.details,
-      status: licenseExpirationCheck.status,
+      expiredAt: licenseExpirationCheck.expiredAt,
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,
-      status: licenseExpirationCheck.status,
+      status: RequestStatus.LICENSE_EXPIRED,
       response: {
         data: null,
         result: {
           timestamp: new Date(),
           valid: false,
-          details: licenseExpirationCheck.details,
+          details: 'License expired',
         },
       },
       httpStatus: HttpStatus.FORBIDDEN,
     };
+  }
+
+  if (licenseExpirationCheck.expirationDate) {
+    license.expirationDate = licenseExpirationCheck.expirationDate;
   }
 
   if (license.ipLimit && ipAddress) {

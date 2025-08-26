@@ -3,6 +3,7 @@ import {
   Blacklist,
   BlacklistType,
   License,
+  LicenseExpirationType,
   prisma,
   RequestStatus,
   Team,
@@ -99,19 +100,19 @@ class SharedVerificationHandler {
     license: Omit<License, 'licenseKeyLookup'>,
     licenseKeyLookup: string,
   ) {
-    if (license.expirationType === 'DATE') {
+    if (license.expirationType === LicenseExpirationType.DATE) {
       const expirationDate = new Date(license.expirationDate!);
       const currentDate = new Date();
 
       if (currentDate.getTime() > expirationDate.getTime()) {
         return {
-          status: RequestStatus.LICENSE_EXPIRED,
-          details: 'License expired',
+          success: false,
+          expiredAt: expirationDate,
         };
       }
     }
 
-    if (license.expirationType === 'DURATION') {
+    if (license.expirationType === LicenseExpirationType.DURATION) {
       const hasStartedExpiring = Boolean(license.expirationDate);
 
       if (!hasStartedExpiring) {
@@ -131,20 +132,27 @@ class SharedVerificationHandler {
             expirationDate,
           },
         });
+
+        return {
+          success: true,
+          expirationDate,
+        };
       } else {
         const expirationDate = new Date(license.expirationDate!);
         const currentDate = new Date();
 
         if (currentDate.getTime() > expirationDate.getTime()) {
           return {
-            status: RequestStatus.LICENSE_EXPIRED,
-            details: 'License expired',
+            success: false,
+            expiredAt: expirationDate,
           };
         }
       }
     }
 
-    return null;
+    return {
+      success: true,
+    };
   }
 }
 

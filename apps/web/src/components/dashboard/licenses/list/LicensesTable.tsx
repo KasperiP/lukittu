@@ -5,11 +5,11 @@ import {
 } from '@/app/api/(dashboard)/licenses/route';
 import { DateConverter } from '@/components/shared/DateConverter';
 import { CustomerFilterChip } from '@/components/shared/filtering/CustomerFilterChip';
+import { HwidCountFilterChip } from '@/components/shared/filtering/HwidCountFilterChip';
 import {
   ComparisonMode,
   IpCountFilterChip,
 } from '@/components/shared/filtering/IpCountFilterChip';
-import { HwidCountFilterChip } from '@/components/shared/filtering/HwidCountFilterChip';
 import { LicenseStatusFilterChip } from '@/components/shared/filtering/LicenseStatusFilterChip';
 import { MetadataFilterChip } from '@/components/shared/filtering/MetadataFilterChip';
 import { ProductFilterChip } from '@/components/shared/filtering/ProductFilterChip';
@@ -577,11 +577,17 @@ export function LicensesTable() {
                               ? new Date(license.expirationDate).toLocaleString(
                                   locale,
                                 )
-                              : t('general.never')
+                              : license.expirationType === 'DURATION' &&
+                                  license.expirationStart === 'ACTIVATION'
+                                ? t('dashboard.licenses.not_yet_activated')
+                                : t('general.never')
                           }
                         >
                           {license.expirationDate ? (
                             <DateConverter date={license.expirationDate} />
+                          ) : license.expirationType === 'DURATION' &&
+                            license.expirationStart === 'ACTIVATION' ? (
+                            t('dashboard.licenses.not_yet_activated')
                           ) : (
                             t('general.never')
                           )}

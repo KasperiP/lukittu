@@ -24,6 +24,7 @@ import {
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
+  LicenseExpirationStart,
   LicenseStatus,
   logger,
   prisma,
@@ -322,13 +323,24 @@ export async function POST(
     const hmac = generateHMAC(`${licenseKey}:${team.id}`);
     let webhookEventIds: string[] = [];
 
+    const expirationStartFormatted =
+      expirationStart?.toUpperCase() === LicenseExpirationStart.ACTIVATION
+        ? LicenseExpirationStart.ACTIVATION
+        : LicenseExpirationStart.CREATION;
+
+    const expirationDateFormatted =
+      expirationStartFormatted === LicenseExpirationStart.CREATION &&
+      expirationDays
+        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000)
+        : expirationDate;
+
     try {
       const response = await prisma.$transaction(async (prisma) => {
         const license = await prisma.license.create({
           data: {
-            expirationDate,
             expirationDays,
-            expirationStart: expirationStart || 'CREATION',
+            expirationDate: expirationDateFormatted,
+            expirationStart: expirationStartFormatted,
             expirationType,
             ipLimit,
             licenseKey: encryptedLicenseKey,
