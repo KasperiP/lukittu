@@ -205,6 +205,7 @@
     "license_count": "License count",
     "filter_license_count": "Filter license count",
     "min": "Min",
+    "original_parameters": "Original parameters",
     "max": "Max",
     "version": "Version",
     "country": "Country",
@@ -612,7 +613,10 @@
       "delivery_rate_tooltip": "Delivery rate indicates the percentage of successfully delivered webhook events"
     },
     "licenses": {
+      "license_activated": "License Activated",
+      "license_activated_description": "This duration type license has started expiring. You can modify the expiration date directly.",
       "no_ip_addresses": "No IP-addresses",
+      "expires_after_first_use": "Expires {days} days after first use",
       "remove_product": "Remove product",
       "remove_product_warning": "Are you sure you want to remove this product from the license?",
       "remove_customer": "Remove customer",

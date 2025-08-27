@@ -386,7 +386,7 @@ export const handleClassloader = async ({
     logger.warn('handleClassloader: License not found', {
       requestId,
       teamId,
-      licenseKeyLookup: 'redacted',
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,

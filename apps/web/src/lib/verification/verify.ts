@@ -324,7 +324,7 @@ export const handleVerify = async ({
     logger.warn('handleVerify: License not found', {
       requestId,
       teamId,
-      licenseKeyLookup: 'redacted',
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,

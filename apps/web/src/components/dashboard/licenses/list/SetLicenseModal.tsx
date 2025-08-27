@@ -76,6 +76,7 @@ export default function SetLicenseModal() {
   const [removingCustomer, setRemovingCustomer] = useState<string | null>(null);
   const [pendingProductIds, setPendingProductIds] = useState<string[]>([]);
   const [pendingCustomerIds, setPendingCustomerIds] = useState<string[]>([]);
+  const [originalLicense, setOriginalLicense] = useState(ctx.licenseToEdit);
 
   const form = useForm<SetLicenseScheama>({
     resolver: zodResolver(setLicenseSchema(t)),
@@ -94,8 +95,16 @@ export default function SetLicenseModal() {
     },
   });
 
-  const { handleSubmit, setError, reset, setValue, getValues, watch, control } =
-    form;
+  const {
+    handleSubmit,
+    setError,
+    reset,
+    setValue,
+    getValues,
+    watch,
+    control,
+    clearErrors,
+  } = form;
 
   const expirationType = useWatch({
     control,
@@ -105,6 +114,8 @@ export default function SetLicenseModal() {
 
   useEffect(() => {
     if (ctx.licenseToEdit) {
+      setOriginalLicense(ctx.licenseToEdit);
+
       setValue('suspended', ctx.licenseToEdit.suspended);
       setValue('licenseKey', ctx.licenseToEdit.licenseKey);
       setValue(
@@ -129,6 +140,12 @@ export default function SetLicenseModal() {
       if (ctx.licenseToEdit.expirationType === 'DURATION') {
         setValue('expirationStart', ctx.licenseToEdit.expirationStart);
         setValue('expirationDays', ctx.licenseToEdit.expirationDays);
+        setValue(
+          'expirationDate',
+          ctx.licenseToEdit.expirationDate
+            ? new Date(ctx.licenseToEdit.expirationDate)
+            : null,
+        );
       }
 
       setValue('hwidLimit', ctx.licenseToEdit.hwidLimit);
@@ -214,19 +231,35 @@ export default function SetLicenseModal() {
   };
 
   const handleExpirationTypeChange = (type: 'NEVER' | 'DATE' | 'DURATION') => {
+    // Clear form errors when switching expiration types
+    clearErrors(['expirationDate', 'expirationDays', 'expirationStart']);
+
     setValue('expirationType', type);
-    if (type === 'NEVER') {
-      setValue('expirationDate', null);
+
+    // If switching back to original type and we have original values, restore them
+    if (originalLicense && type === originalLicense.expirationType) {
+      if (type === 'DATE') {
+        setValue('expirationDate', originalLicense.expirationDate);
+        setValue('expirationDays', null);
+        setValue('expirationStart', null);
+      } else if (type === 'DURATION') {
+        setValue('expirationStart', originalLicense.expirationStart);
+        setValue('expirationDays', originalLicense.expirationDays);
+        setValue('expirationDate', originalLicense.expirationDate);
+      } else if (type === 'NEVER') {
+        setValue('expirationDate', null);
+        setValue('expirationDays', null);
+        setValue('expirationStart', null);
+      }
+    } else {
       setValue('expirationDays', null);
-      setValue('expirationStart', null);
-    }
-    if (type === 'DATE') {
-      setValue('expirationDays', null);
-      setValue('expirationStart', null);
-    }
-    if (type === 'DURATION') {
-      setValue('expirationStart', 'CREATION');
       setValue('expirationDate', null);
+
+      if (type === 'DURATION') {
+        setValue('expirationStart', 'CREATION');
+      } else {
+        setValue('expirationStart', null);
+      }
     }
   };
 
@@ -271,6 +304,7 @@ export default function SetLicenseModal() {
     reset();
     if (!open) {
       ctx.setLicenseToEdit(null);
+      setOriginalLicense(null);
     }
   };
 
@@ -470,69 +504,200 @@ export default function SetLicenseModal() {
               )}
               {expirationType === 'DURATION' && (
                 <>
-                  <FormField
-                    control={control}
-                    name="expirationStart"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {t('dashboard.licenses.expiration_start')}
-                        </FormLabel>
-                        <Select
-                          value={field.value ?? 'CREATION'}
-                          onValueChange={field.onChange}
-                        >
+                  {/* Show current expiration status for existing DURATION licenses only */}
+                  {originalLicense?.expirationDate &&
+                    originalLicense?.expirationType === 'DURATION' && (
+                      <div className="rounded-md border bg-muted/50 p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-green-500" />
+                          <span className="text-sm font-medium">
+                            {t('dashboard.licenses.license_activated')}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t(
+                            'dashboard.licenses.license_activated_description',
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  {!originalLicense?.expirationDate &&
+                    ctx.licenseToEdit?.expirationStart === 'ACTIVATION' && (
+                      <div className="rounded-md border bg-muted/50 p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          <span className="text-sm font-medium">
+                            {t('dashboard.licenses.not_yet_activated')}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t('dashboard.licenses.expires_after_first_use', {
+                            days:
+                              ctx.licenseToEdit?.expirationDays?.toString() ||
+                              '0',
+                          })}
+                        </p>
+                      </div>
+                    )}
+
+                  {/* For activated DURATION licenses only, show date picker instead of start/days fields */}
+                  {originalLicense?.expirationDate &&
+                  originalLicense?.expirationType === 'DURATION' ? (
+                    <FormField
+                      control={control}
+                      name="expirationDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>
+                            {t('dashboard.licenses.expiration_date')}
+                          </FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
+                            <div className="relative w-full">
+                              <DateTimePicker
+                                granularity="minute"
+                                hourCycle={locale === 'en' ? 12 : 24}
                                 placeholder={t(
-                                  'dashboard.licenses.select_expiration_start',
+                                  'dashboard.licenses.expiration_date',
                                 )}
+                                value={field.value ?? undefined}
+                                onChange={(date) => {
+                                  if (!date) {
+                                    return setValue(
+                                      'expirationDate',
+                                      originalLicense?.expirationDate
+                                        ? new Date(
+                                            originalLicense.expirationDate,
+                                          )
+                                        : null,
+                                    );
+                                  }
+                                  setValue('expirationDate', date);
+                                }}
                               />
-                            </SelectTrigger>
+                              <Button
+                                className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+                                size="icon"
+                                type="button"
+                                variant="ghost"
+                                onClick={() =>
+                                  setValue(
+                                    'expirationDate',
+                                    originalLicense?.expirationDate
+                                      ? new Date(originalLicense.expirationDate)
+                                      : null,
+                                  )
+                                }
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="CREATION">
-                              {t('dashboard.licenses.creation')}
-                            </SelectItem>
-                            <SelectItem value="ACTIVATION">
-                              {t('dashboard.licenses.activation')}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ) : (
+                    <>
+                      <FormField
+                        control={control}
+                        name="expirationStart"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {t('dashboard.licenses.expiration_start')}
+                            </FormLabel>
+                            <Select
+                              value={field.value ?? 'CREATION'}
+                              onValueChange={field.onChange}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={t(
+                                      'dashboard.licenses.select_expiration_start',
+                                    )}
+                                  />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="CREATION">
+                                  {t('dashboard.licenses.creation')}
+                                </SelectItem>
+                                <SelectItem value="ACTIVATION">
+                                  {t('dashboard.licenses.activation')}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={control}
+                        name="expirationDays"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              {t('dashboard.licenses.expiration_days')}
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                min={1}
+                                placeholder={t(
+                                  'dashboard.licenses.expiration_days',
+                                )}
+                                type="number"
+                                value={field.value ?? ''}
+                                onChange={(e) => {
+                                  if (
+                                    !e.target.value ||
+                                    e.target.value === '0'
+                                  ) {
+                                    return setValue('expirationDays', null);
+                                  }
+                                  setValue('expirationDays', +e.target.value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+                  )}
+
+                  {/* Show disabled fields for reference when DURATION license is activated */}
+                  {originalLicense?.expirationDate &&
+                    originalLicense?.expirationType === 'DURATION' && (
+                      <div className="rounded-md border bg-muted/20 p-3 opacity-60">
+                        <div className="mb-2 text-sm font-medium">
+                          {t('general.original_parameters')}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <span className="font-medium">
+                              {t('dashboard.licenses.expiration_start')}
+                            </span>
+                            <div className="mt-1">
+                              {ctx.licenseToEdit?.expirationStart ===
+                              'ACTIVATION'
+                                ? t('dashboard.licenses.activation')
+                                : t('dashboard.licenses.creation')}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="font-medium">
+                              {t('dashboard.licenses.expiration_days')}:
+                            </span>
+                            <div className="mt-1">
+                              {ctx.licenseToEdit?.expirationDays}{' '}
+                              {t('general.days')}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     )}
-                  />
-                  <FormField
-                    control={control}
-                    name="expirationDays"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          {t('dashboard.licenses.expiration_days')}
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            min={1}
-                            placeholder={t(
-                              'dashboard.licenses.expiration_days',
-                            )}
-                            type="number"
-                            value={field.value ?? ''}
-                            onChange={(e) => {
-                              if (!e.target.value || e.target.value === '0') {
-                                return setValue('expirationDays', null);
-                              }
-                              setValue('expirationDays', +e.target.value);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </>
               )}
               <FormField
