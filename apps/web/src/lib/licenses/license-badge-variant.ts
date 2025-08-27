@@ -18,5 +18,7 @@ export const getLicenseStatusBadgeVariant = (
       return 'error';
     case LicenseStatus.SUSPENDED:
       return 'error';
+    case LicenseStatus.UPCOMING:
+      return 'primary';
   }
 };

@@ -367,7 +367,9 @@
     "payload_information": "Lähetyssisällön tiedot",
     "triggered_by": "Laukaissut",
     "hardware_identifier": "Laitetunniste",
-    "hardware_identifiers": "Laitetunnisteet"
+    "hardware_identifiers": "Laitetunnisteet",
+    "upcoming": "Tuleva",
+    "original_parameters": "Alkuperäiset parametrit"
   },
   "auth": {
     "oauth": {
@@ -629,7 +631,10 @@
       "delete_license_confirm_title": "Poista lisenssi",
       "delete_license_confirm_description": "Olet poistamassa lisenssiä <strong>{license}</strong>! Tämä poistaa <strong>pysyvästi</strong> tämän lisenssin. Tätä toimintoa ei voi peruuttaa.",
       "hwid_limit": "HWID-rajoitus",
-      "no_hwid_data": "Ei HWID-tietoja"
+      "no_hwid_data": "Ei HWID-tietoja",
+      "license_activated": "Lisenssi aktivoitu",
+      "license_activated_description": "Tämä määräaikainen lisenssi on alkanut vanhentua. Voit muokata vanhenemispäivää suoraan.",
+      "expires_after_first_use": "Vanhenee {days} päivän kuluttua ensimmäisestä käyttökerrasta"
     },
     "logs": {
       "no_logs": "Ei lokitietoja",

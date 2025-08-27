@@ -18,6 +18,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  calculateLicenseExpirationDate,
   createLicensePayload,
   createWebhookEvents,
   decryptLicenseKey,
@@ -25,6 +26,7 @@ import {
   generateHMAC,
   generateUniqueLicense,
   LicenseExpirationStart,
+  LicenseExpirationType,
   LicenseStatus,
   logger,
   prisma,
@@ -328,11 +330,12 @@ export async function POST(
         ? LicenseExpirationStart.ACTIVATION
         : LicenseExpirationStart.CREATION;
 
-    const expirationDateFormatted =
-      expirationStartFormatted === LicenseExpirationStart.CREATION &&
-      expirationDays
-        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000)
-        : expirationDate;
+    const expirationDateFormatted = calculateLicenseExpirationDate({
+      expirationStart: expirationStartFormatted,
+      expirationType: expirationType as LicenseExpirationType,
+      expirationDays,
+      expirationDate,
+    });
 
     try {
       const response = await prisma.$transaction(async (prisma) => {

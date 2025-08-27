@@ -1,6 +1,6 @@
 import { ILicenseGetSuccessResponse } from '@/app/api/(dashboard)/licenses/[slug]/route';
 import { DateConverter } from '@/components/shared/DateConverter';
-import { Badge } from '@/components/ui/badge';
+import { LicenseStatusBadge } from '@/components/shared/badges/LicenseStatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,9 +10,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { getLicenseStatusBadgeVariant } from '@/lib/licenses/license-badge-variant';
 import { getLicenseStatus } from '@lukittu/shared';
-import { CheckCircle, Copy, Infinity, User, XCircle } from 'lucide-react';
+import { Copy, Infinity, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -75,22 +74,10 @@ export function LicenseDetails({ license }: LicenseDetailsProps) {
             </h3>
             <div className="text-sm text-muted-foreground">
               {license ? (
-                <Badge
+                <LicenseStatusBadge
                   className="text-xs"
-                  variant={getLicenseStatusBadgeVariant(
-                    getLicenseStatus(license),
-                  )}
-                >
-                  {getLicenseStatusBadgeVariant(getLicenseStatus(license)) ===
-                  'success' ? (
-                    <CheckCircle className="mr-1 h-3 w-3" />
-                  ) : (
-                    <XCircle className="mr-1 h-3 w-3" />
-                  )}
-                  {t(
-                    `general.${getLicenseStatus(license).toLowerCase()}` as any,
-                  )}
-                </Badge>
+                  status={getLicenseStatus(license)}
+                />
               ) : (
                 <Skeleton className="h-5 w-20" />
               )}

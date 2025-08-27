@@ -4,6 +4,7 @@ import {
   ILicensesGetSuccessResponse,
 } from '@/app/api/(dashboard)/licenses/route';
 import { DateConverter } from '@/components/shared/DateConverter';
+import { LicenseStatusBadge } from '@/components/shared/badges/LicenseStatusBadge';
 import { CustomerFilterChip } from '@/components/shared/filtering/CustomerFilterChip';
 import { HwidCountFilterChip } from '@/components/shared/filtering/HwidCountFilterChip';
 import {
@@ -19,7 +20,6 @@ import AddEntityButton from '@/components/shared/misc/AddEntityButton';
 import MobileFilterModal from '@/components/shared/table/MobileFiltersModal';
 import TablePagination from '@/components/shared/table/TablePagination';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,22 +34,18 @@ import {
 } from '@/components/ui/table';
 import { useDebouncedQueryState } from '@/hooks/useDebouncedQueryState';
 import { useTableScroll } from '@/hooks/useTableScroll';
-import { getLicenseStatusBadgeVariant } from '@/lib/licenses/license-badge-variant';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { LicenseModalProvider } from '@/providers/LicenseModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
 import { getLicenseStatus, LicenseStatus } from '@lukittu/shared';
 import {
-  AlertTriangle,
   ArrowDownUp,
   Box,
-  CheckCircle,
   Clock,
   Filter,
   Key,
   Search,
   Users,
-  XCircle,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -75,24 +71,6 @@ const fetchLicenses = async (url: string) => {
   }
 
   return data;
-};
-
-const StatusBadge = ({ status, t }: { status: LicenseStatus; t: any }) => {
-  const icons = {
-    success: <CheckCircle className="mr-1 h-3 w-3" />,
-    error: <XCircle className="mr-1 h-3 w-3" />,
-    warning: <AlertTriangle className="mr-1 h-3 w-3" />,
-  };
-
-  const variant = getLicenseStatusBadgeVariant(status);
-  const icon = icons[variant as keyof typeof icons];
-
-  return (
-    <Badge className="text-xs" variant={variant}>
-      {icon}
-      {t(`general.${status.toLowerCase()}`)}
-    </Badge>
-  );
 };
 
 export function LicensesTable() {
@@ -431,9 +409,9 @@ export function LicensesTable() {
                         <div className="absolute inset-0 -mx-2 rounded-lg transition-colors group-hover:bg-secondary/80" />
                         <div className="z-10">
                           <span className="sm:hidden">
-                            <StatusBadge
+                            <LicenseStatusBadge
+                              className="text-xs"
                               status={getLicenseStatus(license)}
-                              t={t}
                             />
                           </span>
                           <p
@@ -474,9 +452,9 @@ export function LicensesTable() {
                         </div>
                         <div className="z-10 flex items-center space-x-2">
                           <span className="rounded-full px-2 py-1 text-xs font-medium max-sm:hidden">
-                            <StatusBadge
+                            <LicenseStatusBadge
+                              className="text-xs"
                               status={getLicenseStatus(license)}
-                              t={t}
                             />
                           </span>
                           <LicensesActionDropdown license={license} />
@@ -565,9 +543,9 @@ export function LicensesTable() {
                           {license.licenseKey}
                         </TableCell>
                         <TableCell className="truncate">
-                          <StatusBadge
+                          <LicenseStatusBadge
+                            className="text-xs"
                             status={getLicenseStatus(license)}
-                            t={t}
                           />
                         </TableCell>
                         <TableCell

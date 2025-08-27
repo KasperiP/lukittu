@@ -61,6 +61,8 @@ function getLicenseStatusInfo(license: ExtendedLicense) {
       return { text: 'Expired', color: Colors.Red };
     case LicenseStatus.SUSPENDED:
       return { text: 'Suspended', color: Colors.Red };
+    case LicenseStatus.UPCOMING:
+      return { text: 'Upcoming', color: Colors.Blue };
     default:
       return { text: 'Unknown', color: Colors.Grey };
   }

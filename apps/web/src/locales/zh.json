@@ -367,7 +367,9 @@
     "payload_information": "负载信息",
     "triggered_by": "触发来源",
     "hardware_identifier": "硬件标识符",
-    "hardware_identifiers": "硬件标识符"
+    "hardware_identifiers": "硬件标识符",
+    "upcoming": "即将到来",
+    "original_parameters": "原始参数"
   },
   "auth": {
     "oauth": {
@@ -629,7 +631,10 @@
       "delete_license_confirm_title": "删除许可证",
       "delete_license_confirm_description": "您即将删除许可证 <strong>{license}</strong>！这将<strong>永久删除</strong>此许可证。此操作无法撤销。",
       "hwid_limit": "HWID限制",
-      "no_hwid_data": "没有HWID数据"
+      "no_hwid_data": "没有HWID数据",
+      "license_activated": "许可证已激活",
+      "license_activated_description": "此限时许可证已开始过期。您可以直接修改到期日期。",
+      "expires_after_first_use": "首次使用后 {days} 天到期"
     },
     "logs": {
       "no_logs": "无日志",

@@ -367,7 +367,9 @@
     "payload_information": "Informacje o ładunku",
     "triggered_by": "Wywołane przez",
     "hardware_identifier": "Identyfikator sprzętu",
-    "hardware_identifiers": "Identyfikatory sprzętu"
+    "hardware_identifiers": "Identyfikatory sprzętu",
+    "upcoming": "Nadchodzący",
+    "original_parameters": "Oryginalne parametry"
   },
   "auth": {
     "oauth": {
@@ -629,7 +631,10 @@
       "delete_license_confirm_title": "Usuń licencję",
       "delete_license_confirm_description": "Zamierzasz usunąć licencję <strong>{license}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tej licencji. Tej akcji nie można cofnąć.",
       "hwid_limit": "Limit HWID",
-      "no_hwid_data": "Brak danych HWID"
+      "no_hwid_data": "Brak danych HWID",
+      "license_activated": "Licencja aktywowana",
+      "license_activated_description": "Ta licencja czasowa zaczęła wygasać. Możesz bezpośrednio zmienić datę wygaśnięcia.",
+      "expires_after_first_use": "Wygasa {days} dni po pierwszym użyciu"
     },
     "logs": {
       "no_logs": "Brak logów",

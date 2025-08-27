@@ -6,6 +6,7 @@ export enum LicenseStatus {
   EXPIRING = 'EXPIRING',
   EXPIRED = 'EXPIRED',
   SUSPENDED = 'SUSPENDED',
+  UPCOMING = 'UPCOMING',
 }
 
 export const getLicenseStatus = (
@@ -66,6 +67,8 @@ export const getLicenseStatus = (
     ) {
       return LicenseStatus.EXPIRING;
     }
+  } else {
+    return LicenseStatus.UPCOMING;
   }
 
   if (

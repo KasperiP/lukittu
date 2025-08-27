@@ -12,6 +12,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  calculateUpdatedLicenseExpirationDate,
   createWebhookEvents,
   decryptLicenseKey,
   deleteLicensePayload,
@@ -567,20 +568,13 @@ export async function PUT(
         ? LicenseExpirationStart.ACTIVATION
         : LicenseExpirationStart.CREATION;
 
-    const isDurationType = expirationType === LicenseExpirationType.DURATION;
-    const startsExpiringFromCreation =
-      expirationStartFormatted === LicenseExpirationStart.CREATION;
-    const wasPreviouslyDuration =
-      existingLicense.expirationType === LicenseExpirationType.DURATION;
-    const hasPreviousExpirationDate = Boolean(existingLicense.expirationDate);
-
-    const expirationDateFormatted =
-      isDurationType &&
-      startsExpiringFromCreation &&
-      (!hasPreviousExpirationDate || !wasPreviouslyDuration) &&
-      expirationDays
-        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000)
-        : expirationDate;
+    const expirationDateFormatted = calculateUpdatedLicenseExpirationDate({
+      expirationType: expirationType as LicenseExpirationType,
+      expirationStart: expirationStartFormatted,
+      expirationDays,
+      expirationDate,
+      existingLicense,
+    });
 
     const response = await prisma.$transaction(async (prisma) => {
       const updatedLicense = await prisma.license.update({

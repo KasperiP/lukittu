@@ -367,7 +367,9 @@
     "payload_information": "Información del contenido",
     "triggered_by": "Activado por",
     "hardware_identifier": "Identificador de hardware",
-    "hardware_identifiers": "Identificadores de hardware"
+    "hardware_identifiers": "Identificadores de hardware",
+    "upcoming": "Próximo",
+    "original_parameters": "Parámetros originales"
   },
   "auth": {
     "oauth": {
@@ -629,7 +631,10 @@
       "delete_license_confirm_title": "Eliminar licencia",
       "delete_license_confirm_description": "Estás a punto de eliminar la licencia <strong>{license}</strong>! Esto <strong>eliminará permanentemente</strong> esta licencia. Esta acción no se puede deshacer.",
       "hwid_limit": "Límite de HWID",
-      "no_hwid_data": "No hay datos de HWID"
+      "no_hwid_data": "No hay datos de HWID",
+      "license_activated": "Licencia activada",
+      "license_activated_description": "Esta licencia de duración limitada ha comenzado a expirar. Puedes modificar la fecha de vencimiento directamente.",
+      "expires_after_first_use": "Expira {days} días después del primer uso"
     },
     "logs": {
       "no_logs": "No hay registros",
