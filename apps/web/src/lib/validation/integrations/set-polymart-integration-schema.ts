@@ -14,20 +14,32 @@ export const setPolymartIntegrationSchema = (t: I18nTranslator) =>
           required_error: t('validation.polymart_webhook_secret_required'),
         })
         .min(20, {
-          message: t('validation.polymart_webhook_secret_invalid'),
+          message: t('validation.polymart_webhook_secret_invalid', {
+            min: '20',
+            max: '255',
+          }),
         })
         .max(255, {
-          message: t('validation.polymart_webhook_secret_invalid'),
+          message: t('validation.polymart_webhook_secret_invalid', {
+            min: '20',
+            max: '255',
+          }),
         }),
       signingSecret: z
         .string({
           required_error: t('validation.polymart_signing_secret_required'),
         })
         .min(20, {
-          message: t('validation.polymart_signing_secret_invalid'),
+          message: t('validation.polymart_signing_secret_invalid', {
+            min: '20',
+            max: '255',
+          }),
         })
         .max(255, {
-          message: t('validation.polymart_signing_secret_invalid'),
+          message: t('validation.polymart_signing_secret_invalid', {
+            min: '20',
+            max: '255',
+          }),
         }),
     })
     .strict();

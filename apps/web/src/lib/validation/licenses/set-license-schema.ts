@@ -14,12 +14,42 @@ const createBaseLicenseSchema = (t?: I18nTranslator) =>
       expirationType: z.enum(['DATE', 'DURATION', 'NEVER']),
       expirationStart: z.enum(['CREATION', 'ACTIVATION']).nullable(),
       expirationDate: z.coerce.date().nullable(),
-      expirationDays: z.number().positive().min(1).int().nullable(),
+      expirationDays: z
+        .number()
+        .positive()
+        .min(1, {
+          message: t?.('validation.expiration_days_min', { min: '1' }),
+        })
+        .max(1000, {
+          message: t?.('validation.expiration_days_max', { max: '1000' }),
+        })
+        .int()
+        .nullable(),
       suspended: z.boolean(),
       productIds: z.array(z.string().uuid()),
       customerIds: z.array(z.string().uuid()),
-      hwidLimit: z.number().min(1).positive().int().nullable(),
-      ipLimit: z.number().positive().int().nullable(),
+      hwidLimit: z
+        .number()
+        .min(1, {
+          message: t?.('validation.hwid_limit_min', { min: '1' }),
+        })
+        .max(1000, {
+          message: t?.('validation.hwid_limit_max', { max: '1000' }),
+        })
+        .positive()
+        .int()
+        .nullable(),
+      ipLimit: z
+        .number()
+        .min(1, {
+          message: t?.('validation.ip_limit_min', { min: '1' }),
+        })
+        .max(1000, {
+          message: t?.('validation.ip_limit_max', { max: '1000' }),
+        })
+        .positive()
+        .int()
+        .nullable(),
       metadata: metadataSchema(t),
     })
     .strict();
