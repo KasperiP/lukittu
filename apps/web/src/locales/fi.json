@@ -640,7 +640,13 @@
       "no_hwid_data": "Ei HWID-tietoja",
       "license_activated": "Lisenssi aktivoitu",
       "license_activated_description": "Tämä määräaikainen lisenssi on alkanut vanhentua. Voit muokata vanhenemispäivää suoraan.",
-      "expires_after_first_use": "Vanhenee {days} päivän kuluttua ensimmäisestä käyttökerrasta"
+      "expires_after_first_use": "Vanhenee {days} päivän kuluttua ensimmäisestä käyttökerrasta",
+      "filter_by_ip": "Suodata IP-osoitteen mukaan",
+      "filter_by_hwid": "Suodata laitetunnisteen mukaan",
+      "filter_by_license_key": "Suodata lisenssiavaimen mukaan",
+      "enter_ip_address": "Anna IP-osoite...",
+      "enter_hardware_identifier": "Anna laitetunniste...",
+      "invalid_license_key_format": "Lisenssiavaimen on oltava muodossa: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "Ei lokitietoja",

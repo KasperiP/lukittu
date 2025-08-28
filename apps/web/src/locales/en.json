@@ -661,6 +661,12 @@
       "license_deleted": "License deleted",
       "license_created": "License created",
       "search_license": "Search license...",
+      "filter_by_ip": "Filter by IP address",
+      "filter_by_hwid": "Filter by hardware identifier",
+      "filter_by_license_key": "Filter by license key",
+      "enter_ip_address": "Enter IP address...",
+      "enter_hardware_identifier": "Enter hardware identifier...",
+      "invalid_license_key_format": "License key must be in format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
       "delete_license_confirm_title": "Delete license",
       "delete_license_confirm_description": "You are about to delete license <strong>{license}</strong>! This will <strong>permanently delete</strong> this license. This action cannot be undone."
     },

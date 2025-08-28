@@ -25,6 +25,7 @@ import {
   encryptLicenseKey,
   generateHMAC,
   generateUniqueLicense,
+  getLicenseStatusFilter,
   LicenseExpirationStart,
   LicenseExpirationType,
   LicenseStatus,
@@ -753,109 +754,8 @@ export async function GET(
       ? generateHMAC(`${search}:${teamId}`)
       : undefined;
 
-    // Status filtering
-    const currentDate = new Date();
-    const thirtyDaysAgo = new Date(
-      currentDate.getTime() - 30 * 24 * 60 * 60 * 1000,
-    );
-
-    let statusFilter: Prisma.LicenseWhereInput = {};
-
-    if (status) {
-      switch (status) {
-        case LicenseStatus.ACTIVE:
-          statusFilter = {
-            suspended: false,
-            lastActiveAt: {
-              gt: thirtyDaysAgo,
-            },
-            OR: [
-              { expirationType: 'NEVER' },
-              {
-                AND: [
-                  {
-                    expirationType: {
-                      in: ['DATE', 'DURATION'],
-                    },
-                  },
-                  {
-                    expirationDate: {
-                      gt: currentDate,
-                    },
-                  },
-                  {
-                    expirationDate: {
-                      gt: new Date(
-                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                      ),
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-          break;
-        case LicenseStatus.INACTIVE:
-          statusFilter = {
-            suspended: false,
-            lastActiveAt: {
-              lte: thirtyDaysAgo,
-            },
-            OR: [
-              { expirationType: 'NEVER' },
-              {
-                AND: [
-                  { expirationType: { in: ['DATE', 'DURATION'] } },
-                  {
-                    expirationDate: {
-                      gt: currentDate,
-                    },
-                  },
-                  {
-                    expirationDate: {
-                      gt: new Date(
-                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                      ),
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-          break;
-        case LicenseStatus.EXPIRING:
-          statusFilter = {
-            suspended: false,
-            expirationType: {
-              in: ['DATE', 'DURATION'],
-            },
-            expirationDate: {
-              gt: currentDate,
-              lt: new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-            },
-          };
-          break;
-        case LicenseStatus.EXPIRED:
-          statusFilter = {
-            suspended: false,
-            expirationType: {
-              in: ['DATE', 'DURATION'],
-            },
-            expirationDate: {
-              lt: currentDate,
-            },
-          };
-          break;
-        case LicenseStatus.SUSPENDED:
-          statusFilter = {
-            suspended: true,
-          };
-          break;
-      }
-    }
-
     const where = {
-      ...statusFilter,
+      ...getLicenseStatusFilter(status),
       teamId,
       licenseKeyLookup,
       products: productIdsFormatted.length

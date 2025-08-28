@@ -640,7 +640,13 @@
       "no_hwid_data": "No hay datos de HWID",
       "license_activated": "Licencia activada",
       "license_activated_description": "Esta licencia de duración limitada ha comenzado a expirar. Puedes modificar la fecha de vencimiento directamente.",
-      "expires_after_first_use": "Expira {days} días después del primer uso"
+      "expires_after_first_use": "Expira {days} días después del primer uso",
+      "filter_by_ip": "Filtrar por dirección IP",
+      "filter_by_hwid": "Filtrar por identificador de hardware",
+      "filter_by_license_key": "Filtrar por clave de licencia",
+      "enter_ip_address": "Ingrese dirección IP...",
+      "enter_hardware_identifier": "Ingrese identificador de hardware...",
+      "invalid_license_key_format": "La clave de licencia debe tener el formato: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "No hay registros",

@@ -68,7 +68,9 @@ export const getLicenseStatus = (
       return LicenseStatus.EXPIRING;
     }
   } else {
-    return LicenseStatus.UPCOMING;
+    if (license.expirationStart === 'ACTIVATION') {
+      return LicenseStatus.UPCOMING;
+    }
   }
 
   if (

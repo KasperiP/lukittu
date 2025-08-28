@@ -2,6 +2,7 @@ import {
   decryptLicenseKey,
   generateHMAC,
   getLicenseStatus,
+  getLicenseStatusFilter,
   License,
   LicenseStatus,
   logger,
@@ -477,85 +478,9 @@ export default Command({
         licenseKeyLookup = generateHMAC(`${license}:${teamId}`);
       }
 
-      let statusFilter = {};
-
-      if (status && status !== 'ALL') {
-        const currentDate = new Date();
-        const thirtyDaysAgo = new Date(
-          currentDate.getTime() - 30 * 24 * 60 * 60 * 1000,
-        );
-
-        switch (status) {
-          case LicenseStatus.ACTIVE:
-            statusFilter = {
-              suspended: false,
-              lastActiveAt: { gt: thirtyDaysAgo },
-              OR: [
-                { expirationType: 'NEVER' },
-                {
-                  AND: [
-                    { expirationType: { in: ['DATE', 'DURATION'] } },
-                    { expirationDate: { gt: currentDate } },
-                    {
-                      expirationDate: {
-                        gt: new Date(
-                          currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                        ),
-                      },
-                    },
-                  ],
-                },
-              ],
-            };
-            break;
-          case LicenseStatus.INACTIVE:
-            statusFilter = {
-              suspended: false,
-              lastActiveAt: { lte: thirtyDaysAgo },
-              OR: [
-                { expirationType: 'NEVER' },
-                {
-                  AND: [
-                    { expirationType: { in: ['DATE', 'DURATION'] } },
-                    { expirationDate: { gt: currentDate } },
-                    {
-                      expirationDate: {
-                        gt: new Date(
-                          currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                        ),
-                      },
-                    },
-                  ],
-                },
-              ],
-            };
-            break;
-          case LicenseStatus.EXPIRING:
-            statusFilter = {
-              suspended: false,
-              expirationType: { in: ['DATE', 'DURATION'] },
-              expirationDate: {
-                gt: currentDate,
-                lt: new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-              },
-            };
-            break;
-          case LicenseStatus.EXPIRED:
-            statusFilter = {
-              suspended: false,
-              expirationType: { in: ['DATE', 'DURATION'] },
-              expirationDate: { lt: currentDate },
-            };
-            break;
-          case LicenseStatus.SUSPENDED:
-            statusFilter = { suspended: true };
-            break;
-        }
-      }
-
       const totalLicenses = await prisma.license.count({
         where: {
-          ...statusFilter,
+          ...getLicenseStatusFilter(status),
           ...(licenseKeyLookup ? { licenseKeyLookup } : {}),
           ...(productId ? { products: { some: { id: productId } } } : {}),
           ...(customerId ? { customers: { some: { id: customerId } } } : {}),
@@ -569,7 +494,7 @@ export default Command({
 
       const licenses = await prisma.license.findMany({
         where: {
-          ...statusFilter,
+          ...getLicenseStatusFilter(status),
           ...(licenseKeyLookup ? { licenseKeyLookup } : {}),
           ...(productId ? { products: { some: { id: productId } } } : {}),
           ...(customerId ? { customers: { some: { id: customerId } } } : {}),
@@ -654,7 +579,7 @@ export default Command({
 
           const newPageLicenses = await prisma.license.findMany({
             where: {
-              ...statusFilter,
+              ...getLicenseStatusFilter(status),
               ...(licenseKeyLookup ? { licenseKeyLookup } : {}),
               ...(productId ? { products: { some: { id: productId } } } : {}),
               ...(customerId

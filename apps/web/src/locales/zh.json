@@ -640,7 +640,13 @@
       "no_hwid_data": "没有HWID数据",
       "license_activated": "许可证已激活",
       "license_activated_description": "此限时许可证已开始过期。您可以直接修改到期日期。",
-      "expires_after_first_use": "首次使用后 {days} 天到期"
+      "expires_after_first_use": "首次使用后 {days} 天到期",
+      "filter_by_ip": "按IP地址筛选",
+      "filter_by_hwid": "按硬件标识符筛选",
+      "filter_by_license_key": "按许可证密钥筛选",
+      "enter_ip_address": "请输入IP地址...",
+      "enter_hardware_identifier": "请输入硬件标识符...",
+      "invalid_license_key_format": "许可证密钥的格式必须为：XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "无日志",

@@ -640,7 +640,13 @@
       "no_hwid_data": "Brak danych HWID",
       "license_activated": "Licencja aktywowana",
       "license_activated_description": "Ta licencja czasowa zaczęła wygasać. Możesz bezpośrednio zmienić datę wygaśnięcia.",
-      "expires_after_first_use": "Wygasa {days} dni po pierwszym użyciu"
+      "expires_after_first_use": "Wygasa {days} dni po pierwszym użyciu",
+      "filter_by_ip": "Filtruj według adresu IP",
+      "filter_by_hwid": "Filtruj według identyfikatora sprzętu",
+      "filter_by_license_key": "Filtruj według klucza licencyjnego",
+      "enter_ip_address": "Wprowadź adres IP...",
+      "enter_hardware_identifier": "Wprowadź identyfikator sprzętu...",
+      "invalid_license_key_format": "Klucz licencyjny musi mieć format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "Brak logów",
