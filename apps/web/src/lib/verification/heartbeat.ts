@@ -490,7 +490,7 @@ export const handleHeartbeat = async ({
       licenseKeyLookup,
     );
 
-  if (licenseExpirationCheck.success) {
+  if (!licenseExpirationCheck.success) {
     logger.warn('handleHeartbeat: License expired', {
       requestId,
       teamId,

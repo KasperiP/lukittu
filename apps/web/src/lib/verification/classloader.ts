@@ -738,7 +738,7 @@ export const handleClassloader = async ({
       licenseKeyLookup,
     );
 
-  if (licenseExpirationCheck.success) {
+  if (!licenseExpirationCheck.success) {
     logger.warn('handleClassloader: License expired', {
       requestId,
       teamId,
