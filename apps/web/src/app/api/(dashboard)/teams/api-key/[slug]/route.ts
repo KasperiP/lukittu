@@ -105,6 +105,7 @@ export async function DELETE(
       await prisma.apiKey.delete({
         where: {
           id: apiKeyId,
+          teamId: team.id,
         },
       });
 

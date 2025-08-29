@@ -245,6 +245,7 @@ export async function DELETE(
       await prisma.product.delete({
         where: {
           id: productId,
+          teamId: selectedTeam,
         },
       });
 

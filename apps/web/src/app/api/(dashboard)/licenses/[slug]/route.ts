@@ -524,6 +524,7 @@ export async function DELETE(
       await prisma.license.delete({
         where: {
           id: licenseId,
+          teamId: selectedTeam,
         },
       });
 

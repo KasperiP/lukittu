@@ -592,6 +592,7 @@ export async function DELETE(
         await prisma.release.delete({
           where: {
             id: releaseId,
+            teamId: team.id,
           },
         });
 
