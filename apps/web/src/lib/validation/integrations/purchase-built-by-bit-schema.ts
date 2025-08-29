@@ -117,6 +117,9 @@ export const purchaseBuiltByBitSchema = () =>
         .int({
           message: 'IP Limit must be an integer',
         })
+        .max(1000, {
+          message: 'IP Limit must not exceed 1000',
+        })
         .nullable(),
       hwidLimit: z
         .number({
@@ -131,6 +134,9 @@ export const purchaseBuiltByBitSchema = () =>
         .int({
           message: 'HWID Limit must be an integer',
         })
+        .max(1000, {
+          message: 'HWID Limit must not exceed 1000',
+        })
         .nullable(),
       expirationDays: z
         .number({
@@ -141,6 +147,9 @@ export const purchaseBuiltByBitSchema = () =>
         })
         .min(1, {
           message: 'Expiration days must be at least 1',
+        })
+        .max(1000, {
+          message: 'Expiration days must not exceed 1000',
         })
         .int({
           message: 'Expiration days must be an integer',

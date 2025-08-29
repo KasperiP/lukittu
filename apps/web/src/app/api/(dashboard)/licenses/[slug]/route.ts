@@ -12,6 +12,7 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  calculateUpdatedLicenseExpirationDate,
   createWebhookEvents,
   Customer,
   decryptLicenseKey,
@@ -19,6 +20,8 @@ import {
   encryptLicenseKey,
   generateHMAC,
   License,
+  LicenseExpirationStart,
+  LicenseExpirationType,
   logger,
   Metadata,
   prisma,
@@ -330,13 +333,26 @@ export async function PUT(
     const encryptedLicenseKey = encryptLicenseKey(licenseKey);
     let webhookEventIds: string[] = [];
 
+    const expirationStartFormatted =
+      expirationStart?.toUpperCase() === LicenseExpirationStart.ACTIVATION
+        ? LicenseExpirationStart.ACTIVATION
+        : LicenseExpirationStart.CREATION;
+
+    const expirationDateFormatted = calculateUpdatedLicenseExpirationDate({
+      expirationType: expirationType as LicenseExpirationType,
+      expirationStart: expirationStartFormatted,
+      expirationDays,
+      expirationDate,
+      existingLicense: licenseExists,
+    });
+
     const response = await prisma.$transaction(async (prisma) => {
       const updatedLicense = await prisma.license.update({
         where: { id: licenseId, teamId: team.id },
         data: {
-          expirationDate,
+          expirationDate: expirationDateFormatted,
+          expirationStart: expirationStartFormatted,
           expirationDays,
-          expirationStart: expirationStart || 'CREATION',
           expirationType,
           ipLimit,
           licenseKey: encryptedLicenseKey,
@@ -508,6 +524,7 @@ export async function DELETE(
       await prisma.license.delete({
         where: {
           id: licenseId,
+          teamId: selectedTeam,
         },
       });
 

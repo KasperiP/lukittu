@@ -1,8 +1,8 @@
 // This file configures the initialization of Sentry on the server.
 // The config you add here will be used whenever the server handles a request.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
-
 import * as Sentry from '@sentry/nextjs';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -16,7 +16,11 @@ Sentry.init({
   integrations: [
     Sentry.prismaIntegration(),
     Sentry.consoleLoggingIntegration({ levels: ['log', 'warn', 'error'] }),
+    nodeProfilingIntegration(),
   ],
+
+  profileSessionSampleRate: 1.0,
+  profileLifecycle: 'trace',
 
   enabled: process.env.NODE_ENV !== 'development',
 

@@ -137,13 +137,13 @@
     "release_exists_this_branch": "Wydanie z tą wersją już istnieje w tej gałęzi!",
     "polymart_integration_not_found": "Integracja Polymart nie znaleziona!",
     "polymart_webhook_secret_required": "Wymagany jest tajny klucz webhook Polymart!",
-    "polymart_webhook_secret_invalid": "Nieprawidłowy tajny klucz webhook Polymart! Musi mieć od 20 do 255 znaków.",
+    "polymart_webhook_secret_invalid": "Nieprawidłowy tajny klucz webhook Polymart! Musi mieć od {min} do {max} znaków.",
     "polymart_signing_secret_required": "Wymagany jest tajny klucz podpisujący Polymart!",
-    "polymart_signing_secret_invalid": "Nieprawidłowy tajny klucz podpisujący Polymart! Musi mieć od 20 do 255 znaków.",
+    "polymart_signing_secret_invalid": "Nieprawidłowy tajny klucz podpisujący Polymart! Musi mieć od {min} do {max} znaków.",
     "webhook_limit_reached": "Osiągnięto limit webhooków.",
     "webhook_name_required": "Nazwa webhooka jest wymagana.",
-    "webhook_name_min_length": "Nazwa webhooka jest za krótka.",
-    "webhook_name_max_length": "Nazwa webhooka jest za długa.",
+    "webhook_name_min_length": "Nazwa webhooka musi mieć co najmniej {min} znaków!",
+    "webhook_name_max_length": "Nazwa webhooka może mieć maksymalnie {max} znaków!",
     "webhook_url_invalid": "Nieprawidłowy adres URL webhooka.",
     "webhook_name_already_exists": "Nazwa webhooka już istnieje.",
     "webhook_url_already_exists": "Adres URL webhooka już istnieje.",
@@ -152,7 +152,13 @@
     "ip_timeout_max": "Limit czasu IP może wynosić maksymalnie 259200 minut.",
     "hwid_timeout_max": "Limit czasu HWID może wynosić maksymalnie 259200 minut.",
     "hwid_timeout_positive": "Limit czasu HWID musi wynosić co najmniej 1 minutę!",
-    "ip_timeout_positive": "Limit czasu IP musi wynosić co najmniej 1 minutę!"
+    "ip_timeout_positive": "Limit czasu IP musi wynosić co najmniej 1 minutę!",
+    "expiration_days_min": "Liczba dni ważności musi wynosić co najmniej {min}!",
+    "expiration_days_max": "Liczba dni ważności nie może przekraczać {max}!",
+    "hwid_limit_min": "Limit HWID musi wynosić co najmniej {min}!",
+    "hwid_limit_max": "Limit HWID nie może przekraczać {max}!",
+    "ip_limit_min": "Limit IP musi wynosić co najmniej {min}!",
+    "ip_limit_max": "Limit IP nie może przekraczać {max}!"
   },
   "general": {
     "add": "Dodaj",
@@ -367,7 +373,9 @@
     "payload_information": "Informacje o ładunku",
     "triggered_by": "Wywołane przez",
     "hardware_identifier": "Identyfikator sprzętu",
-    "hardware_identifiers": "Identyfikatory sprzętu"
+    "hardware_identifiers": "Identyfikatory sprzętu",
+    "upcoming": "Nadchodzący",
+    "original_parameters": "Oryginalne parametry"
   },
   "auth": {
     "oauth": {
@@ -629,7 +637,16 @@
       "delete_license_confirm_title": "Usuń licencję",
       "delete_license_confirm_description": "Zamierzasz usunąć licencję <strong>{license}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tej licencji. Tej akcji nie można cofnąć.",
       "hwid_limit": "Limit HWID",
-      "no_hwid_data": "Brak danych HWID"
+      "no_hwid_data": "Brak danych HWID",
+      "license_activated": "Licencja aktywowana",
+      "license_activated_description": "Ta licencja czasowa zaczęła wygasać. Możesz bezpośrednio zmienić datę wygaśnięcia.",
+      "expires_after_first_use": "Wygasa {days} dni po pierwszym użyciu",
+      "filter_by_ip": "Filtruj według adresu IP",
+      "filter_by_hwid": "Filtruj według identyfikatora sprzętu",
+      "filter_by_license_key": "Filtruj według klucza licencyjnego",
+      "enter_ip_address": "Wprowadź adres IP...",
+      "enter_hardware_identifier": "Wprowadź identyfikator sprzętu...",
+      "invalid_license_key_format": "Klucz licencyjny musi mieć format: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "Brak logów",

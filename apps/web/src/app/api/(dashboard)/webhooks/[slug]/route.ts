@@ -108,6 +108,7 @@ export async function DELETE(
       await prisma.webhook.delete({
         where: {
           id: webhookId,
+          teamId: selectedTeam,
         },
       });
 

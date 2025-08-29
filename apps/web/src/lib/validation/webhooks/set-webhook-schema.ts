@@ -69,10 +69,10 @@ export const setWebhookSchema = (t: I18nTranslator) =>
           required_error: t('validation.webhook_name_required'),
         })
         .min(3, {
-          message: t('validation.webhook_name_min_length'),
+          message: t('validation.webhook_name_min_length', { min: '3' }),
         })
         .max(255, {
-          message: t('validation.webhook_name_max_length'),
+          message: t('validation.webhook_name_max_length', { max: '255' }),
         }),
       url: z
         .string({

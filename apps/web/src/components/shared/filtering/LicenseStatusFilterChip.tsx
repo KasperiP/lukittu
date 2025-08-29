@@ -37,6 +37,8 @@ export function LicenseStatusFilterChip({
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case LicenseStatus.SUSPENDED:
         return <Ban className="h-4 w-4 text-red-500" />;
+      case LicenseStatus.UPCOMING:
+        return <Clock className="h-4 w-4 text-blue-500" />;
     }
   };
 

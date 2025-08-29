@@ -4,9 +4,13 @@
   "main": "dist/src/index.js",
   "exports": {
     ".": {
+      "edge-light": "./dist/src/client.js",
       "browser": "./dist/src/client.js",
+      "node": "./dist/src/index.js",
       "default": "./dist/src/index.js"
-    }
+    },
+    "./client": "./dist/src/client.js",
+    "./server": "./dist/src/server.js"
   },
   "scripts": {
     "lint": "eslint .",

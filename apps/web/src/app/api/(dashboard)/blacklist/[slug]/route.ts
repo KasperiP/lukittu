@@ -108,6 +108,7 @@ export async function DELETE(
       await prisma.blacklist.delete({
         where: {
           id: blacklistId,
+          teamId: selectedTeam,
         },
       });
 

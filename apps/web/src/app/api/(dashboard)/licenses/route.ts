@@ -12,14 +12,17 @@ import {
   AuditLogAction,
   AuditLogSource,
   AuditLogTargetType,
+  calculateLicenseExpirationDate,
   createLicensePayload,
   createWebhookEvents,
   Customer,
   decryptLicenseKey,
   encryptLicenseKey,
   generateHMAC,
+  getLicenseStatusFilter,
   License,
   LicenseExpirationStart,
+  LicenseExpirationType,
   LicenseStatus,
   logger,
   Metadata,
@@ -65,8 +68,7 @@ export async function GET(
     const allowedPageSizes = [10, 25, 50, 100];
     const allowedSortDirections = ['asc', 'desc'];
     const allowedSortColumns = ['createdAt', 'updatedAt'];
-
-    const search = (searchParams.get('search') as string) || '';
+    const licenseKey = (searchParams.get('licenseKey') as string) || '';
 
     let page = parseInt(searchParams.get('page') as string) || 1;
     let pageSize = parseInt(searchParams.get('pageSize') as string) || 10;
@@ -139,10 +141,10 @@ export async function GET(
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
-    const isFullLicense = search.match(regex.licenseKey);
+    const isFullLicenseFromKey = licenseKey.match(regex.licenseKey);
 
-    const licenseKeyLookup = isFullLicense
-      ? generateHMAC(`${search}:${selectedTeam}`)
+    const licenseKeyLookup = isFullLicenseFromKey
+      ? generateHMAC(`${licenseKey}:${selectedTeam}`)
       : undefined;
 
     const teamSettings = await prisma.settings.findUnique({
@@ -168,8 +170,13 @@ export async function GET(
     const hwidCountMax = searchParams.get('hwidCountMax');
     const hwidCountComparisonMode = searchParams.get('hwidCountComparisonMode');
 
+    const ipAddressFilter = searchParams.get('ipAddress');
+    const hwidFilter = searchParams.get('hwid');
+
     let ipCountFilter: Prisma.LicenseWhereInput | undefined;
     let hwidCountFilter: Prisma.LicenseWhereInput | undefined;
+    let specificIpFilter: Prisma.LicenseWhereInput | undefined;
+    let specificHwidFilter: Prisma.LicenseWhereInput | undefined;
 
     if (ipCountMin) {
       const ipTimeout = teamSettings.ipTimeout || null;
@@ -273,119 +280,42 @@ export async function GET(
       }
     }
 
-    const status = searchParams.get('status') as LicenseStatus | null;
-    const currentDate = new Date();
-    const thirtyDaysAgo = new Date(
-      currentDate.getTime() - 30 * 24 * 60 * 60 * 1000,
-    );
-
-    let statusFilter: Prisma.LicenseWhereInput = {};
-
-    if (status) {
-      switch (status) {
-        case LicenseStatus.ACTIVE:
-          statusFilter = {
-            suspended: false,
-            lastActiveAt: {
-              gt: thirtyDaysAgo,
+    if (ipAddressFilter && ipAddressFilter.trim()) {
+      specificIpFilter = {
+        ipAddresses: {
+          some: {
+            ip: {
+              contains: ipAddressFilter.trim(),
+              mode: 'insensitive',
             },
-            OR: [
-              { expirationType: 'NEVER' },
-              {
-                AND: [
-                  {
-                    expirationType: {
-                      in: ['DATE', 'DURATION'],
-                    },
-                  },
-
-                  // Not expired
-                  {
-                    expirationDate: {
-                      gt: currentDate,
-                    },
-                  },
-
-                  // Not expiring (more than 30 days left)
-                  {
-                    expirationDate: {
-                      gt: new Date(
-                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                      ),
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-          break;
-        case LicenseStatus.INACTIVE:
-          statusFilter = {
-            suspended: false,
-            lastActiveAt: {
-              lte: thirtyDaysAgo,
-            },
-            OR: [
-              { expirationType: 'NEVER' },
-              {
-                AND: [
-                  { expirationType: { in: ['DATE', 'DURATION'] } },
-
-                  // Must not be expired
-                  {
-                    expirationDate: {
-                      gt: new Date(currentDate.getTime()),
-                    },
-                  },
-
-                  // Must not be expiring
-                  {
-                    expirationDate: {
-                      gt: new Date(
-                        currentDate.getTime() + 30 * 24 * 60 * 60 * 1000,
-                      ),
-                    },
-                  },
-                ],
-              },
-            ],
-          };
-          break;
-        case LicenseStatus.EXPIRING:
-          statusFilter = {
-            suspended: false,
-            expirationType: {
-              in: ['DATE', 'DURATION'],
-            },
-            expirationDate: {
-              gt: currentDate,
-              lt: new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000),
-            },
-          };
-          break;
-        case LicenseStatus.EXPIRED:
-          statusFilter = {
-            suspended: false,
-            expirationType: {
-              in: ['DATE', 'DURATION'],
-            },
-            expirationDate: {
-              lt: currentDate,
-            },
-          };
-          break;
-        case LicenseStatus.SUSPENDED:
-          statusFilter = {
-            suspended: true,
-          };
-          break;
-      }
+            forgotten: false,
+          },
+        },
+      };
     }
+
+    if (hwidFilter && hwidFilter.trim()) {
+      specificHwidFilter = {
+        hardwareIdentifiers: {
+          some: {
+            hwid: {
+              contains: hwidFilter.trim(),
+              mode: 'insensitive',
+            },
+            forgotten: false,
+          },
+        },
+      };
+    }
+
+    const status = searchParams.get('status') as LicenseStatus | null;
 
     const where = {
       ...ipCountFilter,
       ...hwidCountFilter,
-      ...statusFilter,
+      ...specificIpFilter,
+      ...specificHwidFilter,
+      ...getLicenseStatusFilter(status),
       teamId: selectedTeam,
       licenseKeyLookup,
       products: productIdsFormatted.length
@@ -684,11 +614,12 @@ export async function POST(
         ? LicenseExpirationStart.ACTIVATION
         : LicenseExpirationStart.CREATION;
 
-    const expirationDateFormatted =
-      expirationStartFormatted === LicenseExpirationStart.CREATION &&
-      expirationDays
-        ? new Date(Date.now() + expirationDays * 24 * 60 * 60 * 1000)
-        : expirationDate;
+    const expirationDateFormatted = calculateLicenseExpirationDate({
+      expirationStart: expirationStartFormatted,
+      expirationType: expirationType as LicenseExpirationType,
+      expirationDays,
+      expirationDate,
+    });
 
     const response = await prisma.$transaction(async (prisma) => {
       const license = await prisma.license.create({

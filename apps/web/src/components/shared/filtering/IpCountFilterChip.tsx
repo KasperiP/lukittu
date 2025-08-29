@@ -119,6 +119,7 @@ export function IpCountFilterChip({
 
         <div className="flex gap-2">
           <Input
+            max="1000"
             min="0"
             placeholder={
               tempComparisonMode === 'between'
@@ -138,6 +139,7 @@ export function IpCountFilterChip({
           />
           {tempComparisonMode === 'between' && (
             <Input
+              max="1000"
               min="0"
               placeholder={t('general.max')}
               type="number"

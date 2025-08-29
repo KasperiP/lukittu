@@ -4,12 +4,16 @@ import {
   ILicensesGetSuccessResponse,
 } from '@/app/api/(dashboard)/licenses/route';
 import { DateConverter } from '@/components/shared/DateConverter';
+import { LicenseStatusBadge } from '@/components/shared/badges/LicenseStatusBadge';
 import { CustomerFilterChip } from '@/components/shared/filtering/CustomerFilterChip';
 import { HwidCountFilterChip } from '@/components/shared/filtering/HwidCountFilterChip';
 import {
   ComparisonMode,
   IpCountFilterChip,
 } from '@/components/shared/filtering/IpCountFilterChip';
+import { LicenseHwidFilterChip } from '@/components/shared/filtering/LicenseHwidFilterChip';
+import { LicenseIpFilterChip } from '@/components/shared/filtering/LicenseIpFilterChip';
+import { LicenseKeyFilterChip } from '@/components/shared/filtering/LicenseKeyFilterChip';
 import { LicenseStatusFilterChip } from '@/components/shared/filtering/LicenseStatusFilterChip';
 import { MetadataFilterChip } from '@/components/shared/filtering/MetadataFilterChip';
 import { ProductFilterChip } from '@/components/shared/filtering/ProductFilterChip';
@@ -19,10 +23,8 @@ import AddEntityButton from '@/components/shared/misc/AddEntityButton';
 import MobileFilterModal from '@/components/shared/table/MobileFiltersModal';
 import TablePagination from '@/components/shared/table/TablePagination';
 import TableSkeleton from '@/components/shared/table/TableSkeleton';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -34,23 +36,11 @@ import {
 } from '@/components/ui/table';
 import { useDebouncedQueryState } from '@/hooks/useDebouncedQueryState';
 import { useTableScroll } from '@/hooks/useTableScroll';
-import { getLicenseStatusBadgeVariant } from '@/lib/licenses/license-badge-variant';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { LicenseModalProvider } from '@/providers/LicenseModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
 import { getLicenseStatus, LicenseStatus } from '@lukittu/shared';
-import {
-  AlertTriangle,
-  ArrowDownUp,
-  Box,
-  CheckCircle,
-  Clock,
-  Filter,
-  Key,
-  Search,
-  Users,
-  XCircle,
-} from 'lucide-react';
+import { ArrowDownUp, Box, Clock, Filter, Key, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -77,24 +67,6 @@ const fetchLicenses = async (url: string) => {
   return data;
 };
 
-const StatusBadge = ({ status, t }: { status: LicenseStatus; t: any }) => {
-  const icons = {
-    success: <CheckCircle className="mr-1 h-3 w-3" />,
-    error: <XCircle className="mr-1 h-3 w-3" />,
-    warning: <AlertTriangle className="mr-1 h-3 w-3" />,
-  };
-
-  const variant = getLicenseStatusBadgeVariant(status);
-  const icon = icons[variant as keyof typeof icons];
-
-  return (
-    <Badge className="text-xs" variant={variant}>
-      {icon}
-      {t(`general.${status.toLowerCase()}`)}
-    </Badge>
-  );
-};
-
 export function LicensesTable() {
   const locale = useLocale();
   const t = useTranslations();
@@ -103,10 +75,15 @@ export function LicensesTable() {
   const teamCtx = useContext(TeamContext);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [debouncedSearch, search, setDebouncedSearch, setSearch] =
+  const [debouncedSearch, , setDebouncedSearch, setSearch] =
     useDebouncedQueryState<string>('search', parseAsString.withDefault(''), {
       debounceMs: 500,
     });
+  const [licenseKey, setLicenseKey] = useQueryState(
+    'licenseKey',
+    parseAsString.withDefault(''),
+  );
+  const [tempLicenseKey, setTempLicenseKey] = useState('');
   const [productIds, setProductIds] = useQueryState<string[]>(
     'productIds',
     parseAsArrayOf(parseAsString).withDefault([]),
@@ -192,6 +169,13 @@ export function LicensesTable() {
     ] as const).withDefault('all'),
   );
   const [tempStatus, setTempStatus] = useState<LicenseStatus | 'all'>('all');
+  const [ipAddress, setIpAddress] = useQueryState(
+    'ipAddress',
+    parseAsString.withDefault(''),
+  );
+  const [tempIpAddress, setTempIpAddress] = useState('');
+  const [hwid, setHwid] = useQueryState('hwid', parseAsString.withDefault(''));
+  const [tempHwid, setTempHwid] = useState('');
 
   const searchParams = new URLSearchParams({
     page: page.toString(),
@@ -211,6 +195,9 @@ export function LicensesTable() {
       hwidCountComparisonMode === 'between' && { hwidCountMax }),
     ...(hwidCountComparisonMode && { hwidCountComparisonMode }),
     ...(status !== 'all' && { status }),
+    ...(ipAddress && { ipAddress }),
+    ...(hwid && { hwid }),
+    ...(licenseKey && { licenseKey }),
   });
 
   const { data, error, isLoading } = useSWR<ILicensesGetSuccessResponse>(
@@ -232,17 +219,12 @@ export function LicensesTable() {
 
   const renderFilters = () => (
     <div className="mb-4 flex flex-wrap items-center gap-4 max-lg:hidden">
-      <div className="relative flex w-full min-w-[33%] max-w-xs items-center">
-        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-        <Input
-          className="pl-8"
-          placeholder={t('dashboard.licenses.search_license')}
-          value={search}
-          onChange={(e) => {
-            setDebouncedSearch(e.target.value);
-          }}
-        />
-      </div>
+      <LicenseKeyFilterChip
+        licenseKey={licenseKey}
+        setLicenseKey={setLicenseKey}
+        setTempLicenseKey={setTempLicenseKey}
+        tempLicenseKey={tempLicenseKey}
+      />
 
       <ProductFilterChip
         productIds={productIds}
@@ -306,18 +288,37 @@ export function LicensesTable() {
         tempStatus={tempStatus}
       />
 
+      <LicenseIpFilterChip
+        ipAddress={ipAddress}
+        setIpAddress={setIpAddress}
+        setTempIpAddress={setTempIpAddress}
+        tempIpAddress={tempIpAddress}
+      />
+
+      <LicenseHwidFilterChip
+        hwid={hwid}
+        setHwid={setHwid}
+        setTempHwid={setTempHwid}
+        tempHwid={tempHwid}
+      />
+
       {(debouncedSearch ||
+        licenseKey ||
         productIds.length > 0 ||
         customerIds.length > 0 ||
         status !== 'all' ||
         (metadataKey && metadataValue) ||
         ipCountMin ||
-        hwidCountMin) && (
+        hwidCountMin ||
+        ipAddress ||
+        hwid) && (
         <Button
           className="h-7 rounded-full text-xs"
           size="sm"
           onClick={() => {
             setSearch('');
+            setLicenseKey('');
+            setTempLicenseKey('');
             setProductIds([]);
             setTempProductIds([]);
             setCustomerIds([]);
@@ -344,6 +345,10 @@ export function LicensesTable() {
             setSortDirection('');
             setStatus('all');
             setTempStatus('all');
+            setIpAddress('');
+            setTempIpAddress('');
+            setHwid('');
+            setTempHwid('');
           }}
         >
           {t('general.clear_all')}
@@ -362,6 +367,11 @@ export function LicensesTable() {
             placeholder: t('dashboard.licenses.search_license'),
           },
           {
+            type: 'search',
+            key: 'licenseKey',
+            placeholder: 'XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+          },
+          {
             type: 'multiselect',
             key: 'products',
             component: (props) => (
@@ -378,6 +388,7 @@ export function LicensesTable() {
         ]}
         initialFilters={{
           search: debouncedSearch,
+          licenseKey,
           products: productIds,
           customers: customerIds,
         }}
@@ -385,6 +396,7 @@ export function LicensesTable() {
         title={t('general.filters')}
         onApply={(filters) => {
           setDebouncedSearch(filters.search);
+          setLicenseKey(filters.licenseKey);
           setProductIds(filters.products);
           setCustomerIds(filters.customers);
         }}
@@ -431,9 +443,9 @@ export function LicensesTable() {
                         <div className="absolute inset-0 -mx-2 rounded-lg transition-colors group-hover:bg-secondary/80" />
                         <div className="z-10">
                           <span className="sm:hidden">
-                            <StatusBadge
+                            <LicenseStatusBadge
+                              className="text-xs"
                               status={getLicenseStatus(license)}
-                              t={t}
                             />
                           </span>
                           <p
@@ -474,9 +486,9 @@ export function LicensesTable() {
                         </div>
                         <div className="z-10 flex items-center space-x-2">
                           <span className="rounded-full px-2 py-1 text-xs font-medium max-sm:hidden">
-                            <StatusBadge
+                            <LicenseStatusBadge
+                              className="text-xs"
                               status={getLicenseStatus(license)}
-                              t={t}
                             />
                           </span>
                           <LicensesActionDropdown license={license} />
@@ -565,9 +577,9 @@ export function LicensesTable() {
                           {license.licenseKey}
                         </TableCell>
                         <TableCell className="truncate">
-                          <StatusBadge
+                          <LicenseStatusBadge
+                            className="text-xs"
                             status={getLicenseStatus(license)}
-                            t={t}
                           />
                         </TableCell>
                         <TableCell

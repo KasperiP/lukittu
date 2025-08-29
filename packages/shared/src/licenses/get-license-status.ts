@@ -6,6 +6,7 @@ export enum LicenseStatus {
   EXPIRING = 'EXPIRING',
   EXPIRED = 'EXPIRED',
   SUSPENDED = 'SUSPENDED',
+  UPCOMING = 'UPCOMING',
 }
 
 export const getLicenseStatus = (
@@ -65,6 +66,10 @@ export const getLicenseStatus = (
       new Date(license.expirationDate!).getTime() - 30 * 24 * 60 * 60 * 1000
     ) {
       return LicenseStatus.EXPIRING;
+    }
+  } else {
+    if (license.expirationStart === 'ACTIVATION') {
+      return LicenseStatus.UPCOMING;
     }
   }
 

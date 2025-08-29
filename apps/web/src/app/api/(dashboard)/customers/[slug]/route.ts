@@ -420,6 +420,7 @@ export async function DELETE(
       await prisma.customer.delete({
         where: {
           id: customerId,
+          teamId: team.id,
         },
       });
 

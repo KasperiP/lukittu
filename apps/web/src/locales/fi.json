@@ -137,13 +137,13 @@
     "branch_has_releases": "Tällä haaralla on julkaisuja, eikä sitä voi poistaa!",
     "polymart_integration_not_found": "Polymart-integraatiota ei löydy!",
     "polymart_webhook_secret_required": "Polymartin webhook-salaisuus vaaditaan!",
-    "polymart_webhook_secret_invalid": "Polymartin webhook-salaisuus on virheellinen! Sen on oltava 20-255 merkkiä pitkä.",
+    "polymart_webhook_secret_invalid": "Polymartin webhook-salaisuus on virheellinen! Sen on oltava {min}-{max} merkkiä pitkä.",
     "polymart_signing_secret_required": "Polymartin allekirjoitussalaisuus vaaditaan!",
-    "polymart_signing_secret_invalid": "Polymartin allekirjoitussalaisuus on virheellinen! Sen on oltava 20-255 merkkiä pitkä.",
+    "polymart_signing_secret_invalid": "Polymartin allekirjoitussalaisuus on virheellinen! Sen on oltava {min}-{max} merkkiä pitkä.",
     "webhook_limit_reached": "Webhooksien enimmäismäärä on saavutettu.",
     "webhook_name_required": "Webhookin nimi vaaditaan.",
-    "webhook_name_min_length": "Webhookin nimen on oltava pidempi.",
-    "webhook_name_max_length": "Webhookin nimi on liian pitkä.",
+    "webhook_name_min_length": "Webhook-nimen on oltava vähintään {min} merkkiä pitkä!",
+    "webhook_name_max_length": "Webhook-nimen on oltava enintään {max} merkkiä pitkä!",
     "webhook_url_invalid": "Webhookin URL-osoite on virheellinen.",
     "webhook_name_already_exists": "Webhookin nimi on jo käytössä.",
     "webhook_url_already_exists": "Webhookin URL-osoite on jo käytössä.",
@@ -152,7 +152,13 @@
     "ip_timeout_max": "IP-aikakatkaisu saa olla enintään 259200 minuuttia.",
     "hwid_timeout_max": "HWID-aikakatkaisu saa olla enintään 259200 minuuttia.",
     "hwid_timeout_positive": "HWID-aikakatkaisun on oltava vähintään 1 minuutti!",
-    "ip_timeout_positive": "IP-aikakatkaisun on oltava vähintään 1 minuutti!"
+    "ip_timeout_positive": "IP-aikakatkaisun on oltava vähintään 1 minuutti!",
+    "expiration_days_min": "Vanhentumispäivien on oltava vähintään {min}!",
+    "expiration_days_max": "Vanhentumispäivien ei saa ylittää {max}!",
+    "hwid_limit_min": "HWID-rajan on oltava vähintään {min}!",
+    "hwid_limit_max": "HWID-rajan ei saa ylittää {max}!",
+    "ip_limit_min": "IP-rajan on oltava vähintään {min}!",
+    "ip_limit_max": "IP-rajan ei saa ylittää {max}!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -367,7 +373,9 @@
     "payload_information": "Lähetyssisällön tiedot",
     "triggered_by": "Laukaissut",
     "hardware_identifier": "Laitetunniste",
-    "hardware_identifiers": "Laitetunnisteet"
+    "hardware_identifiers": "Laitetunnisteet",
+    "upcoming": "Tuleva",
+    "original_parameters": "Alkuperäiset parametrit"
   },
   "auth": {
     "oauth": {
@@ -629,7 +637,16 @@
       "delete_license_confirm_title": "Poista lisenssi",
       "delete_license_confirm_description": "Olet poistamassa lisenssiä <strong>{license}</strong>! Tämä poistaa <strong>pysyvästi</strong> tämän lisenssin. Tätä toimintoa ei voi peruuttaa.",
       "hwid_limit": "HWID-rajoitus",
-      "no_hwid_data": "Ei HWID-tietoja"
+      "no_hwid_data": "Ei HWID-tietoja",
+      "license_activated": "Lisenssi aktivoitu",
+      "license_activated_description": "Tämä määräaikainen lisenssi on alkanut vanhentua. Voit muokata vanhenemispäivää suoraan.",
+      "expires_after_first_use": "Vanhenee {days} päivän kuluttua ensimmäisestä käyttökerrasta",
+      "filter_by_ip": "Suodata IP-osoitteen mukaan",
+      "filter_by_hwid": "Suodata laitetunnisteen mukaan",
+      "filter_by_license_key": "Suodata lisenssiavaimen mukaan",
+      "enter_ip_address": "Anna IP-osoite...",
+      "enter_hardware_identifier": "Anna laitetunniste...",
+      "invalid_license_key_format": "Lisenssiavaimen on oltava muodossa: XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
     },
     "logs": {
       "no_logs": "Ei lokitietoja",

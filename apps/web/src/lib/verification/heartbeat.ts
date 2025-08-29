@@ -324,7 +324,7 @@ export const handleHeartbeat = async ({
     logger.warn('handleHeartbeat: License not found', {
       requestId,
       teamId,
-      licenseKeyLookup: 'redacted',
+      licenseKey: payload.licenseKey,
     });
     return {
       ...commonBase,

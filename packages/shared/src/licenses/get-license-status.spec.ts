@@ -1,5 +1,5 @@
 import { License } from '../../prisma/generated/client';
-import { getLicenseStatus } from './license-status';
+import { getLicenseStatus } from './get-license-status';
 
 const createBaseLicense = (
   override: Partial<License> = {},
