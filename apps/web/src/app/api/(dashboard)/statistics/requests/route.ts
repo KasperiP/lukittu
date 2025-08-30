@@ -296,10 +296,20 @@ export async function GET(
     // Generate time series data with proper intervals
     const data = generateTimeSeriesData(timeRange, aggregatedData);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       data,
       comparedToPrevious,
     });
+
+    // Add caching headers for analytics data
+    const cacheMaxAge =
+      timeRange === '1h' ? 60 : timeRange === '24h' ? 300 : 1800; // 1min, 5min, 30min
+    response.headers.set(
+      'Cache-Control',
+      `public, max-age=${cacheMaxAge}, stale-while-revalidate=${cacheMaxAge * 2}`,
+    );
+
+    return response;
   } catch (error) {
     logger.error("Error occurred in 'dashboard/requests' route", error);
     return NextResponse.json(
