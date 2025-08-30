@@ -134,6 +134,7 @@ export async function GET(
             include: {
               requestLogs: {
                 where: {
+                  teamId: selectedTeam,
                   licenseId: licenseId ? licenseId : undefined,
                   type: type ? type : undefined,
                   createdAt: {
