@@ -152,8 +152,9 @@ export async function GET(request: NextRequest) {
       timeRange === '1h' ? 60 : timeRange === '24h' ? 300 : 1800; // 1min, 5min, 30min
     response.headers.set(
       'Cache-Control',
-      `public, max-age=${cacheMaxAge}, stale-while-revalidate=${cacheMaxAge * 2}`,
+      `private, max-age=${cacheMaxAge}, stale-while-revalidate=${cacheMaxAge * 2}`,
     );
+    response.headers.set('Vary', 'Cookie');
 
     return response;
   } catch (error) {
