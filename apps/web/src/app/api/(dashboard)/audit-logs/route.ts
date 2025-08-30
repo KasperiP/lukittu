@@ -241,7 +241,7 @@ export async function GET(
 
     const auditlog = session.user.teams[0].auditLogs;
 
-    const requestLogsWithCountries = auditlog.map((log) => {
+    const auditLogsWithCountries = auditlog.map((log) => {
       let browser: string | null = null;
       let os: string | null = null;
       let device: string | null = null;
@@ -272,7 +272,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      auditLogs: requestLogsWithCountries,
+      auditLogs: auditLogsWithCountries,
       totalResults,
     });
   } catch (error) {

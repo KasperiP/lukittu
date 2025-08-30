@@ -3,7 +3,7 @@ import { iso3ToName } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, regex } from '@lukittu/shared';
+import { logger, prisma, Prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -27,15 +27,15 @@ const getStartDate = (timeRange: '1h' | '24h' | '7d' | '30d') => {
   const now = new Date();
   switch (timeRange) {
     case '1h':
-      return new Date(now.setHours(now.getHours() - 1));
+      return new Date(now.getTime() - 60 * 60 * 1000);
     case '24h':
-      return new Date(now.setHours(now.getHours() - 24));
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
     case '7d':
-      return new Date(now.setDate(now.getDate() - 7));
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     case '30d':
-      return new Date(now.setDate(now.getDate() - 30));
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     default:
-      return new Date(now.setHours(now.getHours() - 24));
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
   }
 };
 
@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
   const licenseId = searchParams.get('licenseId');
+
   let timeRange = searchParams.get('timeRange') as '1h' | '24h' | '7d' | '30d';
   if (!timeRange || !allowedTimeRanges.includes(timeRange)) {
     timeRange = '24h';
@@ -76,22 +77,6 @@ export async function GET(request: NextRequest) {
               id: selectedTeam,
               deletedAt: null,
             },
-            include: {
-              requestLogs: {
-                where: {
-                  licenseId: licenseId ? licenseId : undefined,
-                  createdAt: {
-                    gte: getStartDate(timeRange),
-                  },
-                  country: {
-                    not: null,
-                  },
-                },
-                select: {
-                  country: true,
-                },
-              },
-            },
           },
         },
       },
@@ -111,21 +96,54 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const requestLogs = session.user.teams[0].requestLogs;
+    const startDate = getStartDate(timeRange);
 
-    const mapData = requestLogs.reduce<MapData[]>((acc, { country }) => {
-      const existingCountry = acc.find((c) => c.alpha_3 === country);
-      if (existingCountry) {
-        existingCountry.requests += 1;
-      } else {
-        acc.push({
-          alpha_3: country!,
-          name: iso3ToName(country) ?? t('general.unknown'),
-          requests: 1,
-        });
+    const whereConditions: Prisma.Sql[] = [
+      Prisma.sql`"teamId" = ${selectedTeam}`,
+      Prisma.sql`"createdAt" >= ${startDate}`,
+      Prisma.sql`"country" IS NOT NULL`,
+    ];
+
+    if (licenseId) {
+      const licenseExists = await prisma.license.findUnique({
+        where: { id: licenseId, teamId: selectedTeam },
+      });
+
+      if (!licenseExists) {
+        return NextResponse.json(
+          { message: t('validation.license_not_found') },
+          { status: HttpStatus.NOT_FOUND },
+        );
       }
-      return acc;
-    }, []);
+
+      whereConditions.push(Prisma.sql`"licenseId" = ${licenseId}`);
+    }
+
+    const whereClause = Prisma.join(whereConditions, ' AND ');
+
+    const countryData = await prisma.$queryRaw<
+      Array<{
+        country: string;
+        requests: bigint;
+      }>
+    >(
+      Prisma.sql`
+        SELECT 
+          "country",
+          COUNT(*) as requests
+        FROM "RequestLog"
+        WHERE ${whereClause}
+        GROUP BY "country"
+        ORDER BY requests DESC
+      `,
+    );
+
+    // Convert to MapData format with country names
+    const mapData: MapData[] = countryData.map(({ country, requests }) => ({
+      alpha_3: country,
+      name: iso3ToName(country) ?? t('general.unknown'),
+      requests: Number(requests),
+    }));
 
     return NextResponse.json({ data: mapData });
   } catch (error) {

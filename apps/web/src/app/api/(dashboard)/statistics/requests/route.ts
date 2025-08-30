@@ -2,7 +2,7 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, Prisma, regex } from '@lukittu/shared';
+import { logger, prisma, Prisma, regex, RequestType } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -23,57 +23,104 @@ export type IStatisticsRequestsGetResponse =
   | IStatisticsRequestsGetSuccessResponse;
 
 const allowedTimeRanges = ['1h', '24h', '7d', '30d'] as const;
-const allowedTypes = ['VERIFY', 'DOWNLOAD', 'HEARTBEAT'];
+const allowedTypes = Object.values(RequestType);
 
 const getStartDate = (timeRange: '1h' | '24h' | '7d' | '30d') => {
   const now = new Date();
   switch (timeRange) {
     case '1h':
-      return new Date(now.setHours(now.getHours() - 1 * 2));
+      return new Date(now.getTime() - 60 * 60 * 1000);
     case '24h':
-      return new Date(now.setHours(now.getHours() - 24 * 2));
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
     case '7d':
-      return new Date(now.setDate(now.getDate() - 7 * 2));
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     case '30d':
-      return new Date(now.setDate(now.getDate() - 30 * 2));
+      return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     default:
-      return new Date(now.setHours(now.getHours() - 24 * 2));
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000);
   }
 };
 
-const groupByDateOrHour = (
-  data: any[],
+const getPreviousStartDate = (timeRange: '1h' | '24h' | '7d' | '30d') => {
+  const now = new Date();
+  switch (timeRange) {
+    case '1h':
+      return new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    case '24h':
+      return new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+    case '7d':
+      return new Date(now.getTime() - 2 * 7 * 24 * 60 * 60 * 1000);
+    case '30d':
+      return new Date(now.getTime() - 2 * 30 * 24 * 60 * 60 * 1000);
+    default:
+      return new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+  }
+};
+
+const getDateTruncateExpression = (timeRange: '1h' | '24h' | '7d' | '30d') => {
+  switch (timeRange) {
+    case '1h':
+      return 'date_trunc(\'minute\', "createdAt")';
+    case '24h':
+      return 'date_trunc(\'hour\', "createdAt")';
+    case '7d':
+    case '30d':
+      return 'date_trunc(\'day\', "createdAt")';
+    default:
+      return 'date_trunc(\'hour\', "createdAt")';
+  }
+};
+
+const generateTimeSeriesData = (
   timeRange: '1h' | '24h' | '7d' | '30d',
+  aggregatedData: Record<
+    string,
+    { total: number; success: number; failed: number }
+  >,
 ) => {
-  const getKey = (date: Date) => {
-    if (timeRange === '1h') return date.getUTCMinutes();
-    if (timeRange === '24h') return date.getUTCHours();
-    return date.toISOString().split('T')[0];
-  };
+  const data: RequestData[] = [];
+  const now = new Date();
 
-  return data.reduce(
-    (acc, item) => {
-      const date = new Date(item.createdAt);
-      const key = getKey(date);
+  if (timeRange === '1h') {
+    const startTime = new Date(now.getTime() - 60 * 60 * 1000);
+    for (let i = 0; i < 60; i++) {
+      const time = new Date(startTime.getTime() + i * 60 * 1000);
+      const key = time.toISOString().substring(0, 16) + ':00.000Z';
+      data.push({
+        date: time.toISOString(),
+        total: aggregatedData[key]?.total || 0,
+        success: aggregatedData[key]?.success || 0,
+        failed: aggregatedData[key]?.failed || 0,
+      });
+    }
+  } else if (timeRange === '24h') {
+    const startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    for (let i = 0; i < 24; i++) {
+      const time = new Date(startTime.getTime() + i * 60 * 60 * 1000);
+      const key = time.toISOString().substring(0, 13) + ':00:00.000Z';
+      data.push({
+        date: time.toISOString(),
+        total: aggregatedData[key]?.total || 0,
+        success: aggregatedData[key]?.success || 0,
+        failed: aggregatedData[key]?.failed || 0,
+      });
+    }
+  } else {
+    const days = timeRange === '7d' ? 7 : 30;
+    const startTime = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+    for (let i = 0; i < days; i++) {
+      const time = new Date(startTime.getTime() + i * 24 * 60 * 60 * 1000);
+      const key = time.toISOString().substring(0, 10) + 'T00:00:00.000Z';
+      data.push({
+        date: time.toISOString().split('T')[0],
+        total: aggregatedData[key]?.total || 0,
+        success: aggregatedData[key]?.success || 0,
+        failed: aggregatedData[key]?.failed || 0,
+      });
+    }
+  }
 
-      if (!acc[key]) {
-        acc[key] = { total: 0, success: 0, failed: 0 };
-      }
-
-      acc[key].total += 1;
-      if (item.status === 'VALID') {
-        acc[key].success += 1;
-      } else {
-        acc[key].failed += 1;
-      }
-
-      return acc;
-    },
-    {} as Record<
-      string | number,
-      { total: number; success: number; failed: number }
-    >,
-  );
+  return data;
 };
 
 export async function GET(
@@ -83,9 +130,9 @@ export async function GET(
   const searchParams = request.nextUrl.searchParams;
 
   const licenseId = searchParams.get('licenseId');
-  const type = searchParams.get('type') as string;
+  const type = searchParams.get('type');
 
-  if (type && !allowedTypes.includes(type)) {
+  if (type && !allowedTypes.includes(type as RequestType)) {
     return NextResponse.json(
       {
         message: t('validation.bad_request'),
@@ -131,22 +178,6 @@ export async function GET(
               id: selectedTeam,
               deletedAt: null,
             },
-            include: {
-              requestLogs: {
-                where: {
-                  teamId: selectedTeam,
-                  licenseId: licenseId ? licenseId : undefined,
-                  type: type ? type : undefined,
-                  createdAt: {
-                    gte: getStartDate(timeRange),
-                  },
-                } as Prisma.RequestLogWhereInput,
-                select: {
-                  createdAt: true,
-                  status: true,
-                },
-              },
-            },
           },
         },
       },
@@ -166,113 +197,104 @@ export async function GET(
       );
     }
 
-    const requestLogs = session.user.teams[0].requestLogs;
+    const startDate = getStartDate(timeRange);
+    const previousStartDate = getPreviousStartDate(timeRange);
+    const dateTruncExpression = getDateTruncateExpression(timeRange);
 
-    const filteredData = requestLogs
-      .filter((log) => {
-        if (timeRange === '1h') {
-          return (
-            new Date(log.createdAt).getTime() >
-            new Date().setHours(new Date().getHours() - 1)
-          );
-        }
+    const whereConditions: Prisma.Sql[] = [
+      Prisma.sql`"teamId" = ${selectedTeam}`,
+    ];
 
-        if (timeRange === '24h') {
-          return (
-            new Date(log.createdAt).getTime() >
-            new Date().setHours(new Date().getHours() - 23)
-          );
-        }
+    if (licenseId) {
+      const licenseExists = await prisma.license.findUnique({
+        where: { id: licenseId, teamId: selectedTeam },
+      });
 
-        if (timeRange === '7d') {
-          return (
-            new Date(log.createdAt).getTime() >
-            new Date().setDate(new Date().getDate() - 7)
-          );
-        }
-
-        return (
-          new Date(log.createdAt).getTime() >
-          new Date().setDate(new Date().getDate() - 30)
+      if (!licenseExists) {
+        return NextResponse.json(
+          { message: t('validation.license_not_found') },
+          { status: HttpStatus.NOT_FOUND },
         );
-      })
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      );
-
-    const currentDayTotal = filteredData.length;
-    const previousDayTotal = requestLogs.length - currentDayTotal;
-
-    const comparedToPrevious =
-      previousDayTotal === 0
-        ? '0%'
-        : `${Math.round(
-            ((currentDayTotal - previousDayTotal) / previousDayTotal) * 100,
-          )}%`;
-
-    const groupedData = groupByDateOrHour(filteredData, timeRange);
-
-    const data = [];
-
-    if (timeRange === '1h') {
-      const currentMinute = new Date().getMinutes();
-      const startDate = new Date(
-        new Date().setMinutes(currentMinute - (60 - 1), 0, 0),
-      );
-
-      for (let m = 0; m < 60; m++) {
-        const date = new Date(startDate);
-        date.setMinutes(date.getMinutes() + m);
-        const minuteKey = date.getUTCMinutes();
-
-        data.push({
-          date: date.toISOString(),
-          total: groupedData[minuteKey]?.total || 0,
-          success: groupedData[minuteKey]?.success || 0,
-          failed: groupedData[minuteKey]?.failed || 0,
-        });
       }
-    } else if (timeRange === '24h') {
-      const currentHour = new Date().getHours();
-      const startDate = new Date(
-        new Date().setHours(currentHour - (24 - 1), 0, 0, 0),
-      );
 
-      for (let h = 0; h < 24; h++) {
-        const date = new Date(startDate);
-        date.setHours(date.getHours() + h);
-        const hourKey = date.getUTCHours();
-
-        data.push({
-          date: date.toISOString(),
-          total: groupedData[hourKey]?.total || 0,
-          success: groupedData[hourKey]?.success || 0,
-          failed: groupedData[hourKey]?.failed || 0,
-        });
-      }
-    } else {
-      const startDate = new Date(
-        new Date().setDate(
-          new Date().getDate() - (timeRange === '7d' ? 7 : 30),
-        ),
-      );
-      const endDate = new Date();
-
-      for (
-        let d = new Date(startDate);
-        d <= endDate;
-        d.setDate(d.getDate() + 1)
-      ) {
-        const date = d.toISOString().split('T')[0];
-        data.push({
-          date,
-          total: groupedData[date]?.total || 0,
-          success: groupedData[date]?.success || 0,
-          failed: groupedData[date]?.failed || 0,
-        });
-      }
+      whereConditions.push(Prisma.sql`"licenseId" = ${licenseId}`);
     }
+
+    if (type) {
+      // Type is already validated above
+      whereConditions.push(Prisma.sql`"type" = ${type}::"RequestType"`);
+    }
+
+    // Combine WHERE conditions
+    const whereClause = Prisma.join(whereConditions, ' AND ');
+
+    const [currentResults, comparisonResults] = await Promise.all([
+      // Current period aggregated data
+      prisma.$queryRaw<
+        Array<{
+          time_bucket: Date;
+          total: bigint;
+          success: bigint;
+          failed: bigint;
+        }>
+      >(
+        Prisma.sql`
+          SELECT 
+            ${Prisma.raw(dateTruncExpression)} as time_bucket,
+            COUNT(*) as total,
+            COUNT(*) FILTER (WHERE status = 'VALID') as success,
+            COUNT(*) FILTER (WHERE status != 'VALID') as failed
+          FROM "RequestLog"
+          WHERE ${whereClause}
+            AND "createdAt" >= ${startDate}
+            AND "createdAt" < NOW()
+          GROUP BY time_bucket
+          ORDER BY time_bucket ASC
+        `,
+      ),
+
+      // Comparison with previous period totals
+      prisma.$queryRaw<
+        Array<{
+          current_total: bigint;
+          previous_total: bigint;
+        }>
+      >(
+        Prisma.sql`
+          SELECT 
+            COUNT(*) FILTER (WHERE "createdAt" >= ${startDate} AND "createdAt" < NOW()) as current_total,
+            COUNT(*) FILTER (WHERE "createdAt" >= ${previousStartDate} AND "createdAt" < ${startDate}) as previous_total
+          FROM "RequestLog"
+          WHERE ${whereClause}
+            AND "createdAt" >= ${previousStartDate}
+        `,
+      ),
+    ]);
+
+    // Convert BigInt results to numbers and create lookup map
+    const aggregatedData: Record<
+      string,
+      { total: number; success: number; failed: number }
+    > = {};
+    for (const row of currentResults) {
+      const key = row.time_bucket.toISOString();
+      aggregatedData[key] = {
+        total: Number(row.total),
+        success: Number(row.success),
+        failed: Number(row.failed),
+      };
+    }
+
+    // Calculate comparison percentage
+    const currentTotal = Number(comparisonResults[0]?.current_total || 0);
+    const previousTotal = Number(comparisonResults[0]?.previous_total || 0);
+    const comparedToPrevious =
+      previousTotal === 0
+        ? '0%'
+        : `${Math.round(((currentTotal - previousTotal) / previousTotal) * 100)}%`;
+
+    // Generate time series data with proper intervals
+    const data = generateTimeSeriesData(timeRange, aggregatedData);
 
     return NextResponse.json({
       data,
