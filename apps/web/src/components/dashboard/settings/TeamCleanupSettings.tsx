@@ -142,7 +142,7 @@ export default function TeamCleanupSettings({
       <CardContent>
         <Form {...form}>
           <form
-            className="space-y-6 max-md:px-2"
+            className="space-y-4 max-md:px-2"
             onSubmit={handleSubmit(onSubmit)}
           >
             {/* Expired License Cleanup */}
