@@ -273,19 +273,21 @@ model Limits {
 }
 
 model Settings {
-    id              String          @id @default(uuid())
-    teamId          String          @unique
-    team            Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    hwidTimeout     Int?
-    ipTimeout       Int?
-    strictCustomers Boolean         @default(false)
-    strictProducts  Boolean         @default(false)
-    strictReleases  Boolean         @default(false)
-    emailMessage    String?
-    emailImageUrl   String?
-    returnedFields  ReturnedFields?
-    createdAt       DateTime        @default(now())
-    updatedAt       DateTime        @updatedAt
+    id                          String          @id @default(uuid())
+    teamId                      String          @unique
+    team                        Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    hwidTimeout                 Int?
+    ipTimeout                   Int?
+    strictCustomers             Boolean         @default(false)
+    strictProducts              Boolean         @default(false)
+    strictReleases              Boolean         @default(false)
+    emailMessage                String?
+    emailImageUrl               String?
+    expiredLicenseCleanupDays   Int?
+    danglingCustomerCleanupDays Int?
+    returnedFields              ReturnedFields?
+    createdAt                   DateTime        @default(now())
+    updatedAt                   DateTime        @updatedAt
 }
 
 model ReturnedFields {

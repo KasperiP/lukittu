@@ -62,7 +62,6 @@ export async function POST() {
       durationMs: duration,
     });
 
-    // Return 500 but don't expose error details
     return NextResponse.json(
       {
         message: 'Internal server error',

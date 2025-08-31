@@ -13,6 +13,7 @@ import useSWR from 'swr';
 import ApiKeysCard from './ApiKeysCard';
 import PublicKeysCard from './PublicKeysCard';
 import ReturnedFieldsCard from './ReturnedFieldsCard';
+import TeamCleanupSettings from './TeamCleanupSettings';
 import { TeamDetails } from './TeamDetails';
 import TeamEmailSettings from './TeamEmailSettings';
 import TeamGeneralSettings from './TeamGeneralSettings';
@@ -85,6 +86,7 @@ export default function TeamSettingsCard() {
                 <div className="grid grid-cols-1 gap-4">
                   <TeamGeneralSettings team={team ?? null} />
                   <TeamValidationSettings team={team ?? null} />
+                  <TeamCleanupSettings team={team ?? null} />
                   <TeamWatermarkingSettings team={team ?? null} />
                   <TeamEmailSettings team={team ?? null} />
                 </div>

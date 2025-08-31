@@ -11,6 +11,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -24,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import {
   SetTeamValidationSettingsSchema,
   setTeamValidationSettingsSchema,
@@ -83,6 +85,8 @@ export default function TeamValidationSettings({
 }: TeamValidationSettingsProps) {
   const t = useTranslations();
   const [loading, setLoading] = useState(false);
+  const [hwidTimeoutEnabled, setHwidTimeoutEnabled] = useState(false);
+  const [ipTimeoutEnabled, setIpTimeoutEnabled] = useState(false);
 
   // State for duration inputs
   const [hwidDuration, setHwidDuration] = useState<DurationValue>({
@@ -121,6 +125,10 @@ export default function TeamValidationSettings({
     // Initialize duration states
     setHwidDuration(minutesToDuration(settings.hwidTimeout));
     setIpDuration(minutesToDuration(settings.ipTimeout));
+
+    // Set enabled states based on whether values exist
+    setHwidTimeoutEnabled(settings.hwidTimeout !== null);
+    setIpTimeoutEnabled(settings.ipTimeout !== null);
   }, [team, reset]);
 
   // Update form values when duration changes
@@ -132,6 +140,31 @@ export default function TeamValidationSettings({
   const handleIpDurationChange = (duration: DurationValue) => {
     setIpDuration(duration);
     setValue('ipTimeout', durationToMinutes(duration));
+  };
+
+  // Handle enabling/disabling timeout options
+  const handleHwidTimeoutToggle = (enabled: boolean) => {
+    setHwidTimeoutEnabled(enabled);
+    if (!enabled) {
+      setHwidDuration({ value: null, unit: 'minutes' });
+      setValue('hwidTimeout', null);
+    } else if (hwidDuration.value === null) {
+      const defaultDuration = { value: 15, unit: 'minutes' as TimeUnit };
+      setHwidDuration(defaultDuration);
+      setValue('hwidTimeout', durationToMinutes(defaultDuration));
+    }
+  };
+
+  const handleIpTimeoutToggle = (enabled: boolean) => {
+    setIpTimeoutEnabled(enabled);
+    if (!enabled) {
+      setIpDuration({ value: null, unit: 'minutes' });
+      setValue('ipTimeout', null);
+    } else if (ipDuration.value === null) {
+      const defaultDuration = { value: 15, unit: 'minutes' as TimeUnit };
+      setIpDuration(defaultDuration);
+      setValue('ipTimeout', durationToMinutes(defaultDuration));
+    }
   };
 
   const onSubmit = async (payload: SetTeamValidationSettingsSchema) => {
@@ -196,6 +229,9 @@ export default function TeamValidationSettings({
                       <SelectItem value="false">False</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    {t('dashboard.settings.strict_customers_description')}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -223,6 +259,9 @@ export default function TeamValidationSettings({
                       <SelectItem value="false">False</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    {t('dashboard.settings.strict_products_description')}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -250,134 +289,187 @@ export default function TeamValidationSettings({
                       <SelectItem value="false">False</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    {t('dashboard.settings.strict_releases_description')}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             {/* HWID Timeout with Duration Input */}
-            <FormField
-              control={control}
-              name="hwidTimeout"
-              render={() => (
-                <FormItem>
-                  <FormLabel>{t('dashboard.settings.hwid_timeout')}</FormLabel>
-                  <div className="flex space-x-2">
-                    <FormControl>
-                      <Input
-                        disabled={!team || loading}
-                        min={1}
-                        placeholder={t('general.duration')}
-                        type="number"
-                        value={hwidDuration.value ?? ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (!value) {
-                            handleHwidDurationChange({
-                              ...hwidDuration,
-                              value: null,
-                            });
-                          } else {
-                            const numValue = Math.max(1, +value);
-                            handleHwidDurationChange({
-                              ...hwidDuration,
-                              value: numValue,
-                            });
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <Select
-                      value={hwidDuration.unit}
-                      onValueChange={(unit: TimeUnit) => {
-                        if (unit in TIME_UNITS) {
-                          handleHwidDurationChange({ ...hwidDuration, unit });
-                        }
-                      }}
-                    >
-                      <FormControl>
-                        <SelectTrigger
-                          className="w-32"
-                          disabled={!team || loading}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={hwidTimeoutEnabled}
+                  id="hwid-timeout"
+                  onCheckedChange={handleHwidTimeoutToggle}
+                />
+                <FormLabel
+                  className="text-sm font-medium"
+                  htmlFor="hwid-timeout"
+                >
+                  {t('dashboard.settings.hwid_timeout')}
+                </FormLabel>
+              </div>
+
+              {hwidTimeoutEnabled && (
+                <FormField
+                  control={control}
+                  name="hwidTimeout"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('dashboard.settings.hwid_timeout')}
+                      </FormLabel>
+                      <div className="flex space-x-2">
+                        <FormControl>
+                          <Input
+                            disabled={!team || loading}
+                            min={1}
+                            placeholder={t('general.duration')}
+                            type="number"
+                            value={hwidDuration.value ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value) {
+                                handleHwidDurationChange({
+                                  ...hwidDuration,
+                                  value: null,
+                                });
+                              } else {
+                                const numValue = Math.max(1, +value);
+                                handleHwidDurationChange({
+                                  ...hwidDuration,
+                                  value: numValue,
+                                });
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <Select
+                          value={hwidDuration.unit}
+                          onValueChange={(unit: TimeUnit) => {
+                            if (unit in TIME_UNITS) {
+                              handleHwidDurationChange({
+                                ...hwidDuration,
+                                unit,
+                              });
+                            }
+                          }}
                         >
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(TIME_UNITS).map(([key, { label }]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <FormMessage />
-                </FormItem>
+                          <FormControl>
+                            <SelectTrigger
+                              className="w-32"
+                              disabled={!team || loading}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(TIME_UNITS).map(
+                              ([key, { label }]) => (
+                                <SelectItem key={key} value={key}>
+                                  {label}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormDescription>
+                        {t('dashboard.settings.hwid_timeout_description')}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
 
             {/* IP Timeout with Duration Input */}
-            <FormField
-              control={control}
-              name="ipTimeout"
-              render={() => (
-                <FormItem>
-                  <FormLabel>{t('dashboard.settings.ip_timeout')}</FormLabel>
-                  <div className="flex space-x-2">
-                    <FormControl>
-                      <Input
-                        disabled={!team || loading}
-                        min={1}
-                        placeholder={t('general.duration')}
-                        type="number"
-                        value={ipDuration.value ?? ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (!value) {
-                            handleIpDurationChange({
-                              ...ipDuration,
-                              value: null,
-                            });
-                          } else {
-                            const numValue = Math.max(1, +value);
-                            handleIpDurationChange({
-                              ...ipDuration,
-                              value: numValue,
-                            });
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <Select
-                      value={ipDuration.unit}
-                      onValueChange={(unit: TimeUnit) => {
-                        if (unit in TIME_UNITS) {
-                          handleIpDurationChange({ ...ipDuration, unit });
-                        }
-                      }}
-                    >
-                      <FormControl>
-                        <SelectTrigger
-                          className="w-32"
-                          disabled={!team || loading}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={ipTimeoutEnabled}
+                  id="ip-timeout"
+                  onCheckedChange={handleIpTimeoutToggle}
+                />
+                <FormLabel className="text-sm font-medium" htmlFor="ip-timeout">
+                  {t('dashboard.settings.ip_timeout')}
+                </FormLabel>
+              </div>
+
+              {ipTimeoutEnabled && (
+                <FormField
+                  control={control}
+                  name="ipTimeout"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>
+                        {t('dashboard.settings.ip_timeout')}
+                      </FormLabel>
+                      <div className="flex space-x-2">
+                        <FormControl>
+                          <Input
+                            disabled={!team || loading}
+                            min={1}
+                            placeholder={t('general.duration')}
+                            type="number"
+                            value={ipDuration.value ?? ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (!value) {
+                                handleIpDurationChange({
+                                  ...ipDuration,
+                                  value: null,
+                                });
+                              } else {
+                                const numValue = Math.max(1, +value);
+                                handleIpDurationChange({
+                                  ...ipDuration,
+                                  value: numValue,
+                                });
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <Select
+                          value={ipDuration.unit}
+                          onValueChange={(unit: TimeUnit) => {
+                            if (unit in TIME_UNITS) {
+                              handleIpDurationChange({ ...ipDuration, unit });
+                            }
+                          }}
                         >
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.entries(TIME_UNITS).map(([key, { label }]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <FormMessage />
-                </FormItem>
+                          <FormControl>
+                            <SelectTrigger
+                              className="w-32"
+                              disabled={!team || loading}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Object.entries(TIME_UNITS).map(
+                              ([key, { label }]) => (
+                                <SelectItem key={key} value={key}>
+                                  {label}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormDescription>
+                        {t('dashboard.settings.ip_timeout_description')}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
+            </div>
           </form>
         </Form>
       </CardContent>
