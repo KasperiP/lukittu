@@ -97,9 +97,16 @@ export async function GET(): Promise<
       data = firstFiveItems;
     }
 
-    return NextResponse.json({
-      data,
-    });
+    const response = NextResponse.json({ data });
+
+    const cacheMaxAge = 300;
+    response.headers.set(
+      'Cache-Control',
+      `private, max-age=${cacheMaxAge}, stale-while-revalidate=${cacheMaxAge * 2}`,
+    );
+    response.headers.set('Vary', 'Cookie');
+
+    return response;
   } catch (error) {
     logger.error("Error occurred in 'dashboard/product-division' route", error);
     return NextResponse.json(

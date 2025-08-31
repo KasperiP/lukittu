@@ -91,47 +91,25 @@ export async function GET(): Promise<
     const team = session.user.teams[0];
 
     const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
-    // Get licenses with most recent activity from either IPs or HWIDs
     const [currentActive, previousActive] = await Promise.all([
       prisma.$queryRaw<[{ count: number }]>(
         Prisma.sql`
           SELECT COUNT(DISTINCT "licenseId") as count
-          FROM (
-            SELECT "licenseId", MAX("lastSeenAt") as "lastActivity"
-            FROM (
-              SELECT "licenseId", "lastSeenAt"
-              FROM "IpAddress"
-              WHERE "teamId" = ${team.id} AND "forgotten" = false
-              UNION ALL
-              SELECT "licenseId", "lastSeenAt"
-              FROM "HardwareIdentifier"
-              WHERE "teamId" = ${team.id} AND "forgotten" = false
-            ) combined
-            GROUP BY "licenseId"
-          ) activity
-          WHERE "lastActivity" >= ${oneHourAgo}
+          FROM "RequestLog"
+          WHERE "teamId" = ${team.id}
+          AND "createdAt" >= ${hourAgo}
         `,
       ),
       prisma.$queryRaw<[{ count: number }]>(
         Prisma.sql`
           SELECT COUNT(DISTINCT "licenseId") as count
-          FROM (
-            SELECT "licenseId", MAX("lastSeenAt") as "lastActivity"
-            FROM (
-              SELECT "licenseId", "lastSeenAt"
-              FROM "IpAddress"
-              WHERE "teamId" = ${team.id} AND "forgotten" = false
-              UNION ALL
-              SELECT "licenseId", "lastSeenAt"
-              FROM "HardwareIdentifier"
-              WHERE "teamId" = ${team.id} AND "forgotten" = false
-            ) combined
-            GROUP BY "licenseId"
-          ) activity
-          WHERE "lastActivity" >= ${twoHoursAgo} AND "lastActivity" < ${oneHourAgo}
+          FROM "RequestLog"
+          WHERE "teamId" = ${team.id}
+          AND "createdAt" >= ${twoHoursAgo}
+          AND "createdAt" < ${hourAgo}
         `,
       ),
     ]);
@@ -161,7 +139,16 @@ export async function GET(): Promise<
       },
     };
 
-    return NextResponse.json({ data });
+    const response = NextResponse.json({ data });
+
+    const cacheMaxAge = 60;
+    response.headers.set(
+      'Cache-Control',
+      `private, max-age=${cacheMaxAge}, stale-while-revalidate=${cacheMaxAge * 2}`,
+    );
+    response.headers.set('Vary', 'Cookie');
+
+    return response;
   } catch (error) {
     logger.error("Error occurred in 'dashboard/card-data' route", error);
     return NextResponse.json(
