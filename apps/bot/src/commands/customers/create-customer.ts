@@ -8,6 +8,7 @@ import {
   logger,
   Prisma,
   prisma,
+  regex,
   WebhookEventType,
 } from '@lukittu/shared';
 import {
@@ -67,14 +68,13 @@ function validateEmail(email: string | null): {
 } {
   if (!email) return { isValid: true }; // It's optional if username is present
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (email.length > 255) {
     return {
       isValid: false,
       message: 'Email must be less than 255 characters',
     };
   }
-  if (!emailRegex.test(email)) {
+  if (!regex.email.test(email)) {
     return { isValid: false, message: 'Invalid email address' };
   }
   return { isValid: true };

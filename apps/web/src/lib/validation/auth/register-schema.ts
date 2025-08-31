@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type RegisterSchema = z.infer<ReturnType<typeof registerSchema>>;
@@ -19,10 +20,10 @@ export const registerSchema = (t: I18nTranslator) =>
       .min(6, {
         message: t('validation.password_min_length'),
       })
-      .regex(/[A-Z]/, t('validation.password_uppercase'))
-      .regex(/[a-z]/, t('validation.password_lowercase'))
-      .regex(/\d/, t('validation.password_number'))
-      .regex(/[!@#$%^&*(),.?":{}|<>]/, t('validation.password_special')),
+      .regex(regex.passwordUppercase, t('validation.password_uppercase'))
+      .regex(regex.passwordLowercase, t('validation.password_lowercase'))
+      .regex(regex.passwordNumber, t('validation.password_number'))
+      .regex(regex.passwordSpecial, t('validation.password_special')),
     fullName: z
       .string({
         required_error: t('validation.full_name_required'),

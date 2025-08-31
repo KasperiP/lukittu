@@ -1,3 +1,4 @@
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type PurchaseBuiltByBitSchema = z.infer<
@@ -10,12 +11,12 @@ export const purchaseBuiltByBitSchema = () =>
       .string({
         required_error: 'API Secret is required',
       })
-      .regex(/^bbb_[A-Za-z0-9]{64}$/, {
+      .regex(regex.builtByBitApiSecret, {
         message: 'Invalid API Secret format',
       }),
     builtByBitData: z.object({
       user: z.object({
-        id: z.string().regex(/^\d+$/, {
+        id: z.string().regex(regex.integer, {
           message: 'User ID must be numeric',
         }),
         username: z.string({
@@ -37,7 +38,7 @@ export const purchaseBuiltByBitSchema = () =>
           .string({
             required_error: 'Resource ID is required',
           })
-          .regex(/^\d+$/, {
+          .regex(regex.integer, {
             message: 'Resource ID must be numeric',
           }),
         url: z
@@ -52,7 +53,7 @@ export const purchaseBuiltByBitSchema = () =>
             .string({
               required_error: 'Addon ID is required',
             })
-            .regex(/^\d+$/, {
+            .regex(regex.integer, {
               message: 'Addon ID must be numeric',
             }),
           title: z.string({
@@ -64,7 +65,7 @@ export const purchaseBuiltByBitSchema = () =>
             .string({
               required_error: 'Bundle ID is required',
             })
-            .regex(/^\d+$/, {
+            .regex(regex.integer, {
               message: 'Bundle ID must be numeric',
             }),
           title: z.string({
@@ -79,14 +80,14 @@ export const purchaseBuiltByBitSchema = () =>
             .string({
               required_error: 'List price is required',
             })
-            .regex(/^\d+(\.\d+)?$/, {
+            .regex(regex.float, {
               message: 'List price must be numeric',
             }),
           finalPrice: z
             .string({
               required_error: 'Final price is required',
             })
-            .regex(/^\d+(\.\d+)?$/, {
+            .regex(regex.float, {
               message: 'Final price must be numeric',
             }),
         }),
@@ -94,7 +95,7 @@ export const purchaseBuiltByBitSchema = () =>
           .string({
             required_error: 'Purchase date is required',
           })
-          .regex(/^\d+$/, {
+          .regex(regex.integer, {
             message: 'Purchase date must be a numeric timestamp',
           }),
       }),

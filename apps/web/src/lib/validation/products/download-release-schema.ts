@@ -30,7 +30,7 @@ export const downloadReleaseSchema = () =>
         .max(1000, {
           message: 'Session key must be less than 1000 characters',
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: 'Session key must not contain spaces',
         }),
       hardwareIdentifier: z
@@ -44,7 +44,7 @@ export const downloadReleaseSchema = () =>
         .max(1000, {
           message: 'Hardware identifier must be less than 1000 characters',
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: 'Hardware identifier must not contain spaces',
         }),
       version: z
@@ -57,7 +57,7 @@ export const downloadReleaseSchema = () =>
         .max(255, {
           message: 'Version must be less than 255 characters',
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: 'Version must not contain spaces',
         })
         .optional(),
@@ -71,7 +71,7 @@ export const downloadReleaseSchema = () =>
         .max(255, {
           message: 'Branch name must be less than 255 characters',
         })
-        .regex(/^[a-zA-Z0-9_-]+$/, {
+        .regex(regex.generalName, {
           message:
             'Branch name must contain only letters, numbers, dashes, and underscores',
         })

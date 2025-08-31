@@ -32,7 +32,7 @@ export const verifyLicenseSchema = () =>
           message: 'Challenge must be at least 10 characters',
         })
         .max(1000, { message: 'Challenge must be less than 1000 characters' })
-        .regex(/^[^\s]+$/, { message: 'Challenge must not contain spaces' })
+        .regex(regex.noSpaces, { message: 'Challenge must not contain spaces' })
         .optional(),
       version: z
         .string({
@@ -44,7 +44,7 @@ export const verifyLicenseSchema = () =>
         .max(255, {
           message: 'Version must be less than 255 characters',
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: 'Version must not contain spaces',
         })
         .optional(),
@@ -58,7 +58,7 @@ export const verifyLicenseSchema = () =>
         .max(255, {
           message: 'Branch name must be less than 255 characters',
         })
-        .regex(/^[a-zA-Z0-9_-]+$/, {
+        .regex(regex.generalName, {
           message:
             'Branch name must contain only letters, numbers, dashes, and underscores',
         })
@@ -74,7 +74,7 @@ export const verifyLicenseSchema = () =>
         .max(1000, {
           message: 'Hardware identifier must be less than 1000 characters',
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: 'Hardware identifier must not contain spaces',
         })
         .optional(),

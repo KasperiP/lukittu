@@ -1,6 +1,7 @@
+import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 import { metadataSchema } from '../shared/metadata-schema';
-import { I18nTranslator } from '@/types/i18n-types';
 
 export type SetProductSchema = z.infer<ReturnType<typeof setProductSchema>>;
 
@@ -17,7 +18,7 @@ export const setProductSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.product_name_max_length'),
         })
-        .regex(/^[a-zA-Z0-9\s\-_]+$/, {
+        .regex(regex.generalName, {
           message: t('validation.product_name_invalid'), // Team name can only contain letters, numbers, spaces, and the following characters: - _
         }),
       url: z.union([

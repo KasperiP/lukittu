@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type SetBranchSchema = z.infer<ReturnType<typeof setBranchSchema>>;
@@ -16,7 +17,7 @@ export const setBranchSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.branch_name_max_length'),
         })
-        .regex(/^[a-zA-Z0-9_-]+$/, {
+        .regex(regex.generalName, {
           message: t('validation.branch_name_invalid'),
         }),
       productId: z

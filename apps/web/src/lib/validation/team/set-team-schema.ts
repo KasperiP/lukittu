@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type SetTeamSchema = z.infer<ReturnType<typeof setTeamSchema>>;
@@ -16,7 +17,7 @@ export const setTeamSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.team_name_max_length'),
         })
-        .regex(/^[a-zA-Z0-9\s\-_]+$/, {
+        .regex(regex.generalName, {
           message: t('validation.team_name_invalid'), // Team name can only contain letters, numbers, spaces, and the following characters: - _
         }),
     })

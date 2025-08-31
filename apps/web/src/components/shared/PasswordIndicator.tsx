@@ -1,5 +1,7 @@
 'use client';
 
+import { regex } from '@lukittu/shared';
+
 interface PasswordIndicatorProps {
   password: string;
 }
@@ -27,10 +29,10 @@ const passwordStrength = (password: string): number => {
   if (password.length >= 8) strength++;
   if (password.length >= 12) strength++;
 
-  const hasLower = /[a-z]/.test(password);
-  const hasUpper = /[A-Z]/.test(password);
-  const hasNumber = /\d/.test(password);
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const hasLower = regex.passwordLowercase.test(password);
+  const hasUpper = regex.passwordUppercase.test(password);
+  const hasNumber = regex.passwordNumber.test(password);
+  const hasSpecial = regex.passwordSpecial.test(password);
 
   if (hasLower && hasUpper) strength++;
   if (hasNumber) strength++;

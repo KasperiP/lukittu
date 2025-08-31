@@ -8,6 +8,7 @@ import {
   logger,
   Prisma,
   prisma,
+  regex,
   WebhookEventType,
 } from '@lukittu/shared';
 import {
@@ -53,8 +54,7 @@ function validateProductName(name: string): {
       message: 'Product name must be less than 255 characters',
     };
   }
-  const nameRegex = /^[a-zA-Z0-9\s\-_]+$/;
-  if (!nameRegex.test(name)) {
+  if (!regex.generalName.test(name)) {
     return {
       isValid: false,
       message:

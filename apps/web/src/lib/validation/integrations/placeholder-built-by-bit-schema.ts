@@ -1,3 +1,4 @@
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type PlaceholderBuiltByBitSchema = z.infer<
@@ -24,7 +25,7 @@ export const placeholderBuiltByBitSchema = () =>
       .string({
         required_error: 'API Secret is required',
       })
-      .regex(/^bbb_[A-Za-z0-9]{64}$/, {
+      .regex(regex.builtByBitApiSecret, {
         message: 'Invalid API Secret format',
       }),
   });

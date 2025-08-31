@@ -1,5 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
-import { WebhookEventType } from '@lukittu/shared';
+import { regex, WebhookEventType } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type SetWebhookSchema = z.infer<ReturnType<typeof setWebhookSchema>>;
@@ -30,8 +30,7 @@ const validateWebhookUrlProduction = (url: string, t: I18nTranslator) => {
     }
 
     // Block private IP ranges (RFC 1918) to prevent SSRF
-    const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
-    const ipv4Match = hostname.match(ipv4Regex);
+    const ipv4Match = hostname.match(regex.ipv4);
 
     if (ipv4Match) {
       const [, a, b] = ipv4Match.map(Number);

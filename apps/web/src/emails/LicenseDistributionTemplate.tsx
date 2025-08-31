@@ -1,3 +1,4 @@
+import { regex } from '@lukittu/shared';
 import {
   Body,
   Column,
@@ -23,12 +24,11 @@ interface LicenseDistributionEmailTemplateProps {
 }
 
 const convertFormattedText = (text: string) => {
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   let lastIndex = 0;
   const parts = [];
   let match;
 
-  while ((match = linkRegex.exec(text)) !== null) {
+  while ((match = regex.markdownLink.exec(text)) !== null) {
     if (match.index > lastIndex) {
       parts.push(text.slice(lastIndex, match.index));
     }

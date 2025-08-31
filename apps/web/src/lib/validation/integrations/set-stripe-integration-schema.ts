@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 
 export type SetStripeIntegrationSchema = z.infer<
@@ -19,10 +20,10 @@ export const setStripeIntegrationSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.stripe_api_key_invalid'),
         })
-        .regex(/^(sk_|rk_)/, {
+        .regex(regex.stripeApiKey, {
           message: t('validation.stripe_api_key_invalid'),
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: t('validation.stripe_api_key_invalid'),
         }),
       webhookSecret: z
@@ -35,10 +36,10 @@ export const setStripeIntegrationSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.stripe_webhook_secret_invalid'),
         })
-        .regex(/^whsec_/, {
+        .regex(regex.stripeWebhookSecret, {
           message: t('validation.stripe_webhook_secret_invalid'),
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: t('validation.stripe_webhook_secret_invalid'),
         }),
     })

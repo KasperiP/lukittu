@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 import { metadataSchema } from '../shared/metadata-schema';
 
@@ -17,7 +18,7 @@ export const setReleaseSchema = (t: I18nTranslator) =>
         .max(255, {
           message: t('validation.release_version_max_length'),
         })
-        .regex(/^[^\s]+$/, {
+        .regex(regex.noSpaces, {
           message: t('validation.invalid_release_version'),
         }),
       productId: z
