@@ -94,26 +94,15 @@ export async function POST() {
         continue;
       }
 
-      const hasCleanupConfig =
-        settings.danglingCustomerCleanupDays ||
-        settings.expiredLicenseCleanupDays;
+      const danglingCustomerCleanupDays = settings?.danglingCustomerCleanupDays;
+      const expiredLicenseCleanupDays = settings?.expiredLicenseCleanupDays;
 
-      if (!hasCleanupConfig) {
-        logger.info('Skipping team without cleanup configuration', {
-          cleanupId,
-          teamId,
-          teamName,
-          settings,
-        });
-        summary.totalTeamsProcessed += 1;
-        continue;
-      }
-
-      logger.info('Starting cleanup for team', {
+      logger.info('Processing team for cleanup', {
         cleanupId,
         teamId,
         teamName,
-        settings,
+        danglingCustomerCleanupDays,
+        expiredLicenseCleanupDays,
       });
 
       const teamStats: CleanupStats = {
@@ -127,17 +116,17 @@ export async function POST() {
 
       try {
         await prisma.$transaction(async (tx) => {
-          if (settings?.danglingCustomerCleanupDays) {
+          if (danglingCustomerCleanupDays && danglingCustomerCleanupDays > 0) {
             const cutoffDate = new Date();
             cutoffDate.setDate(
-              cutoffDate.getDate() - settings.danglingCustomerCleanupDays,
+              cutoffDate.getDate() - danglingCustomerCleanupDays,
             );
 
             logger.info('Cleaning up dangling customers', {
               cleanupId,
               teamId,
               cutoffDate: cutoffDate.toISOString(),
-              danglingCustomerCleanupDays: settings.danglingCustomerCleanupDays,
+              danglingCustomerCleanupDays,
             });
 
             const customerResult = await tx.customer.deleteMany({
@@ -160,17 +149,17 @@ export async function POST() {
             });
           }
 
-          if (settings?.expiredLicenseCleanupDays) {
+          if (expiredLicenseCleanupDays && expiredLicenseCleanupDays > 0) {
             const cutoffDate = new Date();
             cutoffDate.setDate(
-              cutoffDate.getDate() - settings.expiredLicenseCleanupDays,
+              cutoffDate.getDate() - expiredLicenseCleanupDays,
             );
 
             logger.info('Cleaning up expired licenses', {
               cleanupId,
               teamId,
               cutoffDate: cutoffDate.toISOString(),
-              expiredLicenseCleanupDays: settings.expiredLicenseCleanupDays,
+              expiredLicenseCleanupDays,
             });
 
             const licenseResult = await tx.license.deleteMany({
