@@ -216,7 +216,7 @@ export async function POST(
   }
 }
 
-export async function DELETE() {
+export async function DELETE(): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
@@ -305,6 +305,8 @@ export async function DELETE() {
         source: AuditLogSource.DASHBOARD,
         tx: prisma,
       });
+
+      return response;
     });
 
     return NextResponse.json(response);

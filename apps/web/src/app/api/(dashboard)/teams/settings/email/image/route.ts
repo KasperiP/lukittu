@@ -245,7 +245,7 @@ export type ITeamsEmailImageDeleteResponse =
   | ITeamsEmailImageDeleteSuccessResponse
   | ErrorResponse;
 
-export async function DELETE() {
+export async function DELETE(): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
