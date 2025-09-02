@@ -3,6 +3,100 @@ import { createSession } from '@/lib/security/session';
 import { generateKeyPair, logger, prisma, Provider } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
+interface IGitHubAccessTokenResponse {
+  access_token: string;
+  token_type: string;
+  scope: string;
+}
+
+interface BaseGitHubUser {
+  login: string;
+  id: number;
+  user_view_type?: string;
+  node_id: string;
+  avatar_url: string;
+  gravatar_id: string | null;
+  url: string;
+  html_url: string;
+  followers_url: string;
+  following_url: string;
+  gists_url: string;
+  starred_url: string;
+  subscriptions_url: string;
+  organizations_url: string;
+  repos_url: string;
+  events_url: string;
+  received_events_url: string;
+  type: string;
+  site_admin: boolean;
+
+  name: string | null;
+  company: string | null;
+  blog: string | null;
+  location: string | null;
+  email: string | null;
+  notification_email?: string | null;
+  hireable: boolean | null;
+  bio: string | null;
+  twitter_username?: string | null;
+
+  public_repos: number;
+  public_gists: number;
+  followers: number;
+  following: number;
+  created_at: string; // ISO 8601 date-time
+  updated_at: string; // ISO 8601 date-time
+}
+
+interface PrivateGitHubUser extends BaseGitHubUser {
+  private_gists: number;
+  total_private_repos: number;
+  owned_private_repos: number;
+  disk_usage: number;
+  collaborators: number;
+  two_factor_authentication: boolean;
+
+  plan: {
+    collaborators: number;
+    name: string;
+    space: number;
+    private_repos: number;
+  };
+
+  business_plus?: boolean;
+  ldap_dn?: string;
+}
+
+interface PublicGitHubUser extends BaseGitHubUser {
+  plan?: {
+    collaborators: number;
+    name: string;
+    space: number;
+    private_repos: number;
+  };
+
+  private_gists?: number;
+  total_private_repos?: number;
+  owned_private_repos?: number;
+  disk_usage?: number;
+  collaborators?: number;
+}
+
+/**
+ * @see https://docs.github.com/en/rest/users/users?apiVersion=2022-11-28#get-the-authenticated-user
+ */
+type IGitHubUserResponse = PrivateGitHubUser | PublicGitHubUser;
+
+/**
+ * @see https://docs.github.com/en/rest/users/emails?apiVersion=2022-11-28#add-an-email-address-for-the-authenticated-user
+ */
+interface IGitHubEmailResponse {
+  email: string;
+  primary: boolean;
+  verified: boolean;
+  visibility: string | null;
+}
+
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
 
 export async function GET(request: NextRequest) {
@@ -35,7 +129,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const accessTokenData = (await accessTokenRes.json()) as any;
+    const accessTokenData =
+      (await accessTokenRes.json()) as IGitHubAccessTokenResponse;
 
     if (!accessTokenData?.access_token) {
       return NextResponse.redirect(
@@ -57,7 +152,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = (await userRes.json()) as any;
+    const user = (await userRes.json()) as IGitHubUserResponse;
 
     const emailsRes = await fetch('https://api.github.com/user/emails', {
       headers: {
@@ -73,11 +168,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const emails = (await emailsRes.json()) as Array<{
-      email: string;
-      primary: boolean;
-      verified: boolean;
-    }>;
+    const emails = (await emailsRes.json()) as IGitHubEmailResponse[];
 
     const primaryEmail = emails.find(
       (email) => email.primary && email.verified,
@@ -118,7 +209,7 @@ export async function GET(request: NextRequest) {
       const newUser = await prisma.user.create({
         data: {
           email: primaryEmail.email,
-          fullName: user.name,
+          fullName: user.name || user.login,
           provider: Provider.GITHUB,
           emailVerified: true,
         },
