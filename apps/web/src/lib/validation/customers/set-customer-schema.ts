@@ -37,6 +37,11 @@ export const setCustomerSchema = (t?: I18nTranslator) =>
           message: t?.('validation.full_name_max_length'),
         })
         .nullable(),
+      discordId: z
+        .string()
+        .regex(/^\d+$/, t?.('validation.invalid_discord_id'))
+        .min(17, t?.('validation.invalid_discord_id'))
+        .nullish(),
       address: z
         .object({
           city: z

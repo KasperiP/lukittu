@@ -112,4 +112,10 @@ export const regex = {
    * - Example: `[Google](https://google.com)`
    */
   markdownLink: /\[([^\]]+)\]\(([^)]+)\)/g,
+
+  /** Matches a Discord ID:
+   * - A string of 17 to 24 digits.
+   * - Example: `12345678901234567`
+   */
+  discordId: /^\d{17,24}$/,
 };

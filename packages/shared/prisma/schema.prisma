@@ -24,7 +24,7 @@ model User {
     createdAt                     DateTime                @default(now())
     updatedAt                     DateTime                @updatedAt
     provider                      Provider                @default(CREDENTIALS)
-    discordAccount                DiscordAccount?
+    discordAccount                UserDiscordAccount?
     sessions                      Session[]
     createdProducts               Product[]
     auditLogs                     AuditLog[]
@@ -44,13 +44,13 @@ model User {
     webhooks                      Webhook[]
 }
 
-model DiscordAccount {
+model UserDiscordAccount {
     id             String   @id @default(uuid())
     userId         String   @unique
     user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     discordId      String   @unique
     username       String
-    avatarUrl      String?
+    avatar         String?
     selectedTeamId String?
     selectedTeam   Team?    @relation(fields: [selectedTeamId], references: [id], onDelete: SetNull)
     createdAt      DateTime @default(now())
@@ -70,38 +70,39 @@ model Session {
 }
 
 model Team {
-    id                    String                 @id @default(uuid())
-    name                  String
-    ownerId               String
-    imageUrl              String?
-    owner                 User                   @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-    users                 User[]                 @relation("TeamUsers")
-    products              Product[]
-    licenses              License[]
-    customers             Customer[]
-    requestLogs           RequestLog[]
-    auditLogs             AuditLog[]
-    invitations           Invitation[]
-    apiKeys               ApiKey[]
-    ipAddresses           IpAddress[]
-    hardwareIdentifiers   HardwareIdentifier[]
-    releases              Release[]
-    blacklist             Blacklist[]
-    metadata              Metadata[]
-    watermarkingSettings  WatermarkingSettings?
-    limits                Limits?
-    stripeIntegration     StripeIntegration?
-    discordIntegration    DiscordIntegration?
-    builtByBitIntegration BuiltByBitIntegration?
-    polymartIntegration   PolymartIntegration?
-    settings              Settings?
-    keyPair               KeyPair?
-    activeDiscordAccounts DiscordAccount[]
-    webhooks              Webhook[]
-    deletedAt             DateTime?
-    createdAt             DateTime               @default(now())
-    updatedAt             DateTime               @updatedAt
-    subscription          Subscription?
+    id                     String                   @id @default(uuid())
+    name                   String
+    ownerId                String
+    imageUrl               String?
+    owner                  User                     @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+    users                  User[]                   @relation("TeamUsers")
+    products               Product[]
+    licenses               License[]
+    customers              Customer[]
+    requestLogs            RequestLog[]
+    auditLogs              AuditLog[]
+    invitations            Invitation[]
+    apiKeys                ApiKey[]
+    ipAddresses            IpAddress[]
+    hardwareIdentifiers    HardwareIdentifier[]
+    releases               Release[]
+    blacklist              Blacklist[]
+    metadata               Metadata[]
+    watermarkingSettings   WatermarkingSettings?
+    limits                 Limits?
+    stripeIntegration      StripeIntegration?
+    discordIntegration     DiscordIntegration?
+    builtByBitIntegration  BuiltByBitIntegration?
+    polymartIntegration    PolymartIntegration?
+    settings               Settings?
+    keyPair                KeyPair?
+    userDiscordAccounts    UserDiscordAccount[]
+    customerDiscordAccount CustomerDiscordAccount[]
+    webhooks               Webhook[]
+    deletedAt              DateTime?
+    createdAt              DateTime                 @default(now())
+    updatedAt              DateTime                 @updatedAt
+    subscription           Subscription?
 }
 
 model Webhook {
@@ -442,20 +443,36 @@ model Address {
 }
 
 model Customer {
-    id              String       @id @default(uuid())
+    id              String                  @id @default(uuid())
     username        String?
     email           String?
     fullName        String?
     metadata        Metadata[]
     teamId          String
-    team            Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    team            Team                    @relation(fields: [teamId], references: [id], onDelete: Cascade)
     licenses        License[]
     requestLogs     RequestLog[]
+    discordAccount  CustomerDiscordAccount?
     createdByUserId String?
-    createdBy       User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-    createdAt       DateTime     @default(now())
-    updatedAt       DateTime     @updatedAt
+    createdBy       User?                   @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdAt       DateTime                @default(now())
+    updatedAt       DateTime                @updatedAt
     address         Address?
+}
+
+model CustomerDiscordAccount {
+    id         String   @id @default(uuid())
+    customerId String   @unique
+    customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+    discordId  String
+    username   String
+    avatar     String?
+    teamId     String
+    team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+
+    @@index([teamId, discordId])
 }
 
 model Metadata {

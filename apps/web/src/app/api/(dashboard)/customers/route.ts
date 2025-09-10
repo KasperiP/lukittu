@@ -1,4 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
+import { getDiscordUser } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -16,6 +17,7 @@ import {
   createCustomerPayload,
   createWebhookEvents,
   Customer,
+  CustomerDiscordAccount,
   logger,
   Metadata,
   prisma,
@@ -30,10 +32,23 @@ export type ICustomersGetSuccessResponse = {
   customers: (Customer & {
     address: Address | null;
     metadata: Metadata[];
+    discordAccount: CustomerDiscordAccount | null;
   })[];
   totalResults: number;
   hasResults: boolean;
 };
+
+export type ICustomersCreateSuccessResponse = {
+  customer: Customer & {
+    address: Address | null;
+    metadata: Metadata[];
+    discordAccount: CustomerDiscordAccount | null;
+  };
+};
+
+export type ICustomersCreateResponse =
+  | ErrorResponse
+  | ICustomersCreateSuccessResponse;
 
 export type ICustomersGetResponse =
   | ErrorResponse
@@ -244,6 +259,7 @@ export async function GET(
                 include: {
                   address: true,
                   metadata: true,
+                  discordAccount: true,
                 },
               },
             },
@@ -302,13 +318,6 @@ export async function GET(
   }
 }
 
-type ICustomersCreateSuccessResponse = {
-  customer: Customer;
-};
-export type ICustomersCreateResponse =
-  | ErrorResponse
-  | ICustomersCreateSuccessResponse;
-
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<ICustomersCreateResponse>> {
@@ -328,7 +337,8 @@ export async function POST(
       );
     }
 
-    const { email, fullName, metadata, address, username } = validated.data;
+    const { email, fullName, metadata, address, username, discordId } =
+      validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -397,6 +407,49 @@ export async function POST(
       );
     }
 
+    // Validate Discord ID if provided
+    let discordAccountData: {
+      discordId: string;
+      username: string;
+      avatar: string | null;
+      teamId: string;
+    } | null = null;
+
+    if (discordId) {
+      try {
+        const discordUser = await getDiscordUser(discordId);
+
+        if (!discordUser) {
+          return NextResponse.json(
+            {
+              field: 'discordId',
+              message: t('validation.discord_user_not_found'),
+            },
+            { status: HttpStatus.BAD_REQUEST },
+          );
+        }
+
+        discordAccountData = {
+          discordId: discordUser.id,
+          username: discordUser.username,
+          avatar: discordUser.avatar,
+          teamId: team.id,
+        };
+      } catch (error) {
+        logger.warn('Failed to fetch Discord user data for user', {
+          discordId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return NextResponse.json(
+          {
+            field: 'discordId',
+            message: t('validation.discord_api_error'),
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+    }
+
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
@@ -413,9 +466,16 @@ export async function POST(
               })),
             },
           },
-          address: {
-            create: address,
-          },
+          address: address
+            ? {
+                create: address,
+              }
+            : undefined,
+          discordAccount: discordAccountData
+            ? {
+                create: discordAccountData,
+              }
+            : undefined,
           createdBy: {
             connect: {
               id: session.user.id,
@@ -430,6 +490,7 @@ export async function POST(
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       });
 

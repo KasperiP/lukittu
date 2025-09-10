@@ -1,12 +1,18 @@
 'use client';
 import { DeleteCustomerConfirmModal } from '@/components/dashboard/customers/CustomerDeleteConfirmModal';
 import SetCustomerModal from '@/components/dashboard/customers/list/SetCustomerModal';
-import { Address, Customer, Metadata } from '@lukittu/shared';
+import {
+  Address,
+  Customer,
+  CustomerDiscordAccount,
+  Metadata,
+} from '@lukittu/shared';
 import { createContext, useState } from 'react';
 
 type CustomerExtended = Customer & {
   metadata: Metadata[];
   address: Address | null;
+  discordAccount: CustomerDiscordAccount | null;
 };
 
 export const CustomerModalContext = createContext({

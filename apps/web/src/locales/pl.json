@@ -164,7 +164,10 @@
     "hwid_limit_min": "Limit HWID musi wynosić co najmniej {min}!",
     "hwid_limit_max": "Limit HWID nie może przekraczać {max}!",
     "ip_limit_min": "Limit IP musi wynosić co najmniej {min}!",
-    "ip_limit_max": "Limit IP nie może przekraczać {max}!"
+    "ip_limit_max": "Limit IP nie może przekraczać {max}!",
+    "invalid_discord_id": "Nieprawidłowe ID Discord.",
+    "discord_user_not_found": "Nie znaleziono użytkownika Discord.",
+    "discord_api_error": "Wystąpił błąd podczas pobierania użytkownika Discord."
   },
   "general": {
     "add": "Dodaj",
@@ -677,7 +680,13 @@
       "search_customer": "Szukaj klienta...",
       "delete_customer_confirm_title": "Usuń klienta",
       "delete_customer_confirm_description": "Zamierzasz usunąć klienta <strong>{name}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tego klienta. Tej akcji nie można cofnąć.",
-      "editing_customers_of_license": "Edytujesz klientów licencji <strong>{license}</strong>."
+      "editing_customers_of_license": "Edytujesz klientów licencji <strong>{license}</strong>.",
+      "connections": "Połączenia",
+      "connected": "Połączono",
+      "discord_id": "ID Discord",
+      "address_details": "Szczegóły adresu",
+      "address_added": "Adres dodany",
+      "id_label": "ID:"
     },
     "subscriptions": {
       "upgrade_to_premium": "Ulepsz swój plan",

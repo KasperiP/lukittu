@@ -1,4 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
+import { getDiscordUser } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -324,6 +325,7 @@ export async function GET(
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       }),
     ]);
@@ -503,7 +505,8 @@ export async function POST(
       );
     }
 
-    const { email, fullName, metadata, address, username } = validated.data;
+    const { email, fullName, metadata, address, username, discordId } =
+      validated.data;
 
     const customerAmount = await prisma.customer.count({
       where: {
@@ -538,6 +541,91 @@ export async function POST(
       );
     }
 
+    // Validate Discord ID if provided
+    let discordAccountData: {
+      discordId: string;
+      username: string;
+      avatar: string | null;
+      teamId: string;
+    } | null = null;
+
+    if (discordId) {
+      try {
+        logger.info('Dev API: Validating Discord user', {
+          requestId,
+          teamId,
+          discordId,
+        });
+
+        const discordUser = await getDiscordUser(discordId);
+
+        if (!discordUser) {
+          const responseTime = Date.now() - requestTime.getTime();
+
+          logger.warn('Dev API: Discord user not found', {
+            requestId,
+            teamId,
+            discordId,
+            responseTimeMs: responseTime,
+            statusCode: HttpStatus.BAD_REQUEST,
+            ipAddress,
+            userAgent,
+          });
+
+          return NextResponse.json(
+            {
+              data: null,
+              result: {
+                details: 'Discord user not found',
+                timestamp: new Date(),
+                valid: false,
+              },
+            },
+            { status: HttpStatus.BAD_REQUEST },
+          );
+        }
+
+        discordAccountData = {
+          discordId: discordUser.id,
+          username: discordUser.username,
+          avatar: discordUser.avatar,
+          teamId: team.id,
+        };
+
+        logger.info('Dev API: Discord user validated successfully', {
+          requestId,
+          teamId,
+          discordId,
+          discordUsername: discordUser.username,
+        });
+      } catch (error) {
+        const responseTime = Date.now() - requestTime.getTime();
+
+        logger.warn('Dev API: Discord validation failed', {
+          requestId,
+          teamId,
+          discordId,
+          error: error instanceof Error ? error.message : String(error),
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.BAD_REQUEST,
+          ipAddress,
+          userAgent,
+        });
+
+        return NextResponse.json(
+          {
+            data: null,
+            result: {
+              details: 'Discord validation failed',
+              timestamp: new Date(),
+              valid: false,
+            },
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+    }
+
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
@@ -554,9 +642,16 @@ export async function POST(
               })),
             },
           },
-          address: {
-            create: address,
-          },
+          address: address
+            ? {
+                create: address,
+              }
+            : undefined,
+          discordAccount: discordAccountData
+            ? {
+                create: discordAccountData,
+              }
+            : undefined,
           team: {
             connect: {
               id: team.id,
@@ -566,6 +661,7 @@ export async function POST(
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       });
 
@@ -608,7 +704,10 @@ export async function POST(
       requestId,
       teamId,
       customerId: response.data.id,
-      email: response.data.email,
+      customerEmail: response.data.email,
+      customerName: response.data.fullName,
+      hasDiscordAccount: !!response.data.discordAccount,
+      discordUsername: response.data.discordAccount?.username || null,
       responseTimeMs: responseTime,
       statusCode: HttpStatus.CREATED,
     });

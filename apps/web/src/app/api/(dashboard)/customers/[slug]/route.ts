@@ -1,4 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
+import { getDiscordUser } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -16,6 +17,7 @@ import {
   createCustomerPayload,
   createWebhookEvents,
   Customer,
+  CustomerDiscordAccount,
   deleteCustomerPayload,
   logger,
   Metadata,
@@ -31,6 +33,7 @@ export type ICustomerGetSuccessResponse = {
   customer: Customer & {
     address: Address | null;
     metadata: Metadata[];
+    discordAccount: CustomerDiscordAccount | null;
     createdBy: Omit<User, 'passwordHash'> | null;
   };
 };
@@ -84,6 +87,7 @@ export async function GET(
                   createdBy: true,
                   address: true,
                   metadata: true,
+                  discordAccount: true,
                 },
               },
             },
@@ -140,13 +144,17 @@ export async function GET(
   }
 }
 
+export type ICustomersUpdateSuccessResponse = {
+  customer: Customer & {
+    address: Address | null;
+    metadata: Metadata[];
+    discordAccount: CustomerDiscordAccount | null;
+  };
+};
+
 export type ICustomersUpdateResponse =
   | ErrorResponse
   | ICustomersUpdateSuccessResponse;
-
-export type ICustomersUpdateSuccessResponse = {
-  customer: Customer;
-};
 
 export async function PUT(
   request: NextRequest,
@@ -180,7 +188,8 @@ export async function PUT(
       );
     }
 
-    const { email, fullName, metadata, address, username } = validated.data;
+    const { email, fullName, metadata, address, username, discordId } =
+      validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -205,6 +214,9 @@ export async function PUT(
               customers: {
                 where: {
                   id: customerId,
+                },
+                include: {
+                  discordAccount: true,
                 },
               },
             },
@@ -242,6 +254,51 @@ export async function PUT(
       );
     }
 
+    const existingCustomer = team.customers[0];
+
+    // Validate Discord ID if provided
+    let discordAccountData: {
+      discordId: string;
+      username: string;
+      avatar: string | null;
+      teamId: string;
+    } | null = null;
+
+    if (discordId) {
+      try {
+        const discordUser = await getDiscordUser(discordId);
+
+        if (!discordUser) {
+          return NextResponse.json(
+            {
+              field: 'discordId',
+              message: t('validation.discord_user_not_found'),
+            },
+            { status: HttpStatus.BAD_REQUEST },
+          );
+        }
+
+        discordAccountData = {
+          discordId: discordUser.id,
+          username: discordUser.username,
+          avatar: discordUser.avatar,
+          teamId: team.id,
+        };
+      } catch (error) {
+        logger.warn('Failed to fetch Discord user data for user', {
+          discordId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return NextResponse.json(
+          {
+            field: 'discordId',
+            message: t('validation.discord_api_error'),
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+    }
+
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
@@ -262,20 +319,39 @@ export async function PUT(
               })),
             },
           },
-          address: {
-            upsert: {
-              create: {
-                ...address,
-              },
-              update: {
-                ...address,
-              },
-            },
-          },
+          address: address
+            ? {
+                upsert: {
+                  create: {
+                    ...address,
+                  },
+                  update: {
+                    ...address,
+                  },
+                },
+              }
+            : undefined,
+          discordAccount: discordAccountData
+            ? {
+                upsert: {
+                  create: discordAccountData,
+                  update: {
+                    discordId: discordAccountData.discordId,
+                    username: discordAccountData.username,
+                    avatar: discordAccountData.avatar,
+                  },
+                },
+              }
+            : existingCustomer.discordAccount
+              ? {
+                  delete: true,
+                }
+              : undefined,
         },
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       });
 
