@@ -707,8 +707,7 @@
       "connected": "Connected",
       "discord_id": "Discord ID",
       "address_details": "Address Details",
-      "address_added": "Address added",
-      "id_label": "ID:"
+      "address_added": "Address added"
     },
     "subscriptions": {
       "upgrade_to_premium": "Upgrade your plan",

@@ -3,6 +3,7 @@ import { ICustomersUpdateResponse } from '@/app/api/(dashboard)/customers/[slug]
 import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route';
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import LoadingButton from '@/components/shared/LoadingButton';
+import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -38,14 +39,7 @@ import {
 import { CustomerModalContext } from '@/providers/CustomerModalProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Address, regex } from '@lukittu/shared';
-import {
-  AlertCircle,
-  ChevronDown,
-  Link2,
-  Loader2,
-  MapPin,
-  User,
-} from 'lucide-react';
+import { AlertCircle, ChevronDown, Link2, Loader2, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -419,7 +413,6 @@ export default function SetCustomerModal() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
                         {t('dashboard.customers.discord_id')}
                       </FormLabel>
                       <FormControl>
@@ -464,18 +457,24 @@ export default function SetCustomerModal() {
                             {discordUser.username.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+                            <p className="truncate font-medium">
                               {getDiscordDisplayName(discordUser)}
                             </p>
-                            <Badge className="text-xs" variant="secondary">
+                            <Badge
+                              className="w-fit flex-shrink-0 text-xs"
+                              variant="secondary"
+                            >
                               @{discordUser.username}
                             </Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {t('dashboard.customers.id_label')} {discordUser.id}
-                          </p>
+                          <ClickableIdentifier
+                            className="text-sm text-muted-foreground"
+                            value={discordUser.id}
+                          >
+                            {discordUser.id}
+                          </ClickableIdentifier>
                         </div>
                       </div>
                     </CardContent>
@@ -533,7 +532,7 @@ export default function SetCustomerModal() {
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 pt-4">
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-1">
                     <FormField
                       control={control}

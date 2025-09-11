@@ -685,8 +685,7 @@
       "connected": "已连接",
       "discord_id": "Discord账号",
       "address_details": "地址详情",
-      "address_added": "地址已添加",
-      "id_label": "ID："
+      "address_added": "地址已添加"
     },
     "subscriptions": {
       "upgrade_to_premium": "升级您的计划",

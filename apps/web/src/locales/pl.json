@@ -685,8 +685,7 @@
       "connected": "Połączono",
       "discord_id": "ID Discord",
       "address_details": "Szczegóły adresu",
-      "address_added": "Adres dodany",
-      "id_label": "ID:"
+      "address_added": "Adres dodany"
     },
     "subscriptions": {
       "upgrade_to_premium": "Ulepsz swój plan",

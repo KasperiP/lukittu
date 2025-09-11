@@ -685,8 +685,7 @@
       "connected": "Yhdistetty",
       "discord_id": "Discord ID",
       "address_details": "Osoitetiedot",
-      "address_added": "Osoite lisätty",
-      "id_label": "ID:"
+      "address_added": "Osoite lisätty"
     },
     "subscriptions": {
       "upgrade_to_premium": "Päivitä suunnitelma",
