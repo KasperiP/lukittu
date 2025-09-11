@@ -434,6 +434,31 @@ export async function POST(
     } | null = null;
 
     if (discordId) {
+      // Check if Discord account is already linked to another customer in this team
+      const existingDiscordAccount =
+        await prisma.customerDiscordAccount.findUnique({
+          where: {
+            teamId_discordId: {
+              teamId: team.id,
+              discordId,
+            },
+          },
+          include: {
+            customer: true,
+          },
+        });
+
+      if (existingDiscordAccount) {
+        return NextResponse.json(
+          {
+            field: 'discordId',
+            message: t('validation.discord_account_already_linked'),
+            customerId: existingDiscordAccount.customer.id,
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
       try {
         const discordUser = await getDiscordUser(discordId);
 

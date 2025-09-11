@@ -167,7 +167,8 @@
     "hwid_limit_min": "HWID limit must be at least {min}!",
     "hwid_limit_max": "HWID limit must not exceed {max}!",
     "ip_limit_min": "IP limit must be at least {min}!",
-    "ip_limit_max": "IP limit must not exceed {max}!"
+    "ip_limit_max": "IP limit must not exceed {max}!",
+    "discord_account_already_linked": "This Discord account is already linked to another customer!"
   },
   "general": {
     "response_status": "Response status",
@@ -707,7 +708,8 @@
       "connected": "Connected",
       "discord_id": "Discord ID",
       "address_details": "Address Details",
-      "address_added": "Address added"
+      "address_added": "Address added",
+      "discord_account_linked_to": "This Discord account is already linked to customer: <link>{customerName}</link>"
     },
     "subscriptions": {
       "upgrade_to_premium": "Upgrade your plan",

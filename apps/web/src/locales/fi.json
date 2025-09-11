@@ -167,7 +167,8 @@
     "ip_limit_max": "IP-rajan ei saa ylittää {max}!",
     "invalid_discord_id": "Virheellinen Discord-tunnus.",
     "discord_user_not_found": "Discord-käyttäjää ei löytynyt.",
-    "discord_api_error": "Virhe haettaessa Discord-käyttäjää."
+    "discord_api_error": "Virhe haettaessa Discord-käyttäjää.",
+    "discord_account_already_linked": "Tämä Discord-tili on jo yhdistetty toiseen asiakkaaseen!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -685,7 +686,8 @@
       "connected": "Yhdistetty",
       "discord_id": "Discord ID",
       "address_details": "Osoitetiedot",
-      "address_added": "Osoite lisätty"
+      "address_added": "Osoite lisätty",
+      "discord_account_linked_to": "Tämä Discord-tili on jo linkitetty asiakkaaseen: <link>{customerName}</link>"
     },
     "subscriptions": {
       "upgrade_to_premium": "Päivitä suunnitelma",

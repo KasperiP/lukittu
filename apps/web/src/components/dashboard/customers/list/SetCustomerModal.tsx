@@ -4,6 +4,7 @@ import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route'
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import LoadingButton from '@/components/shared/LoadingButton';
 import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +42,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Address, regex } from '@lukittu/shared';
 import { AlertCircle, ChevronDown, Link2, Loader2, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -53,6 +55,12 @@ export default function SetCustomerModal() {
   const [discordSearchLoading, setDiscordSearchLoading] = useState(false);
   const [discordUser, setDiscordUser] = useState<DiscordUser | null>(null);
   const [discordError, setDiscordError] = useState<string | null>(null);
+  const [existingCustomer, setExistingCustomer] = useState<{
+    id: string;
+    fullName: string | null;
+    username: string | null;
+    email: string | null;
+  } | null>(null);
   const [connectionsOpen, setConnectionsOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const { mutate } = useSWRConfig();
@@ -90,11 +98,13 @@ export default function SetCustomerModal() {
       ) {
         setDiscordUser(null);
         setDiscordError(null);
+        setExistingCustomer(null);
         return;
       }
 
       setDiscordSearchLoading(true);
       setDiscordError(null);
+      setExistingCustomer(null);
 
       try {
         const response = await fetch(
@@ -113,9 +123,11 @@ export default function SetCustomerModal() {
 
         const data = await response.json();
         setDiscordUser(data.user);
+        setExistingCustomer(data.existingCustomer || null);
       } catch (_error) {
         setDiscordError(t('validation.discord_api_error'));
         setDiscordUser(null);
+        setExistingCustomer(null);
       } finally {
         setDiscordSearchLoading(false);
       }
@@ -131,20 +143,14 @@ export default function SetCustomerModal() {
       } else {
         setDiscordUser(null);
         setDiscordError(null);
+        setExistingCustomer(null);
       }
     }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [discordIdValue, searchDiscordUser]);
 
-  const getDiscordDisplayName = (user: DiscordUser) => {
-    if (user.global_name) {
-      return user.global_name;
-    }
-    return user.discriminator === '0'
-      ? user.username
-      : `${user.username}#${user.discriminator}`;
-  };
+  const getDiscordDisplayName = (user: DiscordUser) => user.username;
 
   const hasAddressData = (address: Address | null) => {
     if (!address) return false;
@@ -277,6 +283,7 @@ export default function SetCustomerModal() {
       ctx.setCustomerToEdit(null);
       setDiscordUser(null);
       setDiscordError(null);
+      setExistingCustomer(null);
       setDiscordSearchLoading(false);
       setConnectionsOpen(false);
       setAddressOpen(false);
@@ -480,15 +487,46 @@ export default function SetCustomerModal() {
                     </CardContent>
                   </Card>
                 )}
+                {existingCustomer &&
+                  existingCustomer.id !== ctx.customerToEdit?.id && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">
+                            {t('validation.discord_account_already_linked')}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {t.rich(
+                              'dashboard.customers.discord_account_linked_to',
+                              {
+                                customerName:
+                                  existingCustomer.fullName ||
+                                  existingCustomer.username ||
+                                  existingCustomer.email ||
+                                  'Unknown Customer',
+                                link: (child) => (
+                                  <Link
+                                    className="font-medium text-primary underline hover:text-primary/80"
+                                    href={`/dashboard/customers/${existingCustomer.id}`}
+                                    rel="noopener noreferrer"
+                                    target="_blank"
+                                  >
+                                    {child}
+                                  </Link>
+                                ),
+                              },
+                            )}
+                          </p>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
                 {discordError && (
-                  <Card className="border-destructive/50">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <span className="text-sm">{discordError}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{discordError}</AlertDescription>
+                  </Alert>
                 )}
                 {discordSearchLoading && !discordUser && !discordError && (
                   <Card>

@@ -401,6 +401,55 @@ export async function PUT(
     // Discord validation and user fetching
     let discordUser = null;
     if (discordId) {
+      // Check if Discord account is already linked to another customer in this team
+      const existingDiscordAccount =
+        await prisma.customerDiscordAccount.findUnique({
+          where: {
+            teamId_discordId: {
+              teamId: team.id,
+              discordId,
+            },
+          },
+          include: {
+            customer: true,
+          },
+        });
+
+      // If Discord account exists and it's not the current customer, return error
+      if (
+        existingDiscordAccount &&
+        existingDiscordAccount.customerId !== customerId
+      ) {
+        const responseTime = Date.now() - requestTime.getTime();
+
+        logger.warn(
+          'Dev API: Discord account already linked to another customer during update',
+          {
+            requestId,
+            teamId,
+            customerId,
+            discordId,
+            existingCustomerId: existingDiscordAccount.customer.id,
+            responseTimeMs: responseTime,
+            statusCode: HttpStatus.BAD_REQUEST,
+            ipAddress,
+            userAgent,
+          },
+        );
+
+        return NextResponse.json(
+          {
+            data: null,
+            result: {
+              details: `Discord account is already linked to customer: ${existingDiscordAccount.customer.fullName || existingDiscordAccount.customer.username || existingDiscordAccount.customer.email || 'Unknown Customer'}`,
+              timestamp: new Date(),
+              valid: false,
+            },
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
       try {
         const discordApiStartTime = Date.now();
         discordUser = await getDiscordUser(discordId);

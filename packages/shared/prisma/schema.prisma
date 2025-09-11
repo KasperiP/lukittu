@@ -472,7 +472,7 @@ model CustomerDiscordAccount {
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 
-    @@index([teamId, discordId])
+    @@unique([teamId, discordId])
 }
 
 model Metadata {

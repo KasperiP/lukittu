@@ -167,7 +167,8 @@
     "ip_limit_max": "El límite de IP no debe superar {max}!",
     "invalid_discord_id": "ID de Discord no válido.",
     "discord_user_not_found": "Usuario de Discord no encontrado.",
-    "discord_api_error": "Se produjo un error al obtener el usuario de Discord."
+    "discord_api_error": "Se produjo un error al obtener el usuario de Discord.",
+    "discord_account_already_linked": "¡Esta cuenta de Discord ya está vinculada a otro cliente!"
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -685,7 +686,8 @@
       "connected": "Conectado",
       "discord_id": "ID de Discord",
       "address_details": "Detalles de la dirección",
-      "address_added": "Dirección añadida"
+      "address_added": "Dirección añadida",
+      "discord_account_linked_to": "Esta cuenta de Discord ya está vinculada al cliente: <link>{customerName}</link>"
     },
     "subscriptions": {
       "upgrade_to_premium": "Actualiza tu plan",

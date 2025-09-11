@@ -568,6 +568,50 @@ export async function POST(
     } | null = null;
 
     if (discordId) {
+      // Check if Discord account is already linked to another customer in this team
+      const existingDiscordAccount =
+        await prisma.customerDiscordAccount.findUnique({
+          where: {
+            teamId_discordId: {
+              teamId: team.id,
+              discordId,
+            },
+          },
+          include: {
+            customer: true,
+          },
+        });
+
+      if (existingDiscordAccount) {
+        const responseTime = Date.now() - requestTime.getTime();
+
+        logger.warn(
+          'Dev API: Discord account already linked to another customer',
+          {
+            requestId,
+            teamId,
+            discordId,
+            existingCustomerId: existingDiscordAccount.customer.id,
+            responseTimeMs: responseTime,
+            statusCode: HttpStatus.BAD_REQUEST,
+            ipAddress,
+            userAgent,
+          },
+        );
+
+        return NextResponse.json(
+          {
+            data: null,
+            result: {
+              details: `Discord account is already linked to customer: ${existingDiscordAccount.customer.fullName || existingDiscordAccount.customer.username || existingDiscordAccount.customer.email || 'Unknown Customer'}`,
+              timestamp: new Date(),
+              valid: false,
+            },
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
       try {
         logger.info('Dev API: Validating Discord user', {
           requestId,

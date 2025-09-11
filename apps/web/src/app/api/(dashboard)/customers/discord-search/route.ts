@@ -3,7 +3,7 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, regex } from '@lukittu/shared';
+import { logger, prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -14,6 +14,12 @@ interface ICustomerDiscordSearchGetSuccess {
     discriminator: string;
     avatar: string | null;
     global_name: string | null;
+  };
+  existingCustomer?: {
+    id: string;
+    fullName: string | null;
+    username: string | null;
+    email: string | null;
   };
 }
 
@@ -81,6 +87,27 @@ export async function GET(
       );
     }
 
+    // Check if Discord account is already linked to another customer in this team
+    const existingDiscordAccount =
+      await prisma.customerDiscordAccount.findUnique({
+        where: {
+          teamId_discordId: {
+            teamId: selectedTeam,
+            discordId,
+          },
+        },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              fullName: true,
+              username: true,
+              email: true,
+            },
+          },
+        },
+      });
+
     // Fetch Discord user information
     try {
       const user = await getDiscordUser(discordId);
@@ -97,6 +124,7 @@ export async function GET(
       return NextResponse.json(
         {
           user,
+          existingCustomer: existingDiscordAccount?.customer,
         },
         { status: HttpStatus.OK },
       );

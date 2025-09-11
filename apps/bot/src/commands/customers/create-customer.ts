@@ -53,6 +53,7 @@ interface CustomerCreationState {
     discordId: string | null;
     username: string | null;
     avatar: string | null;
+    isAlreadyLinked?: boolean;
   };
   step: WizardStep;
 }
@@ -294,6 +295,7 @@ export default Command({
           discordId: null,
           username: null,
           avatar: null,
+          isAlreadyLinked: false,
         },
         step: 'basic_info',
       };
@@ -375,6 +377,7 @@ async function startCustomerWizard(
             await handleDiscordUserSelect(
               i as UserSelectMenuInteraction,
               state,
+              teamId,
               teamName,
               teamImageUrl,
             );
@@ -743,6 +746,7 @@ async function showMetadataStep(
 async function showDiscordUserStep(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
   state: CustomerCreationState,
+  _teamId: string,
   teamName: string,
   teamImageUrl: string | null,
 ) {
@@ -776,7 +780,9 @@ async function showDiscordUserStep(
       {
         name: 'Discord User',
         value: state.discordAccount.discordId
-          ? `<@${state.discordAccount.discordId}>`
+          ? state.discordAccount.isAlreadyLinked
+            ? `<@${state.discordAccount.discordId}> ⚠️ _Already linked to another customer_`
+            : `<@${state.discordAccount.discordId}>`
           : '_Not selected_',
         inline: false,
       },
@@ -829,7 +835,8 @@ async function showDiscordUserStep(
   const nextButton = new ButtonBuilder()
     .setCustomId('wizard_next')
     .setLabel('Review & Create')
-    .setStyle(ButtonStyle.Primary);
+    .setStyle(ButtonStyle.Primary)
+    .setDisabled(state.discordAccount.isAlreadyLinked);
 
   const navRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     backButton,
@@ -1023,7 +1030,7 @@ async function showReviewStep(
 async function handleNextStep(
   interaction: MessageComponentInteraction,
   state: CustomerCreationState,
-  _teamId?: string,
+  teamId: string,
   teamName?: string,
   teamImageUrl?: string | null,
 ) {
@@ -1042,7 +1049,7 @@ async function handleNextStep(
         break;
       case 'metadata':
         state.step = 'discord_user';
-        await showDiscordUserStep(interaction, state, team, imageUrl);
+        await showDiscordUserStep(interaction, state, teamId, team, imageUrl);
         break;
       case 'discord_user':
         state.step = 'review';
@@ -1060,7 +1067,7 @@ async function handleNextStep(
 async function handlePreviousStep(
   interaction: MessageComponentInteraction,
   state: CustomerCreationState,
-  _teamId?: string,
+  teamId: string,
   teamName?: string,
   teamImageUrl?: string | null,
 ) {
@@ -1083,7 +1090,7 @@ async function handlePreviousStep(
         break;
       case 'review':
         state.step = 'discord_user';
-        await showDiscordUserStep(interaction, state, team, imageUrl);
+        await showDiscordUserStep(interaction, state, teamId, team, imageUrl);
         break;
     }
   } catch (error) {
@@ -1528,10 +1535,13 @@ async function handleAddMetadataModal(
 async function handleDiscordUserSelect(
   interaction: UserSelectMenuInteraction,
   state: CustomerCreationState,
+  teamId: string,
   teamName: string,
   teamImageUrl: string | null,
 ) {
   try {
+    await interaction.deferUpdate();
+
     const selectedUsers = interaction.users;
 
     if (selectedUsers.size > 0) {
@@ -1539,10 +1549,54 @@ async function handleDiscordUserSelect(
       const selectedUser = selectedUsers.first();
 
       if (selectedUser) {
+        // Check if Discord account is already linked to another customer in this team
+        const existingDiscordAccount =
+          await prisma.customerDiscordAccount.findUnique({
+            where: {
+              teamId_discordId: {
+                teamId,
+                discordId: selectedUser.id,
+              },
+            },
+            include: {
+              customer: true,
+            },
+          });
+
+        if (existingDiscordAccount) {
+          const customerName =
+            existingDiscordAccount.customer.fullName ||
+            existingDiscordAccount.customer.username ||
+            existingDiscordAccount.customer.email ||
+            'Unknown Customer';
+
+          state.discordAccount = {
+            discordId: selectedUser.id,
+            username: selectedUser.username,
+            avatar: selectedUser.avatar,
+            isAlreadyLinked: true,
+          };
+
+          await showDiscordUserStep(
+            interaction,
+            state,
+            teamId,
+            teamName,
+            teamImageUrl,
+          );
+
+          await interaction.followUp({
+            content: `<@${selectedUser.id}> is already linked to customer: **${customerName}**. Please select a different Discord user or skip Discord linking.`,
+            ephemeral: true,
+          });
+          return;
+        }
+
         state.discordAccount = {
           discordId: selectedUser.id,
           username: selectedUser.username,
           avatar: selectedUser.avatar,
+          isAlreadyLinked: false,
         };
       } else {
         // Fallback if somehow first() returns undefined
@@ -1550,6 +1604,7 @@ async function handleDiscordUserSelect(
           discordId: null,
           username: null,
           avatar: null,
+          isAlreadyLinked: false,
         };
       }
     } else {
@@ -1558,10 +1613,17 @@ async function handleDiscordUserSelect(
         discordId: null,
         username: null,
         avatar: null,
+        isAlreadyLinked: false,
       };
     }
 
-    await showDiscordUserStep(interaction, state, teamName, teamImageUrl);
+    await showDiscordUserStep(
+      interaction,
+      state,
+      teamId,
+      teamName,
+      teamImageUrl,
+    );
   } catch (error) {
     logger.error('Error handling Discord user selection:', error);
     await handleWizardError(interaction, error, 'selecting Discord user');
