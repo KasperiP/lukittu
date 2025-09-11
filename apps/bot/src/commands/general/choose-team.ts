@@ -74,7 +74,7 @@ export default Command({
         return;
       }
 
-      await prisma.discordAccount.update({
+      await prisma.userDiscordAccount.update({
         where: {
           id: discordAccount.id,
         },

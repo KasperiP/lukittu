@@ -24,10 +24,17 @@ import {
   ModalSubmitInteraction,
   TextInputBuilder,
   TextInputStyle,
+  UserSelectMenuBuilder,
+  UserSelectMenuInteraction,
 } from 'discord.js';
 import { Command } from '../../structures/command';
 
-type WizardStep = 'basic_info' | 'address' | 'metadata' | 'review';
+type WizardStep =
+  | 'basic_info'
+  | 'address'
+  | 'metadata'
+  | 'discord_user'
+  | 'review';
 
 interface CustomerCreationState {
   username: string | null;
@@ -42,6 +49,11 @@ interface CustomerCreationState {
     country: string | null;
   };
   metadata: { key: string; value: string }[];
+  discordAccount: {
+    discordId: string | null;
+    username: string | null;
+    avatar: string | null;
+  };
   step: WizardStep;
 }
 
@@ -278,6 +290,11 @@ export default Command({
           country: null,
         },
         metadata: [],
+        discordAccount: {
+          discordId: null,
+          username: null,
+          avatar: null,
+        },
         step: 'basic_info',
       };
 
@@ -353,6 +370,14 @@ async function startCustomerWizard(
           address_modal: handleAddressModal,
           wizard_add_metadata: async (i, state) => {
             await handleAddMetadataModal(i, state, teamName, teamImageUrl);
+          },
+          wizard_discord_user_select: async (i, state) => {
+            await handleDiscordUserSelect(
+              i as UserSelectMenuInteraction,
+              state,
+              teamName,
+              teamImageUrl,
+            );
           },
           wizard_create_customer: async (i, state) => {
             await finalizeCustomerCreation(
@@ -458,7 +483,7 @@ async function showBasicInfoStep(
       name: teamName,
       iconURL: teamImageUrl || undefined,
     })
-    .setFooter({ text: 'Step 1 of 4: Basic Info' });
+    .setFooter({ text: 'Step 1 of 5: Basic Info' });
 
   const basicInfoButton = new ButtonBuilder()
     .setCustomId('basic_info_modal')
@@ -547,7 +572,7 @@ async function showAddressStep(
       name: teamName,
       iconURL: teamImageUrl || undefined,
     })
-    .setFooter({ text: 'Step 2 of 4: Address' });
+    .setFooter({ text: 'Step 2 of 5: Address' });
 
   const addressFields = [
     {
@@ -653,7 +678,7 @@ async function showMetadataStep(
       name: teamName,
       iconURL: teamImageUrl || undefined,
     })
-    .setFooter({ text: 'Step 3 of 4: Metadata' });
+    .setFooter({ text: 'Step 3 of 5: Metadata' });
 
   if (state.metadata.length > 0) {
     embed.addFields({
@@ -689,7 +714,7 @@ async function showMetadataStep(
 
   const nextButton = new ButtonBuilder()
     .setCustomId('wizard_next')
-    .setLabel('Review & Create')
+    .setLabel('Next: Discord User')
     .setStyle(ButtonStyle.Primary);
 
   const navRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -709,6 +734,144 @@ async function showMetadataStep(
       embeds: [embed],
       components: components,
     });
+  }
+}
+
+/**
+ * Show the Discord user selection step
+ */
+async function showDiscordUserStep(
+  interaction: MessageComponentInteraction | ModalSubmitInteraction,
+  state: CustomerCreationState,
+  teamName: string,
+  teamImageUrl: string | null,
+) {
+  const embed = new EmbedBuilder()
+    .setTitle('Customer Creation Wizard - Discord User')
+    .setColor(Colors.Blue)
+    .setDescription(
+      'Optionally link this customer to a Discord user in your server. This helps track Discord activity and provides better integration.',
+    )
+    .addFields(
+      {
+        name: 'Username',
+        value: state.username || '_Not set_',
+        inline: true,
+      },
+      {
+        name: 'Email',
+        value: state.email || '_Not set_',
+        inline: true,
+      },
+      {
+        name: 'Full Name',
+        value: state.fullName || '_Not set_',
+        inline: true,
+      },
+      {
+        name: '\u200B',
+        value: '**Discord Integration**',
+        inline: false,
+      },
+      {
+        name: 'Discord User',
+        value: state.discordAccount.discordId
+          ? `<@${state.discordAccount.discordId}>`
+          : '_Not selected_',
+        inline: false,
+      },
+    )
+    .setAuthor({
+      name: teamName,
+      iconURL: teamImageUrl || undefined,
+    })
+    .setFooter({ text: 'Step 4 of 5: Discord User (Optional)' });
+
+  const components: ActionRowBuilder<UserSelectMenuBuilder | ButtonBuilder>[] =
+    [];
+
+  // Use Discord's built-in UserSelectMenuBuilder for better user selection
+  const guild = interaction.guild;
+  if (guild) {
+    // Create a user select menu that automatically handles user selection
+    const userSelect = new UserSelectMenuBuilder()
+      .setCustomId('wizard_discord_user_select')
+      .setPlaceholder('Select a Discord user (leave empty to skip)')
+      .setMinValues(0) // Allow no selection
+      .setMaxValues(1); // Only one user
+
+    const userSelectRow =
+      new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(userSelect);
+
+    components.push(userSelectRow);
+
+    // Add helpful note about the selection
+    embed.addFields({
+      name: 'How to select',
+      value:
+        '• Select a Discord user from this server to link them to this customer\n• Leave the selection empty to skip Discord linking',
+      inline: false,
+    });
+  } else {
+    embed.addFields({
+      name: 'Note',
+      value:
+        'Not in a Discord server context. Discord linking will be skipped.',
+      inline: false,
+    });
+  }
+
+  const backButton = new ButtonBuilder()
+    .setCustomId('wizard_back')
+    .setLabel('Back')
+    .setStyle(ButtonStyle.Secondary);
+
+  const nextButton = new ButtonBuilder()
+    .setCustomId('wizard_next')
+    .setLabel('Review & Create')
+    .setStyle(ButtonStyle.Primary);
+
+  const navRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    backButton,
+    nextButton,
+  );
+
+  components.push(navRow);
+
+  // Handle the interaction response properly
+  try {
+    if (interaction.isModalSubmit()) {
+      await interaction.editReply({
+        embeds: [embed],
+        components: components,
+      });
+    } else {
+      // For button interactions, we need to defer first if not already done
+      if (!interaction.deferred && !interaction.replied) {
+        await interaction.deferUpdate();
+        await interaction.editReply({
+          embeds: [embed],
+          components: components,
+        });
+      } else {
+        await interaction.editReply({
+          embeds: [embed],
+          components: components,
+        });
+      }
+    }
+  } catch (error) {
+    logger.error('Error updating Discord user step interaction:', error);
+    // Fallback to followUp if update fails
+    try {
+      await interaction.followUp({
+        embeds: [embed],
+        components: components,
+        flags: MessageFlags.Ephemeral,
+      });
+    } catch (followUpError) {
+      logger.error('Error with followUp in Discord user step:', followUpError);
+    }
   }
 }
 
@@ -806,6 +969,27 @@ async function showReviewStep(
     );
   }
 
+  // Add Discord account info if linked
+  if (state.discordAccount.discordId) {
+    embed.addFields({
+      name: '\u200B',
+      value: '**Discord Integration**',
+      inline: false,
+    });
+
+    embed.addFields({
+      name: 'Linked Discord User',
+      value: `<@${state.discordAccount.discordId}>`,
+      inline: false,
+    });
+  } else {
+    embed.addFields({
+      name: 'Discord Integration',
+      value: 'No Discord user linked',
+      inline: false,
+    });
+  }
+
   const backButton = new ButtonBuilder()
     .setCustomId('wizard_back')
     .setLabel('Back')
@@ -857,6 +1041,10 @@ async function handleNextStep(
         await showMetadataStep(interaction, state, team, imageUrl);
         break;
       case 'metadata':
+        state.step = 'discord_user';
+        await showDiscordUserStep(interaction, state, team, imageUrl);
+        break;
+      case 'discord_user':
         state.step = 'review';
         await showReviewStep(interaction, state, team, imageUrl);
         break;
@@ -889,9 +1077,13 @@ async function handlePreviousStep(
         state.step = 'address';
         await showAddressStep(interaction, state, team, imageUrl);
         break;
-      case 'review':
+      case 'discord_user':
         state.step = 'metadata';
         await showMetadataStep(interaction, state, team, imageUrl);
+        break;
+      case 'review':
+        state.step = 'discord_user';
+        await showDiscordUserStep(interaction, state, team, imageUrl);
         break;
     }
   } catch (error) {
@@ -1331,6 +1523,52 @@ async function handleAddMetadataModal(
 }
 
 /**
+ * Handle Discord user selection
+ */
+async function handleDiscordUserSelect(
+  interaction: UserSelectMenuInteraction,
+  state: CustomerCreationState,
+  teamName: string,
+  teamImageUrl: string | null,
+) {
+  try {
+    const selectedUsers = interaction.users;
+
+    if (selectedUsers.size > 0) {
+      // Get the first (and only) selected user
+      const selectedUser = selectedUsers.first();
+
+      if (selectedUser) {
+        state.discordAccount = {
+          discordId: selectedUser.id,
+          username: selectedUser.username,
+          avatar: selectedUser.avatar,
+        };
+      } else {
+        // Fallback if somehow first() returns undefined
+        state.discordAccount = {
+          discordId: null,
+          username: null,
+          avatar: null,
+        };
+      }
+    } else {
+      // No user selected
+      state.discordAccount = {
+        discordId: null,
+        username: null,
+        avatar: null,
+      };
+    }
+
+    await showDiscordUserStep(interaction, state, teamName, teamImageUrl);
+  } catch (error) {
+    logger.error('Error handling Discord user selection:', error);
+    await handleWizardError(interaction, error, 'selecting Discord user');
+  }
+}
+
+/**
  * Finalize customer creation
  */
 async function finalizeCustomerCreation(
@@ -1383,6 +1621,16 @@ async function finalizeCustomerCreation(
             Object.keys(addressData).length > 0
               ? { create: addressData }
               : undefined,
+          discordAccount: state.discordAccount.discordId
+            ? {
+                create: {
+                  discordId: state.discordAccount.discordId,
+                  username: state.discordAccount.username || '',
+                  avatar: state.discordAccount.avatar,
+                  teamId,
+                },
+              }
+            : undefined,
           createdBy: {
             connect: {
               id: userId,
@@ -1397,6 +1645,7 @@ async function finalizeCustomerCreation(
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       });
 
@@ -1453,7 +1702,24 @@ async function finalizeCustomerCreation(
           value: customer.fullName || '_Not provided_',
           inline: true,
         },
-      )
+      );
+
+    // Add Discord account info if linked
+    if (state.discordAccount.discordId) {
+      successEmbed.addFields({
+        name: 'Discord Account',
+        value: `<@${state.discordAccount.discordId}>`,
+        inline: true,
+      });
+    } else {
+      successEmbed.addFields({
+        name: 'Discord Account',
+        value: '_Not linked_',
+        inline: true,
+      });
+    }
+
+    successEmbed
       .setAuthor({
         name: teamName,
         iconURL: teamImageUrl || undefined,

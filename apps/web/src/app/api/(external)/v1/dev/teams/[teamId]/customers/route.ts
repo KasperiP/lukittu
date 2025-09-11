@@ -297,6 +297,24 @@ export async function GET(
                 mode: 'insensitive',
               },
             },
+            {
+              discordAccount: {
+                OR: [
+                  {
+                    discordId: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                  {
+                    username: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
+                ],
+              },
+            },
           ]
         : undefined,
       metadata: hasValidMetadata
