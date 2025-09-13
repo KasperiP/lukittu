@@ -1,4 +1,5 @@
 import { I18nTranslator } from '@/types/i18n-types';
+import { regex } from '@lukittu/shared';
 import { z } from 'zod';
 import { metadataSchema } from '../shared/metadata-schema';
 
@@ -39,7 +40,7 @@ export const setCustomerSchema = (t?: I18nTranslator) =>
         .nullable(),
       discordId: z
         .string()
-        .regex(/^\d+$/, t?.('validation.invalid_discord_id'))
+        .regex(regex.discordId, t?.('validation.invalid_discord_id'))
         .min(17, t?.('validation.invalid_discord_id'))
         .nullish(),
       address: z

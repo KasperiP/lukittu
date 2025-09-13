@@ -138,7 +138,6 @@ components:
         - customerId
         - discordId
         - username
-        - discriminator
         - createdAt
         - updatedAt
 
