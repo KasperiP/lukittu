@@ -358,7 +358,6 @@ async function startCustomerWizard(
         type HandlerFunction = (
           i: MessageComponentInteraction,
           state: CustomerCreationState,
-          teamId: string,
           teamName?: string,
           teamImageUrl?: string | null,
           userImageUrl?: string | null,
@@ -407,7 +406,7 @@ async function startCustomerWizard(
         const handler = handlers[i.customId];
 
         if (handler) {
-          await handler(i, state, teamId, teamName, teamImageUrl, userImageUrl);
+          await handler(i, state, teamName, teamImageUrl, userImageUrl);
         } else {
           logger.info(
             `Unknown action ID: ${i.customId}. This should not happen.`,
@@ -746,7 +745,6 @@ async function showMetadataStep(
 async function showDiscordUserStep(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
   state: CustomerCreationState,
-  _teamId: string,
   teamName: string,
   teamImageUrl: string | null,
 ) {
@@ -1030,7 +1028,6 @@ async function showReviewStep(
 async function handleNextStep(
   interaction: MessageComponentInteraction,
   state: CustomerCreationState,
-  teamId: string,
   teamName?: string,
   teamImageUrl?: string | null,
 ) {
@@ -1049,7 +1046,7 @@ async function handleNextStep(
         break;
       case 'metadata':
         state.step = 'discord_user';
-        await showDiscordUserStep(interaction, state, teamId, team, imageUrl);
+        await showDiscordUserStep(interaction, state, team, imageUrl);
         break;
       case 'discord_user':
         state.step = 'review';
@@ -1067,7 +1064,6 @@ async function handleNextStep(
 async function handlePreviousStep(
   interaction: MessageComponentInteraction,
   state: CustomerCreationState,
-  teamId: string,
   teamName?: string,
   teamImageUrl?: string | null,
 ) {
@@ -1090,7 +1086,7 @@ async function handlePreviousStep(
         break;
       case 'review':
         state.step = 'discord_user';
-        await showDiscordUserStep(interaction, state, teamId, team, imageUrl);
+        await showDiscordUserStep(interaction, state, team, imageUrl);
         break;
     }
   } catch (error) {
@@ -1577,13 +1573,7 @@ async function handleDiscordUserSelect(
             isAlreadyLinked: true,
           };
 
-          await showDiscordUserStep(
-            interaction,
-            state,
-            teamId,
-            teamName,
-            teamImageUrl,
-          );
+          await showDiscordUserStep(interaction, state, teamName, teamImageUrl);
 
           await interaction.followUp({
             content: `<@${selectedUser.id}> is already linked to customer: **${customerName}**. Please select a different Discord user or skip Discord linking.`,
@@ -1617,13 +1607,7 @@ async function handleDiscordUserSelect(
       };
     }
 
-    await showDiscordUserStep(
-      interaction,
-      state,
-      teamId,
-      teamName,
-      teamImageUrl,
-    );
+    await showDiscordUserStep(interaction, state, teamName, teamImageUrl);
   } catch (error) {
     logger.error('Error handling Discord user selection:', error);
     await handleWizardError(interaction, error, 'selecting Discord user');
