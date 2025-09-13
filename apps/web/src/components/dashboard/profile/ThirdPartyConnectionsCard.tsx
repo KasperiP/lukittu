@@ -4,6 +4,7 @@ import { DiscordIcon } from '@/components/shared/Icons';
 import LoadingButton from '@/components/shared/LoadingButton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getDiscordAvatarUrl } from '@/lib/providers/discord';
 import { AuthContext } from '@/providers/AuthProvider';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -99,9 +100,16 @@ export default function ThirdPartyConnectionsCard() {
             {user?.discordAccount ? (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  {user.discordAccount.avatarUrl && (
+                  {user.discordAccount.avatar && (
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.discordAccount.avatarUrl} />
+                      <AvatarImage
+                        src={
+                          getDiscordAvatarUrl(
+                            user.discordAccount.discordId,
+                            user.discordAccount.avatar,
+                          ) ?? undefined
+                        }
+                      />
                       <AvatarFallback className="bg-[#5865F2] text-white">
                         <DiscordIcon className="h-4 w-4" />
                       </AvatarFallback>

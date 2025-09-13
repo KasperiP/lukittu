@@ -3,13 +3,13 @@ import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
-  DiscordAccount,
   Limits,
   logger,
   Session,
   Subscription,
   Team,
   User,
+  UserDiscordAccount,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextResponse } from 'next/server';
@@ -17,7 +17,7 @@ import { NextResponse } from 'next/server';
 export type ISessionsGetCurrentSuccessResponse = {
   session: Omit<Session, 'sessionId'> & {
     user: Omit<User, 'passwordHash'> & {
-      discordAccount: DiscordAccount | null;
+      discordAccount: UserDiscordAccount | null;
       teams: (Team & {
         subscription: Subscription | null;
         limits: Limits | null;

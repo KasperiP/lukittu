@@ -1,9 +1,9 @@
 import {
-  DiscordAccount,
   DiscordIntegration,
   Limits,
   Team,
   User,
+  UserDiscordAccount,
 } from '@lukittu/shared';
 import {
   AutocompleteInteraction,
@@ -11,7 +11,7 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 
-export type LinkedDiscordAccount = DiscordAccount & {
+export type LinkedDiscordAccount = UserDiscordAccount & {
   user: Omit<User, 'passwordHash'> & {
     teams: (Team & {
       discordIntegration: DiscordIntegration | null;

@@ -164,7 +164,11 @@
     "hwid_limit_min": "HWID 限制必须至少为 {min}！",
     "hwid_limit_max": "HWID 限制不能超过 {max}！",
     "ip_limit_min": "IP 限制必须至少为 {min}！",
-    "ip_limit_max": "IP 限制不能超过 {max}！"
+    "ip_limit_max": "IP 限制不能超过 {max}！",
+    "invalid_discord_id": "无效的 Discord ID。",
+    "discord_user_not_found": "未找到 Discord 用户。",
+    "discord_api_error": "获取 Discord 用户时发生错误。",
+    "discord_account_already_linked": "此 Discord 帐号已绑定到另一位客户！"
   },
   "general": {
     "select_source": "选择来源",
@@ -677,7 +681,13 @@
       "search_customer": "搜索客户...",
       "delete_customer_confirm_title": "删除客户",
       "delete_customer_confirm_description": "您即将删除客户 <strong>{name}</strong>！这将<strong>永久删除</strong>此客户。此操作无法撤销。",
-      "editing_customers_of_license": "您正在编辑许可证 <strong>{license}</strong> 的客户。"
+      "editing_customers_of_license": "您正在编辑许可证 <strong>{license}</strong> 的客户。",
+      "connections": "连接",
+      "connected": "已连接",
+      "discord_id": "Discord账号",
+      "address_details": "地址详情",
+      "address_added": "地址已添加",
+      "discord_account_linked_to": "此Discord账户已链接到客户：<link>{customerName}</link>"
     },
     "subscriptions": {
       "upgrade_to_premium": "升级您的计划",

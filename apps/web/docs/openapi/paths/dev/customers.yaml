@@ -78,6 +78,14 @@ paths:
                         state: 'CA'
                         country: 'US'
                         postalCode: '12345'
+                      discordAccount:
+                        id: '111e2222-e89b-12d3-a456-426614174999'
+                        customerId: '789e0123-e89b-12d3-a456-426614174222'
+                        discordId: '123456789012345678'
+                        username: 'johndoe_discord'
+                        avatar: 'a1b2c3d4e5f6g7h8i9j0'
+                        createdAt: '2023-09-15T14:30:00Z'
+                        updatedAt: '2023-09-15T14:30:00Z'
                       teamId: '123e4567-e89b-12d3-a456-426614174000'
                       createdByUserId: '456e7890-e89b-12d3-a456-426614174111'
                       createdAt: '2023-09-15T14:30:00Z'
@@ -93,6 +101,7 @@ paths:
                         state: 'NY'
                         country: 'US'
                         postalCode: '54321'
+                      discordAccount: null
                       teamId: '123e4567-e89b-12d3-a456-426614174000'
                       createdByUserId: '456e7890-e89b-12d3-a456-426614174111'
                       createdAt: '2023-09-14T10:15:00Z'
@@ -157,6 +166,20 @@ paths:
                     state: 'NY'
                     country: 'US'
                     postalCode: '54321'
+              customer-with-discord:
+                summary: 'Customer with Discord account'
+                value:
+                  email: 'discord@example.com'
+                  fullName: 'Discord User'
+                  username: 'discorduser'
+                  discordId: '123456789012345678'
+                  metadata: []
+                  address:
+                    street: '789 Discord Ave'
+                    city: 'Gaming City'
+                    state: 'CA'
+                    country: 'US'
+                    postalCode: '90210'
       responses:
         '201':
           description: 'Customer created successfully'
@@ -180,6 +203,7 @@ paths:
                     state: 'CA'
                     country: 'US'
                     postalCode: '12345'
+                  discordAccount: null
                   teamId: '123e4567-e89b-12d3-a456-426614174000'
                   createdByUserId: '456e7890-e89b-12d3-a456-426614174111'
                   createdAt: '2023-09-15T14:30:00Z'
@@ -229,6 +253,14 @@ paths:
                     state: 'CA'
                     country: 'US'
                     postalCode: '12345'
+                  discordAccount:
+                    id: '111e2222-e89b-12d3-a456-426614174999'
+                    customerId: '789e0123-e89b-12d3-a456-426614174222'
+                    discordId: '123456789012345678'
+                    username: 'johndoe_discord'
+                    avatar: 'a1b2c3d4e5f6g7h8i9j0'
+                    createdAt: '2023-09-15T14:30:00Z'
+                    updatedAt: '2023-09-15T14:30:00Z'
                   teamId: '123e4567-e89b-12d3-a456-426614174000'
                   createdByUserId: '456e7890-e89b-12d3-a456-426614174111'
                   createdAt: '2023-09-15T14:30:00Z'
@@ -293,6 +325,37 @@ paths:
                     state: 'CA'
                     country: 'US'
                     postalCode: '98765'
+              update-discord:
+                summary: 'Update customer with Discord account'
+                value:
+                  email: 'discord@example.com'
+                  fullName: 'Discord User Updated'
+                  username: 'discorduserupdated'
+                  discordId: '987654321098765432'
+                  metadata:
+                    - key: 'platform'
+                      value: 'discord'
+                      locked: false
+                  address:
+                    street: '999 Gaming Blvd'
+                    city: 'Streaming City'
+                    state: 'WA'
+                    country: 'US'
+                    postalCode: '98101'
+              remove-discord:
+                summary: 'Remove Discord account from customer'
+                value:
+                  email: 'user@example.com'
+                  fullName: 'Regular User'
+                  username: 'regularuser'
+                  discordId: null
+                  metadata: []
+                  address:
+                    street: '123 Normal St'
+                    city: 'Regular City'
+                    state: 'TX'
+                    country: 'US'
+                    postalCode: '75001'
       responses:
         '200':
           description: 'Customer updated successfully'
@@ -316,6 +379,7 @@ paths:
                     state: 'NY'
                     country: 'US'
                     postalCode: '54321'
+                  discordAccount: null
                   teamId: '123e4567-e89b-12d3-a456-426614174000'
                   createdByUserId: '456e7890-e89b-12d3-a456-426614174111'
                   createdAt: '2023-09-15T14:30:00Z'

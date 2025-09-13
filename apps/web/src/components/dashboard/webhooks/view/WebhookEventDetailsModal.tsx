@@ -1,5 +1,6 @@
 'use client';
 import { DateConverter } from '@/components/shared/DateConverter';
+import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,12 +10,6 @@ import {
   ResponsiveDialogTitle,
 } from '@/components/ui/responsive-dialog';
 import { Separator } from '@/components/ui/separator';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { User, WebhookEvent } from '@lukittu/shared';
 import { Copy, User as UserIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -66,25 +61,10 @@ export function WebhookEventDetailsModal({
                 <label className="text-sm font-medium text-muted-foreground">
                   ID
                 </label>
-                <div className="flex items-center gap-2">
-                  <Copy className="h-4 w-4 shrink-0" />
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <span
-                          className="truncate font-mono text-xs text-primary hover:underline"
-                          role="button"
-                          onClick={() => copyToClipboard(event.id)}
-                        >
-                          {event.id}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('general.click_to_copy')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <ClickableIdentifier
+                  className="font-mono text-xs"
+                  value={event.id}
+                />
               </div>
 
               <div className="flex flex-col gap-2">

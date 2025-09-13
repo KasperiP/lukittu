@@ -111,9 +111,9 @@ async function checkLinkedAccountAndPermission(
           },
         },
       },
-    } satisfies Prisma.DiscordAccountInclude;
+    } satisfies Prisma.UserDiscordAccountInclude;
 
-    const discordAccount = await prisma.discordAccount.findUnique({
+    const discordAccount = await prisma.userDiscordAccount.findUnique({
       where: { discordId: userId },
       include: includeData,
     });
@@ -129,7 +129,7 @@ async function checkLinkedAccountAndPermission(
         );
 
         if (!isInTeam) {
-          const updatedAccount = await prisma.discordAccount.update({
+          const updatedAccount = await prisma.userDiscordAccount.update({
             where: { id: discordAccount.id },
             data: { selectedTeamId: null },
             include: includeData,

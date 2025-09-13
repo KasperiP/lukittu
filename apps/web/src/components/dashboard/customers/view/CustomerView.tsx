@@ -58,7 +58,7 @@ export default function CustomerView() {
           <Skeleton className="h-8 w-96" />
         ) : (
           <h1 className="truncate text-2xl font-bold">
-            {customer?.fullName ?? customer?.email}
+            {customer?.fullName ?? customer?.email ?? customer?.username}
           </h1>
         )}
         {isLoading ? (
