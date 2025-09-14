@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -399,7 +399,7 @@ export async function PUT(
       validated.data;
 
     // Discord validation and user fetching
-    let discordUser = null;
+    let discordUser: DiscordUser | null = null;
     if (discordId) {
       // Check if Discord account is already linked to another customer in this team
       const existingDiscordAccount =
@@ -583,16 +583,14 @@ export async function PUT(
               })),
             },
           },
-          address: {
-            upsert: {
-              create: {
-                ...address,
-              },
-              update: {
-                ...address,
-              },
-            },
-          },
+          address: address
+            ? {
+                upsert: {
+                  create: address,
+                  update: address,
+                },
+              }
+            : { delete: true },
           discordAccount:
             discordUser && discordId
               ? {

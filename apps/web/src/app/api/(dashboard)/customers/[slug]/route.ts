@@ -334,6 +334,7 @@ export async function PUT(
       const updatedCustomer = await prisma.customer.update({
         where: {
           id: customerId,
+          teamId: team.id,
         },
         data: {
           email,
@@ -351,15 +352,11 @@ export async function PUT(
           address: address
             ? {
                 upsert: {
-                  create: {
-                    ...address,
-                  },
-                  update: {
-                    ...address,
-                  },
+                  create: address,
+                  update: address,
                 },
               }
-            : undefined,
+            : { delete: true },
           discordAccount: discordAccountData
             ? {
                 upsert: {

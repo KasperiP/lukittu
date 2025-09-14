@@ -1,5 +1,6 @@
 import {
   DiscordOAuthTokenResponse,
+  DiscordUser,
   exchangeDiscordCode,
   getDiscordUserProfile,
 } from '@/lib/providers/discord';
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const accessToken = tokenData.access_token;
 
-    let userData;
+    let userData: DiscordUser | null = null;
     try {
       userData = await getDiscordUserProfile(accessToken);
     } catch (error) {
