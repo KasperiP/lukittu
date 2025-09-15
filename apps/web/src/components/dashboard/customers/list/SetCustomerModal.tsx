@@ -1,5 +1,6 @@
 'use client';
 import { ICustomersUpdateResponse } from '@/app/api/(dashboard)/customers/[slug]/route';
+import { ICustomerDiscordSearchGetResponse } from '@/app/api/(dashboard)/customers/discord-search/route';
 import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route';
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import LoadingButton from '@/components/shared/LoadingButton';
@@ -111,17 +112,16 @@ export default function SetCustomerModal() {
           `/api/customers/discord-search?discordId=${encodeURIComponent(discordId)}`,
         );
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            setDiscordError(t('validation.discord_user_not_found'));
-          } else {
-            setDiscordError(t('validation.discord_api_error'));
-          }
+        const data =
+          (await response.json()) as ICustomerDiscordSearchGetResponse;
+
+        if ('message' in data) {
+          setDiscordError(data.message);
           setDiscordUser(null);
+          setExistingCustomer(null);
           return;
         }
 
-        const data = await response.json();
         setDiscordUser(data.user);
         setExistingCustomer(data.existingCustomer || null);
       } catch (_error) {

@@ -7,7 +7,7 @@ import { logger, prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-interface ICustomerDiscordSearchGetSuccess {
+export interface ICustomerDiscordSearchGetSuccess {
   user: {
     id: string;
     username: string;
@@ -23,7 +23,7 @@ interface ICustomerDiscordSearchGetSuccess {
   };
 }
 
-type ICustomerDiscordSearchGetResponse =
+export type ICustomerDiscordSearchGetResponse =
   | ICustomerDiscordSearchGetSuccess
   | ErrorResponse;
 
