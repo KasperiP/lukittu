@@ -325,6 +325,24 @@ export default Command({
                   { username: { contains: search, mode: 'insensitive' } },
                   { email: { contains: search, mode: 'insensitive' } },
                   { fullName: { contains: search, mode: 'insensitive' } },
+                  {
+                    discordAccount: {
+                      OR: [
+                        {
+                          discordId: {
+                            contains: search,
+                            mode: 'insensitive',
+                          },
+                        },
+                        {
+                          username: {
+                            contains: search,
+                            mode: 'insensitive',
+                          },
+                        },
+                      ],
+                    },
+                  },
                 ],
               }
             : {}),

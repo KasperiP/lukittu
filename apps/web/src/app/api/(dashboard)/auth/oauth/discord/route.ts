@@ -1,3 +1,9 @@
+import {
+  DiscordOAuthTokenResponse,
+  DiscordUser,
+  exchangeDiscordCode,
+  getDiscordUserProfile,
+} from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
@@ -44,48 +50,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const response = NextResponse.next();
     response.cookies.delete('discord_oauth_state');
 
-    const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || '',
-        client_secret: process.env.DISCORD_CLIENT_SECRET || '',
-        grant_type: 'authorization_code',
+    let tokenData: DiscordOAuthTokenResponse;
+    try {
+      tokenData = await exchangeDiscordCode(
         code,
-        redirect_uri: process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      const text = await tokenResponse.text();
-      logger.error('Failed to exchange Discord code for token:', text);
+        process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
+      );
+    } catch (error) {
+      logger.error('Failed to exchange Discord code for token:', error);
       return NextResponse.redirect(
         new URL('/dashboard/profile?error=server_error', baseUrl),
       );
     }
 
-    const tokenData = await tokenResponse.json();
     const accessToken = tokenData.access_token;
 
-    const userResponse = await fetch('https://discord.com/api/v10/users/@me', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (!userResponse.ok) {
-      logger.error(
-        'Failed to get Discord user data:',
-        await userResponse.text(),
-      );
+    let userData: DiscordUser | null = null;
+    try {
+      userData = await getDiscordUserProfile(accessToken);
+    } catch (error) {
+      logger.error('Failed to get Discord user data:', error);
       return NextResponse.redirect(
         new URL('/dashboard/profile?error=server_error', baseUrl),
       );
     }
-
-    const userData = await userResponse.json();
 
     await prisma.user.update({
       where: { id: session.user.id },
@@ -94,16 +82,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           upsert: {
             create: {
               username: userData.username,
-              avatarUrl: userData.avatar
-                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
-                : null,
+              avatar: userData.avatar,
               discordId: userData.id,
             },
             update: {
               username: userData.username,
-              avatarUrl: userData.avatar
-                ? `https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatar}.png`
-                : null,
+              avatar: userData.avatar,
               discordId: userData.id,
             },
           },
@@ -156,7 +140,7 @@ export async function DELETE(): Promise<NextResponse> {
       );
     }
 
-    await prisma.discordAccount.delete({
+    await prisma.userDiscordAccount.delete({
       where: { userId: session.user.id },
     });
 

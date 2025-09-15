@@ -19,25 +19,6 @@ paths:
           application/json:
             schema:
               $ref: '../../components/schemas/license.yaml#/components/schemas/VerifyLicenseRequest'
-            examples:
-              basic-verification:
-                summary: 'Basic license verification'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-              with-challenge:
-                summary: 'Verification with challenge for security'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-                  challenge: 'randomChallenge123456'
-                  hardwareIdentifier: 'ABC123DEF456GHI789'
-                  version: '1.2.3'
-              strict-validation:
-                summary: 'Verification with strict customer and product validation'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-                  customerId: '789e0123-e89b-12d3-a456-426614174222'
-                  productId: '012e3456-e89b-12d3-a456-426614174333'
-                  hardwareIdentifier: 'ABC123DEF456GHI789'
       responses:
         '200':
           description: 'Successful license verification response'
@@ -45,35 +26,6 @@ paths:
             application/json:
               schema:
                 $ref: '../../components/schemas/license.yaml#/components/schemas/VerificationResponse'
-              examples:
-                valid-license:
-                  summary: 'Valid license with data'
-                  value:
-                    data:
-                      license:
-                        ipLimit: 5
-                        hwidLimit: 3
-                        expirationType: 'DURATION'
-                        expirationStart: 'ACTIVATION'
-                        expirationDays: 30
-                        metadata:
-                          - key: 'tier'
-                            value: 'premium'
-                      customers:
-                        - email: 'customer@example.com'
-                          fullName: 'John Doe'
-                      products:
-                        - name: 'My Software'
-                          url: 'https://example.com'
-                          latestRelease:
-                            version: '1.2.3'
-                            createdAt: '2023-09-15T14:30:00Z'
-                    result:
-                      timestamp: '2023-09-15T14:30:00Z'
-                      valid: true
-                      details: 'License is valid and active'
-                      code: 'VALID'
-                      challengeResponse: 'signedChallengeResponse123'
         '4XX':
           $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
         '5XX':
@@ -98,19 +50,6 @@ paths:
           application/json:
             schema:
               $ref: '../../components/schemas/license.yaml#/components/schemas/HeartbeatRequest'
-            examples:
-              basic-heartbeat:
-                summary: 'Basic heartbeat request'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-                  hardwareIdentifier: 'ABC123DEF456GHI789'
-              with-version-tracking:
-                summary: 'Heartbeat with version and branch tracking'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-                  hardwareIdentifier: 'ABC123DEF456GHI789'
-                  version: '1.2.3'
-                  branch: 'main'
       responses:
         '200':
           description: 'Successful heartbeat response'

@@ -1,20 +1,14 @@
 import { IProductGetSuccessResponse } from '@/app/api/(dashboard)/products/[slug]/route';
 import { DateConverter } from '@/components/shared/DateConverter';
+import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { Copy, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Route } from 'next';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface ProductDetailsProps {
   product: IProductGetSuccessResponse['product'] | null;
@@ -37,28 +31,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <h3 className="text-sm font-semibold">ID</h3>
             <div className="text-sm font-semibold">
               {product ? (
-                <span className="flex items-center gap-2">
-                  <Copy className="h-4 w-4 shrink-0" />
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <span
-                          className="truncate text-primary hover:underline"
-                          role="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(product.id);
-                            toast.success(t('general.copied_to_clipboard'));
-                          }}
-                        >
-                          {product.id}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('general.click_to_copy')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </span>
+                <ClickableIdentifier value={product.id} />
               ) : (
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-4 w-4 shrink-0" />

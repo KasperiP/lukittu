@@ -113,15 +113,6 @@ paths:
                 forgotten:
                   type: boolean
                   description: 'Whether to mark this IP address as forgotten'
-            examples:
-              forget-ip:
-                summary: 'Forget IP address'
-                value:
-                  forgotten: true
-              remember-ip:
-                summary: 'Remember IP address'
-                value:
-                  forgotten: false
       responses:
         '200':
           description: 'IP address updated successfully'

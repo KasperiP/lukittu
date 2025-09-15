@@ -107,15 +107,6 @@ paths:
                 forgotten:
                   type: boolean
                   description: 'Whether to mark this hardware identifier as forgotten'
-            examples:
-              forget-hwid:
-                summary: 'Forget hardware identifier'
-                value:
-                  forgotten: true
-              remember-hwid:
-                summary: 'Remember hardware identifier'
-                value:
-                  forgotten: false
       responses:
         '200':
           description: 'Hardware identifier updated successfully'

@@ -26,6 +26,10 @@ components:
           $ref: '#/components/schemas/Address'
           nullable: true
           description: Customer address information
+        discordAccount:
+          $ref: '#/components/schemas/DiscordAccount'
+          nullable: true
+          description: Associated Discord account information
         teamId:
           $ref: './common.yaml#/components/schemas/UUID'
           description: Team that owns this customer
@@ -100,6 +104,43 @@ components:
           nullable: true
           description: Postal or ZIP code
 
+    # Discord account schema
+    DiscordAccount:
+      type: object
+      properties:
+        id:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Discord account record ID
+        customerId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: Associated customer ID
+        discordId:
+          type: string
+          pattern: '^\d{17,24}$'
+          description: Discord user ID (snowflake)
+        username:
+          type: string
+          description: Discord username
+        avatar:
+          type: string
+          nullable: true
+          description: Discord avatar hash (null if no custom avatar)
+        createdAt:
+          type: string
+          format: date-time
+          description: Discord account record creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Discord account record last update timestamp
+      required:
+        - id
+        - customerId
+        - discordId
+        - username
+        - createdAt
+        - updatedAt
+
     # Customer creation/update request
     CustomerRequest:
       type: object
@@ -114,6 +155,11 @@ components:
         username:
           type: string
           nullable: true
+        discordId:
+          type: string
+          pattern: '^\d{17,24}$'
+          nullable: true
+          description: Discord user ID (snowflake). When provided, Discord user will be validated and associated with this customer.
         metadata:
           $ref: './common.yaml#/components/schemas/Metadata'
         address:

@@ -21,6 +21,9 @@
     "username_max_length": "Username must be at most 255 characters long!",
     "invalid_plan_type": "Invalid plan type!",
     "no_discord_account": "You don't have a Discord account connected!",
+    "invalid_discord_id": "Invalid Discord ID.",
+    "discord_user_not_found": "Discord user not found.",
+    "discord_api_error": "Error occurred while fetching Discord user.",
     "invalid_email": "Invalid email address!",
     "invalid_token": "Invalid token.",
     "user_not_found": "User not found.",
@@ -164,7 +167,8 @@
     "hwid_limit_min": "HWID limit must be at least {min}!",
     "hwid_limit_max": "HWID limit must not exceed {max}!",
     "ip_limit_min": "IP limit must be at least {min}!",
-    "ip_limit_max": "IP limit must not exceed {max}!"
+    "ip_limit_max": "IP limit must not exceed {max}!",
+    "discord_account_already_linked": "This Discord account is already linked to another customer!"
   },
   "general": {
     "response_status": "Response status",
@@ -699,7 +703,13 @@
       "search_customer": "Search customer...",
       "delete_customer_confirm_title": "Delete customer",
       "delete_customer_confirm_description": "You are about to delete customer <strong>{name}</strong>! This will <strong>permanently delete</strong> this customer. This action cannot be undone.",
-      "editing_customers_of_license": "You are editing customers of license <strong>{license}</strong>."
+      "editing_customers_of_license": "You are editing customers of license <strong>{license}</strong>.",
+      "connections": "Connections",
+      "connected": "Connected",
+      "discord_id": "Discord ID",
+      "address_details": "Address Details",
+      "address_added": "Address added",
+      "discord_account_linked_to": "This Discord account is already linked to customer: <link>{customerName}</link>"
     },
     "subscriptions": {
       "upgrade_to_premium": "Upgrade your plan",

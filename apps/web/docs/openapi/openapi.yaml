@@ -167,21 +167,6 @@ components:
     PageSize:
       $ref: './components/parameters/pagination.yaml#/components/parameters/PageSize'
 
-  # Responses
-  responses:
-    BadRequest:
-      $ref: './components/responses/common.yaml#/components/responses/BadRequest'
-    Unauthorized:
-      $ref: './components/responses/common.yaml#/components/responses/Unauthorized'
-    Forbidden:
-      $ref: './components/responses/common.yaml#/components/responses/Forbidden'
-    NotFound:
-      $ref: './components/responses/common.yaml#/components/responses/NotFound'
-    RateLimit:
-      $ref: './components/responses/common.yaml#/components/responses/RateLimit'
-    InternalServerError:
-      $ref: './components/responses/common.yaml#/components/responses/InternalServerError'
-
   # Security schemes
   securitySchemes:
     bearerAuth:

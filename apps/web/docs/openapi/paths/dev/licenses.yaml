@@ -66,32 +66,6 @@ paths:
           application/json:
             schema:
               $ref: '../../components/schemas/license.yaml#/components/schemas/CreateLicenseRequest'
-            examples:
-              basic-license:
-                summary: 'Basic perpetual license'
-                value:
-                  expirationType: 'NEVER'
-                  suspended: false
-                  sendEmailDelivery: false
-                  productIds: ['012e3456-e89b-12d3-a456-426614174333']
-                  customerIds: ['789e0123-e89b-12d3-a456-426614174222']
-                  metadata: []
-              timed-license:
-                summary: '30-day license with limits'
-                value:
-                  expirationType: 'DURATION'
-                  expirationStart: 'ACTIVATION'
-                  expirationDays: 30
-                  ipLimit: 5
-                  hwidLimit: 3
-                  suspended: false
-                  sendEmailDelivery: true
-                  productIds: ['012e3456-e89b-12d3-a456-426614174333']
-                  customerIds: ['789e0123-e89b-12d3-a456-426614174222']
-                  metadata:
-                    - key: 'tier'
-                      value: 'premium'
-                      locked: false
       responses:
         '200':
           description: 'License created successfully'
@@ -234,21 +208,6 @@ paths:
                   description: 'Maximum number of IP addresses'
                 metadata:
                   $ref: '../../components/schemas/common.yaml#/components/schemas/Metadata'
-            examples:
-              update-expiration:
-                summary: 'Update license expiration'
-                value:
-                  licenseKey: 'ABCD1-EFGH2-IJKL3-MNOP4-QRST5'
-                  expirationType: 'DURATION'
-                  expirationStart: 'ACTIVATION'
-                  expirationDate: null
-                  expirationDays: 90
-                  suspended: false
-                  productIds: ['123e4567-e89b-12d3-a456-426614174000']
-                  customerIds: ['789e0123-e89b-12d3-a456-426614174222']
-                  hwidLimit: 3
-                  ipLimit: 5
-                  metadata: []
       responses:
         '200':
           description: 'License updated successfully'

@@ -1,4 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
+import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -150,6 +151,7 @@ export async function GET(
       include: {
         metadata: true,
         address: true,
+        discordAccount: true,
       },
     });
 
@@ -190,6 +192,8 @@ export async function GET(
       customerEmail: customer.email,
       customerName: customer.fullName,
       hasAddress: !!customer.address,
+      hasDiscordAccount: !!customer.discordAccount,
+      discordUsername: customer.discordAccount?.username || null,
       metadataCount: customer.metadata.length,
       responseTimeMs: responseTime,
       statusCode: HttpStatus.OK,
@@ -391,7 +395,137 @@ export async function PUT(
       );
     }
 
-    const { email, fullName, metadata, address, username } = validated.data;
+    const { email, fullName, metadata, address, username, discordId } =
+      validated.data;
+
+    // Discord validation and user fetching
+    let discordUser: DiscordUser | null = null;
+    if (discordId) {
+      // Check if Discord account is already linked to another customer in this team
+      const existingDiscordAccount =
+        await prisma.customerDiscordAccount.findUnique({
+          where: {
+            teamId_discordId: {
+              teamId: team.id,
+              discordId,
+            },
+          },
+          include: {
+            customer: true,
+          },
+        });
+
+      // If Discord account exists and it's not the current customer, return error
+      if (
+        existingDiscordAccount &&
+        existingDiscordAccount.customerId !== customerId
+      ) {
+        const responseTime = Date.now() - requestTime.getTime();
+
+        logger.warn(
+          'Dev API: Discord account already linked to another customer during update',
+          {
+            requestId,
+            teamId,
+            customerId,
+            discordId,
+            existingCustomerId: existingDiscordAccount.customer.id,
+            responseTimeMs: responseTime,
+            statusCode: HttpStatus.BAD_REQUEST,
+            ipAddress,
+            userAgent,
+          },
+        );
+
+        return NextResponse.json(
+          {
+            data: null,
+            result: {
+              details: `Discord account is already linked to customer: ${existingDiscordAccount.customer.fullName || existingDiscordAccount.customer.username || existingDiscordAccount.customer.email || 'Unknown Customer'}`,
+              timestamp: new Date(),
+              valid: false,
+            },
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
+      try {
+        const discordApiStartTime = Date.now();
+        discordUser = await getDiscordUser(discordId);
+        const discordApiTime = Date.now() - discordApiStartTime;
+
+        if (!discordUser) {
+          const responseTime = Date.now() - requestTime.getTime();
+
+          logger.warn('Dev API: Discord user not found for customer update', {
+            requestId,
+            teamId,
+            customerId,
+            discordId,
+            discordApiTimeMs: discordApiTime,
+            responseTimeMs: responseTime,
+            statusCode: HttpStatus.BAD_REQUEST,
+            ipAddress,
+            userAgent,
+          });
+
+          return NextResponse.json(
+            {
+              data: null,
+              result: {
+                details: 'Discord user not found',
+                timestamp: new Date(),
+                valid: false,
+              },
+            },
+            { status: HttpStatus.BAD_REQUEST },
+          );
+        }
+
+        logger.info(
+          'Dev API: Discord user fetched successfully for customer update',
+          {
+            requestId,
+            teamId,
+            customerId,
+            discordId,
+            discordUsername: discordUser.username,
+            discordAvatar: discordUser.avatar,
+            discordApiTimeMs: discordApiTime,
+          },
+        );
+      } catch (error) {
+        const responseTime = Date.now() - requestTime.getTime();
+
+        logger.error(
+          'Dev API: Failed to fetch Discord user for customer update',
+          {
+            requestId,
+            teamId,
+            customerId,
+            discordId,
+            error: error instanceof Error ? error.message : String(error),
+            errorType: error?.constructor?.name || 'Unknown',
+            responseTimeMs: responseTime,
+            ipAddress,
+            userAgent,
+          },
+        );
+
+        return NextResponse.json(
+          {
+            data: null,
+            result: {
+              details: 'Failed to validate Discord user',
+              timestamp: new Date(),
+              valid: false,
+            },
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+    }
 
     const existingCustomer = await prisma.customer.findUnique({
       where: {
@@ -449,20 +583,41 @@ export async function PUT(
               })),
             },
           },
-          address: {
-            upsert: {
-              create: {
-                ...address,
-              },
-              update: {
-                ...address,
-              },
-            },
-          },
+          address: address
+            ? {
+                upsert: {
+                  create: address,
+                  update: address,
+                },
+              }
+            : { delete: true },
+          discordAccount:
+            discordUser && discordId
+              ? {
+                  upsert: {
+                    create: {
+                      discordId,
+                      username: discordUser.username,
+                      avatar: discordUser.avatar,
+                      teamId: team.id,
+                    },
+                    update: {
+                      discordId,
+                      username: discordUser.username,
+                      avatar: discordUser.avatar,
+                    },
+                  },
+                }
+              : discordId === null || discordId === ''
+                ? {
+                    delete: true,
+                  }
+                : undefined,
         },
         include: {
           metadata: true,
           address: true,
+          discordAccount: true,
         },
       });
 
@@ -507,6 +662,8 @@ export async function PUT(
       customerId,
       customerEmail: response.data.email,
       customerName: response.data.fullName,
+      hasDiscordAccount: !!response.data.discordAccount,
+      discordUsername: response.data.discordAccount?.username || null,
       responseTimeMs: responseTime,
       statusCode: HttpStatus.OK,
     });
@@ -688,6 +845,7 @@ export async function DELETE(
       include: {
         metadata: true,
         address: true,
+        discordAccount: true,
       },
     });
 
@@ -773,6 +931,8 @@ export async function DELETE(
       customerId,
       customerEmail: customer.email,
       customerName: customer.fullName,
+      hasDiscordAccount: !!customer.discordAccount,
+      discordUsername: customer.discordAccount?.username || null,
       responseTimeMs: responseTime,
       statusCode: HttpStatus.OK,
     });

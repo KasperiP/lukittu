@@ -1,20 +1,14 @@
 import { DateConverter } from '@/components/shared/DateConverter';
+import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { User, Webhook } from '@lukittu/shared';
-import { CheckCircle, Copy, User as UserIcon, XCircle } from 'lucide-react';
+import { CheckCircle, User as UserIcon, XCircle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface WebhookDetailsProps {
   webhook:
@@ -27,15 +21,6 @@ interface WebhookDetailsProps {
 export function WebhookDetails({ webhook }: WebhookDetailsProps) {
   const [showMore, setShowMore] = useState(false);
   const t = useTranslations();
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(t('general.copied_to_clipboard'));
-    } catch (_error) {
-      toast.error(t('general.error_occurred'));
-    }
-  };
 
   return (
     <Card>
@@ -50,25 +35,10 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
             <h3 className="text-sm font-semibold">ID</h3>
             <div className="text-sm font-semibold">
               {webhook ? (
-                <span className="flex items-center gap-2">
-                  <Copy className="h-4 w-4 shrink-0" />
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <span
-                          className="truncate font-mono text-xs text-primary hover:underline"
-                          role="button"
-                          onClick={() => copyToClipboard(webhook.id)}
-                        >
-                          {webhook.id}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('general.click_to_copy')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </span>
+                <ClickableIdentifier
+                  className="font-mono text-xs"
+                  value={webhook.id}
+                />
               ) : (
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-4 w-4 shrink-0" />
@@ -83,25 +53,12 @@ export function WebhookDetails({ webhook }: WebhookDetailsProps) {
             </h3>
             <div className="text-sm font-semibold">
               {webhook ? (
-                <div className="flex items-center gap-2">
-                  <Copy className="h-4 w-4 shrink-0" />
-                  <TooltipProvider>
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <span
-                          className="truncate font-mono text-xs text-primary hover:underline"
-                          role="button"
-                          onClick={() => copyToClipboard(webhook.secret)}
-                        >
-                          {`${webhook.secret.substring(0, 6)}${'•'.repeat(webhook.secret.length - 6)}`}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{t('general.click_to_copy')}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
+                <ClickableIdentifier
+                  className="font-mono text-xs"
+                  value={webhook.secret}
+                >
+                  {`${webhook.secret.substring(0, 6)}${'•'.repeat(webhook.secret.length - 6)}`}
+                </ClickableIdentifier>
               ) : (
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-4 w-4 shrink-0" />
