@@ -116,7 +116,7 @@ components:
           description: Associated customer ID
         discordId:
           type: string
-          pattern: '^[0-9]{17,24}$'
+          pattern: '^\d{17,24}$'
           description: Discord user ID (snowflake)
         username:
           type: string
@@ -157,7 +157,7 @@ components:
           nullable: true
         discordId:
           type: string
-          pattern: '^[0-9]{17,24}$'
+          pattern: '^\d{17,24}$'
           nullable: true
           description: Discord user ID (snowflake). When provided, Discord user will be validated and associated with this customer.
         metadata:

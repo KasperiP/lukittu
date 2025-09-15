@@ -845,26 +845,14 @@ async function showDiscordUserStep(
 
   // Handle the interaction response properly
   try {
-    if (interaction.isModalSubmit()) {
-      await interaction.editReply({
-        embeds: [embed],
-        components: components,
-      });
-    } else {
-      // For button interactions, we need to defer first if not already done
-      if (!interaction.deferred && !interaction.replied) {
-        await interaction.deferUpdate();
-        await interaction.editReply({
-          embeds: [embed],
-          components: components,
-        });
-      } else {
-        await interaction.editReply({
-          embeds: [embed],
-          components: components,
-        });
-      }
+    // For button interactions, we need to defer first if not already done
+    if (!interaction.isModalSubmit() && !interaction.deferred && !interaction.replied) {
+      await interaction.deferUpdate();
     }
+    await interaction.editReply({
+      embeds: [embed],
+      components: components,
+    });
   } catch (error) {
     logger.error('Error updating Discord user step interaction:', error);
     // Fallback to followUp if update fails
