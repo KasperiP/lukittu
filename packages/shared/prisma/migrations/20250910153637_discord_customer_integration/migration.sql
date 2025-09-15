@@ -34,7 +34,7 @@ CREATE TABLE "public"."CustomerDiscordAccount" (
 CREATE UNIQUE INDEX "CustomerDiscordAccount_customerId_key" ON "public"."CustomerDiscordAccount"("customerId");
 
 -- CreateIndex
-CREATE INDEX "CustomerDiscordAccount_teamId_discordId_idx" ON "public"."CustomerDiscordAccount"("teamId", "discordId");
+CREATE UNIQUE INDEX "CustomerDiscordAccount_teamId_discordId_key" ON "public"."CustomerDiscordAccount"("teamId", "discordId");
 
 -- AddForeignKey
 ALTER TABLE "public"."CustomerDiscordAccount" ADD CONSTRAINT "CustomerDiscordAccount_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
