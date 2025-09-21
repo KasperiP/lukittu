@@ -15,9 +15,9 @@ import {
   calculateUpdatedLicenseExpirationDate,
   createWebhookEvents,
   Customer,
-  decryptLicenseKey,
+  decryptString,
   deleteLicensePayload,
-  encryptLicenseKey,
+  encryptString,
   generateHMAC,
   License,
   LicenseExpirationStart,
@@ -140,7 +140,7 @@ export async function GET(
 
     const license = team.licenses[0];
 
-    license.licenseKey = decryptLicenseKey(license.licenseKey);
+    license.licenseKey = decryptString(license.licenseKey);
 
     return NextResponse.json({
       license,
@@ -330,7 +330,7 @@ export async function PUT(
       );
     }
 
-    const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+    const encryptedLicenseKey = encryptString(licenseKey);
     let webhookEventIds: string[] = [];
 
     const expirationStartFormatted =

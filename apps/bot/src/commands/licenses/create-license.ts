@@ -5,7 +5,7 @@ import {
   AuditLogTargetType,
   createLicensePayload,
   createWebhookEvents,
-  encryptLicenseKey,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   LicenseExpirationStart,
@@ -1907,7 +1907,7 @@ async function finalizeLicenseCreation(
     }
 
     const hmac = generateHMAC(`${state.licenseKey}:${state.teamId}`);
-    const encryptedLicenseKey = encryptLicenseKey(state.licenseKey);
+    const encryptedLicenseKey = encryptString(state.licenseKey);
     let webhookEventIds: string[] = [];
 
     const license = await prisma.$transaction(async (prisma) => {

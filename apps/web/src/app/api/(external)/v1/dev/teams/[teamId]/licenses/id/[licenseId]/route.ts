@@ -14,9 +14,9 @@ import {
   AuditLogTargetType,
   calculateUpdatedLicenseExpirationDate,
   createWebhookEvents,
-  decryptLicenseKey,
+  decryptString,
   deleteLicensePayload,
-  encryptLicenseKey,
+  encryptString,
   generateHMAC,
   LicenseExpirationStart,
   LicenseExpirationType,
@@ -212,7 +212,7 @@ export async function GET(
 
           /** @deprecated Use hwidLimit */
           seats: license.hwidLimit,
-          licenseKey: decryptLicenseKey(license.licenseKey),
+          licenseKey: decryptString(license.licenseKey),
         },
         result: {
           details: 'License found',
@@ -518,7 +518,7 @@ export async function PUT(
     let encryptedLicenseKey = existingLicense.licenseKey;
     let hmac = existingLicense.licenseKeyLookup;
 
-    if (licenseKey !== decryptLicenseKey(existingLicense.licenseKey)) {
+    if (licenseKey !== decryptString(existingLicense.licenseKey)) {
       // Check if the new license key is already in use
       const existingKeyCheck = await prisma.license.findFirst({
         where: {
@@ -557,7 +557,7 @@ export async function PUT(
         );
       }
 
-      encryptedLicenseKey = encryptLicenseKey(licenseKey);
+      encryptedLicenseKey = encryptString(licenseKey);
       hmac = generateHMAC(`${licenseKey}:${teamId}`);
     }
 

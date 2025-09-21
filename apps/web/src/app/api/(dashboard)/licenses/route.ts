@@ -16,8 +16,8 @@ import {
   createLicensePayload,
   createWebhookEvents,
   Customer,
-  decryptLicenseKey,
-  encryptLicenseKey,
+  decryptString,
+  encryptString,
   generateHMAC,
   getLicenseStatusFilter,
   License,
@@ -411,7 +411,7 @@ export async function GET(
 
     const licenses = session.user.teams[0].licenses.map((license) => ({
       ...license,
-      licenseKey: decryptLicenseKey(license.licenseKey),
+      licenseKey: decryptString(license.licenseKey),
       licenseKeyLookup: undefined,
     }));
 
@@ -606,7 +606,7 @@ export async function POST(
       );
     }
 
-    const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+    const encryptedLicenseKey = encryptString(licenseKey);
     let webhookEventIds: string[] = [];
 
     const expirationStartFormatted =

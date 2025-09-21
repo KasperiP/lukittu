@@ -1,3 +1,7 @@
+import { decryptString, logger } from '@lukittu/shared';
+import 'server-only';
+import { redisClient } from '../database/redis';
+
 export interface DiscordUser {
   id: string;
   username: string;
@@ -12,6 +16,12 @@ export interface DiscordOAuthTokenResponse {
   expires_in: number;
   refresh_token: string;
   scope: string;
+}
+
+interface DiscordHealthResult {
+  tokenValid: boolean;
+  refreshTokenRotated: boolean;
+  newRefreshToken?: string;
 }
 
 /**
@@ -111,19 +121,137 @@ export async function getDiscordUserProfile(
 }
 
 /**
- * Generates Discord avatar URL from user ID and avatar hash
- * @param userId Discord user ID
- * @param avatarHash Discord avatar hash (can be null)
- * @param size Optional size parameter (default 128)
- * @returns Full avatar URL or null if no avatar
+ * Refreshes Discord OAuth access token using refresh token
+ * @param refreshToken Discord OAuth refresh token
+ * @returns New OAuth token response with refreshed tokens
+ * @throws Error if refresh fails
  */
-export function getDiscordAvatarUrl(
-  userId: string,
-  avatarHash: string | null,
-  size: number = 128,
-): string | null {
-  if (!avatarHash) {
-    return null;
+export async function refreshDiscordToken(
+  refreshToken: string,
+): Promise<DiscordOAuthTokenResponse> {
+  const response = await fetch('https://discord.com/api/oauth2/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!,
+      client_secret: process.env.DISCORD_CLIENT_SECRET!,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Discord OAuth token refresh failed: ${response.status} - ${errorText}`,
+    );
   }
-  return `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.webp?size=${size}`;
+
+  return await response.json();
+}
+
+/**
+ * Revokes Discord OAuth token
+ * @param token Access token or refresh token to revoke
+ * @throws Error if revocation fails
+ */
+export async function revokeDiscordToken(token: string): Promise<void> {
+  const response = await fetch('https://discord.com/api/oauth2/token/revoke', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!,
+      client_secret: process.env.DISCORD_CLIENT_SECRET!,
+      token,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Discord OAuth token revocation failed: ${response.status} - ${errorText}`,
+    );
+  }
+}
+
+/**
+ * Validates Discord refresh token and handles token rotation
+ * @param refreshToken Discord OAuth refresh token
+ * @returns Health result with validation status and any new refresh token
+ */
+export async function validateDiscordRefreshToken(
+  refreshToken: string,
+): Promise<DiscordHealthResult> {
+  try {
+    const tokenResponse = await refreshDiscordToken(refreshToken);
+
+    return {
+      tokenValid: true,
+      refreshTokenRotated: tokenResponse.refresh_token !== refreshToken,
+      newRefreshToken: tokenResponse.refresh_token,
+    };
+  } catch {
+    return {
+      tokenValid: false,
+      refreshTokenRotated: false,
+    };
+  }
+}
+
+/**
+ * Validates Discord refresh token with Redis caching
+ * Caches validation results for 5 minutes to reduce Discord API calls
+ * @param encryptedRefreshToken Discord OAuth refresh token (encrypted)
+ * @param userId User ID for cache key uniqueness
+ * @returns Health result with validation status and any new refresh token
+ */
+export async function validateDiscordRefreshTokenCached(
+  encryptedRefreshToken: string,
+  userId: string,
+): Promise<DiscordHealthResult> {
+  const decryptedRefreshToken = decryptString(encryptedRefreshToken);
+
+  const cacheKey = `discord_token_validation:${userId}`;
+  const cacheTTL = 300; // 5 minutes
+
+  try {
+    // Check cache first
+    const cachedResult = await redisClient.get(cacheKey);
+    if (cachedResult) {
+      const parsed = JSON.parse(cachedResult) as DiscordHealthResult & {
+        refreshToken: string;
+      };
+
+      // Only use cached result if the refresh token hasn't changed
+      if (parsed.refreshToken === decryptedRefreshToken) {
+        // Return cached result without the stored refresh token
+        const { refreshToken: _, ...result } = parsed;
+        return result;
+      }
+    }
+
+    // Cache miss or token changed - perform validation
+    const result = await validateDiscordRefreshToken(decryptedRefreshToken);
+
+    // Cache the result along with the refresh token for comparison
+    const cacheData = {
+      ...result,
+      refreshToken: result.newRefreshToken || decryptedRefreshToken,
+    };
+
+    await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(cacheData));
+
+    return result;
+  } catch (error) {
+    // If Redis fails, fall back to direct validation
+    logger.error('Redis cache error, falling back to direct validation', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return validateDiscordRefreshToken(decryptedRefreshToken);
+  }
 }

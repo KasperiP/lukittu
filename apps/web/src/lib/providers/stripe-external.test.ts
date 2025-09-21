@@ -1,5 +1,5 @@
 import {
-  encryptLicenseKey,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   Limits,
@@ -205,7 +205,7 @@ describe('Stripe Integration', () => {
 
     (generateUniqueLicense as jest.Mock).mockResolvedValue('test-license-key');
     (generateHMAC as jest.Mock).mockReturnValue('test-hmac');
-    (encryptLicenseKey as jest.Mock).mockReturnValue('encrypted-license-key');
+    (encryptString as jest.Mock).mockReturnValue('encrypted-license-key');
     (sendLicenseDistributionEmail as jest.Mock).mockResolvedValue(true);
 
     (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({

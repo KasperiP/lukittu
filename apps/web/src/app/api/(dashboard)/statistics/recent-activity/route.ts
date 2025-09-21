@@ -3,7 +3,7 @@ import { iso3toIso2, iso3ToName } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { decryptLicenseKey, logger, RequestStatus } from '@lukittu/shared';
+import { decryptString, logger, RequestStatus } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -102,7 +102,7 @@ export async function GET(
       .slice(0, 5)
       .map((log) => ({
         id: log.id,
-        license: decryptLicenseKey(log.license!.licenseKey),
+        license: decryptString(log.license!.licenseKey),
         ipAddress: log.ipAddress || '',
         path: log.path,
         statusCode: log.statusCode,

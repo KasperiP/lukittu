@@ -1,12 +1,10 @@
 import { ICustomerGetSuccessResponse } from '@/app/api/(dashboard)/customers/[slug]/route';
 import { DateConverter } from '@/components/shared/DateConverter';
+import { DiscordAccountDisplay } from '@/components/shared/discord/DiscordAccountDisplay';
 import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getDiscordAvatarUrl } from '@/lib/providers/discord';
 import { User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -19,14 +17,6 @@ interface CustomerDetailsProps {
 export function CustomerDetails({ customer }: CustomerDetailsProps) {
   const [showMore, setShowMore] = useState(false);
   const t = useTranslations();
-
-  const getDiscordDisplayName = (
-    discordAccount: NonNullable<typeof customer>['discordAccount'],
-  ) => {
-    if (!discordAccount) return '';
-
-    return discordAccount.username;
-  };
 
   const hasAddressData = (address: NonNullable<typeof customer>['address']) => {
     if (!address) return false;
@@ -100,41 +90,11 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
           {customer?.discordAccount && (
             <div className="flex flex-col gap-2">
               <h3 className="text-sm font-semibold">Discord</h3>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    alt={getDiscordDisplayName(customer.discordAccount)}
-                    src={
-                      getDiscordAvatarUrl(
-                        customer.discordAccount.discordId,
-                        customer.discordAccount.avatar,
-                      ) ?? undefined
-                    }
-                  />
-                  <AvatarFallback className="bg-[#5865F2] text-xs text-white">
-                    {customer.discordAccount.username.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 truncate">
-                    <span className="font-medium">
-                      {getDiscordDisplayName(customer.discordAccount)}
-                    </span>
-                    <Badge
-                      className="flex-shrink-0 text-xs"
-                      variant="secondary"
-                    >
-                      @{customer.discordAccount.username}
-                    </Badge>
-                  </div>
-                  <ClickableIdentifier
-                    className="mt-1 text-xs text-muted-foreground"
-                    value={customer.discordAccount.discordId}
-                  >
-                    {customer.discordAccount.discordId}
-                  </ClickableIdentifier>
-                </div>
-              </div>
+              <DiscordAccountDisplay
+                className="text-sm text-muted-foreground"
+                discordAccount={customer.discordAccount}
+                size="sm"
+              />
             </div>
           )}
 

@@ -1,15 +1,32 @@
 'use client';
+import {
+  IDiscordHealthResponse,
+  IDiscordHealthSuccessResponse,
+} from '@/app/api/(dashboard)/auth/oauth/discord/health/route';
 import { IDiscordConnectionResponse } from '@/app/api/(dashboard)/auth/oauth/discord/route';
 import { DiscordIcon } from '@/components/shared/Icons';
 import LoadingButton from '@/components/shared/LoadingButton';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DiscordAccountDisplay } from '@/components/shared/discord/DiscordAccountDisplay';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { getDiscordAvatarUrl } from '@/lib/providers/discord';
+import { Skeleton } from '@/components/ui/skeleton';
 import { AuthContext } from '@/providers/AuthProvider';
 import { useTranslations } from 'next-intl';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import useSWR, { mutate } from 'swr';
+
+const fetchDiscordHealth = async (url: string) => {
+  const response = await fetch(url);
+  const data = (await response.json()) as IDiscordHealthResponse;
+
+  if ('message' in data) {
+    throw new Error(data.message);
+  }
+
+  return data;
+};
 
 export default function ThirdPartyConnectionsCard() {
   const t = useTranslations();
@@ -18,6 +35,15 @@ export default function ThirdPartyConnectionsCard() {
   const router = useRouter();
   const error = searchParams.get('error');
 
+  const user = authCtx.session?.user;
+  const [disconnectingDiscord, setDisconnectingDiscord] = useState(false);
+
+  const { data: discordHealth, isLoading: checkingHealth } =
+    useSWR<IDiscordHealthSuccessResponse>(
+      user?.discordAccount ? '/api/auth/oauth/discord/health' : null,
+      fetchDiscordHealth,
+    );
+
   useEffect(() => {
     if (error) {
       toast.error(t('dashboard.profile.discord_connection_failed'));
@@ -25,15 +51,20 @@ export default function ThirdPartyConnectionsCard() {
     }
   }, [error, t, router]);
 
-  const user = authCtx.session?.user;
-  const [disconnectingDiscord, setDisconnectingDiscord] = useState(false);
-
   const handleConnectDiscord = () => {
+    performDiscordOAuth();
+  };
+
+  const handleReconnectDiscord = () => {
+    performDiscordOAuth();
+  };
+
+  const performDiscordOAuth = () => {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
     const redirectUri = encodeURIComponent(
       process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
     );
-    const scopes = encodeURIComponent('identify');
+    const scopes = encodeURIComponent('identify guilds');
     const state = Math.random().toString(36).substring(2, 15);
 
     const expirationDate = new Date();
@@ -61,6 +92,8 @@ export default function ThirdPartyConnectionsCard() {
 
       toast.success(t('dashboard.profile.discord_disconnected'));
 
+      mutate('/api/auth/oauth/discord/health', null, false);
+
       authCtx.setSession((session) => ({
         ...session!,
         user: {
@@ -82,61 +115,79 @@ export default function ThirdPartyConnectionsCard() {
           {t('dashboard.profile.third_party_connections')}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between max-sm:flex-col max-sm:items-start max-sm:gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#5865F2] text-white">
-                <DiscordIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="font-medium">{t('auth.oauth.discord')}</div>
-                <div className="text-sm text-muted-foreground">
-                  {t('dashboard.profile.discord_description')}
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#5865F2] text-white shadow-sm">
+              <DiscordIcon className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-semibold">
+                {t('auth.oauth.discord')}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t('dashboard.profile.discord_description')}
+              </p>
+            </div>
+          </div>
+
+          {user?.discordAccount && (
+            <div className="rounded-lg bg-muted/50 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <DiscordAccountDisplay
+                  className="min-w-0"
+                  discordAccount={user.discordAccount}
+                  size="md"
+                />
+                <div className="flex shrink-0 items-center gap-2">
+                  {checkingHealth ? (
+                    <Skeleton className="h-4 w-20 rounded-full" />
+                  ) : discordHealth ? (
+                    discordHealth.tokenValid ? (
+                      <Badge className="text-xs" variant="success">
+                        {t('general.connected')}
+                      </Badge>
+                    ) : (
+                      <Badge className="text-xs" variant="error">
+                        {t('general.token_expired')}
+                      </Badge>
+                    )
+                  ) : null}
                 </div>
               </div>
             </div>
+          )}
 
+          <div className="flex flex-wrap gap-2">
             {user?.discordAccount ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  {user.discordAccount.avatar && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={
-                          getDiscordAvatarUrl(
-                            user.discordAccount.discordId,
-                            user.discordAccount.avatar,
-                          ) ?? undefined
-                        }
-                      />
-                      <AvatarFallback className="bg-[#5865F2] text-white">
-                        <DiscordIcon className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  <span className="font-medium">
-                    {user.discordAccount.username}
-                  </span>
-                </div>
+              <>
+                {discordHealth && !discordHealth.tokenValid && (
+                  <LoadingButton
+                    pending={false}
+                    size="sm"
+                    variant="default"
+                    onClick={handleReconnectDiscord}
+                  >
+                    {t('general.reconnect')}
+                  </LoadingButton>
+                )}
                 <LoadingButton
                   pending={disconnectingDiscord}
                   size="sm"
-                  variant="outline"
+                  variant="secondary"
                   onClick={handleDisconnectDiscord}
                 >
                   {t('general.disconnect')}
                 </LoadingButton>
-              </div>
+              </>
             ) : (
               <LoadingButton
                 className="flex items-center gap-2"
                 pending={false}
                 size="sm"
-                variant="outline"
+                variant="default"
                 onClick={handleConnectDiscord}
               >
-                <DiscordIcon className="h-4 w-4" />
                 {t('general.connect')}
               </LoadingButton>
             )}

@@ -4,7 +4,7 @@ import {
   Metadata,
   Product,
 } from '../../../prisma/generated/client';
-import { decryptLicenseKey } from '../../security/crypto';
+import { decryptString } from '../../security/crypto';
 import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
@@ -22,19 +22,19 @@ export type DeleteLicenseWebhookPayload = LicenseWebhookPayload;
 export const createLicensePayload = (payload: CreateLicenseWebhookPayload) => ({
   ...payload,
   licenseKeyLookup: undefined,
-  licenseKey: decryptLicenseKey(payload.licenseKey),
+  licenseKey: decryptString(payload.licenseKey),
 });
 
 export const updateLicensePayload = (payload: UpdateLicenseWebhookPayload) => ({
   ...payload,
   licenseKeyLookup: undefined,
-  licenseKey: decryptLicenseKey(payload.licenseKey),
+  licenseKey: decryptString(payload.licenseKey),
 });
 
 export const deleteLicensePayload = (payload: DeleteLicenseWebhookPayload) => ({
   ...payload,
   licenseKeyLookup: undefined,
-  licenseKey: decryptLicenseKey(payload.licenseKey),
+  licenseKey: decryptString(payload.licenseKey),
 });
 
 const buildLicenseFields = (payload: LicenseWebhookPayload) => {

@@ -1,5 +1,5 @@
 import {
-  decryptLicenseKey,
+  decryptString,
   generateHMAC,
   getLicenseStatus,
   getLicenseStatusFilter,
@@ -518,7 +518,7 @@ export default Command({
       }
 
       const currentLicense = licenses[0];
-      const decryptedKey = decryptLicenseKey(currentLicense.licenseKey);
+      const decryptedKey = decryptString(currentLicense.licenseKey);
 
       const embed = createLicenseEmbed(
         currentLicense,
@@ -607,7 +607,7 @@ export default Command({
           }
 
           const newLicense = newPageLicenses[0];
-          const newDecryptedKey = decryptLicenseKey(newLicense.licenseKey);
+          const newDecryptedKey = decryptString(newLicense.licenseKey);
 
           const newEmbed = createLicenseEmbed(
             newLicense,

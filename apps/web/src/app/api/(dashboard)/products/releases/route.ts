@@ -22,7 +22,7 @@ import {
   AuditLogTargetType,
   createReleasePayload,
   createWebhookEvents,
-  decryptLicenseKey,
+  decryptString,
   generateMD5Hash,
   License,
   logger,
@@ -652,7 +652,7 @@ export async function GET(
       ...release,
       allowedLicenses: release.allowedLicenses.map((license) => ({
         ...license,
-        licenseKey: decryptLicenseKey(license.licenseKey),
+        licenseKey: decryptString(license.licenseKey),
         licenseKeyLookup: undefined,
       })),
     }));

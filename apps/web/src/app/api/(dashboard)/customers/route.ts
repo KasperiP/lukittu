@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -240,6 +240,12 @@ export async function GET(
                       mode: 'insensitive',
                     },
                   },
+                  {
+                    globalName: {
+                      contains: search,
+                      mode: 'insensitive',
+                    },
+                  },
                 ],
               },
             },
@@ -425,14 +431,7 @@ export async function POST(
       );
     }
 
-    // Validate Discord ID if provided
-    let discordAccountData: {
-      discordId: string;
-      username: string;
-      avatar: string | null;
-      teamId: string;
-    } | null = null;
-
+    let discordUser: DiscordUser | null = null;
     if (discordId) {
       // Check if Discord account is already linked to another customer in this team
       const existingDiscordAccount =
@@ -460,7 +459,7 @@ export async function POST(
       }
 
       try {
-        const discordUser = await getDiscordUser(discordId);
+        discordUser = await getDiscordUser(discordId);
 
         if (!discordUser) {
           return NextResponse.json(
@@ -471,13 +470,6 @@ export async function POST(
             { status: HttpStatus.BAD_REQUEST },
           );
         }
-
-        discordAccountData = {
-          discordId: discordUser.id,
-          username: discordUser.username,
-          avatar: discordUser.avatar,
-          teamId: team.id,
-        };
       } catch (error) {
         logger.warn('Failed to fetch Discord user data for user', {
           discordId,
@@ -514,11 +506,18 @@ export async function POST(
                 create: address,
               }
             : undefined,
-          discordAccount: discordAccountData
-            ? {
-                create: discordAccountData,
-              }
-            : undefined,
+          discordAccount:
+            discordUser && discordId
+              ? {
+                  create: {
+                    discordId,
+                    username: discordUser.username,
+                    avatar: discordUser.avatar,
+                    globalName: discordUser.global_name,
+                    teamId: team.id,
+                  },
+                }
+              : undefined,
           createdBy: {
             connect: {
               id: session.user.id,

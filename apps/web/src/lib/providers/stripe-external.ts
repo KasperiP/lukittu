@@ -6,7 +6,7 @@ import {
   createCustomerPayload,
   createLicensePayload,
   createWebhookEvents,
-  encryptLicenseKey,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   Limits,
@@ -304,7 +304,7 @@ export const handleInvoicePaid = async (
           throw new Error('Failed to generate a unique license key');
         }
 
-        const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+        const encryptedLicenseKey = encryptString(licenseKey);
 
         const license = await prisma.license.create({
           data: {
@@ -966,7 +966,7 @@ export const handleCheckoutSessionCompleted = async (
         throw new Error('Failed to generate a unique license key');
       }
 
-      const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+      const encryptedLicenseKey = encryptString(licenseKey);
 
       const license = await prisma.license.create({
         data: {

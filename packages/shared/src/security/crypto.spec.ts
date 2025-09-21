@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 import { logger } from '../logging/logger';
 import {
-  decryptLicenseKey,
-  encryptLicenseKey,
+  decryptString,
+  encryptString,
   generateHMAC,
   generateKeyPair,
   hashPassword,
@@ -94,7 +94,7 @@ describe('Cryptographic Utilities', () => {
     });
   });
 
-  describe('encryptLicenseKey', () => {
+  describe('encryptString', () => {
     let mockCipher: any;
 
     beforeEach(() => {
@@ -110,7 +110,7 @@ describe('Cryptographic Utilities', () => {
     });
 
     it('should encrypt license key', () => {
-      const result = encryptLicenseKey('test-license');
+      const result = encryptString('test-license');
 
       expect(result).toMatch(/^[a-f0-9]+:[a-f0-9]+:[a-f0-9]+$/);
       expect(crypto.createCipheriv).toHaveBeenCalledWith(
@@ -125,13 +125,11 @@ describe('Cryptographic Utilities', () => {
         throw new Error('Encryption error');
       });
 
-      expect(() => encryptLicenseKey('test-license')).toThrow(
-        'Encryption failed',
-      );
+      expect(() => encryptString('test-license')).toThrow('Encryption failed');
     });
   });
 
-  describe('decryptLicenseKey', () => {
+  describe('decryptString', () => {
     let mockDecipher: any;
 
     beforeEach(() => {
@@ -146,7 +144,7 @@ describe('Cryptographic Utilities', () => {
     it('should decrypt license key', () => {
       const encryptedString = 'iv:encrypted:authtag';
 
-      const result = decryptLicenseKey(encryptedString);
+      const result = decryptString(encryptedString);
 
       expect(result).toBe('decryptedfinal');
       expect(mockDecipher.setAuthTag).toHaveBeenCalled();
@@ -157,7 +155,7 @@ describe('Cryptographic Utilities', () => {
         throw new Error('Decryption error');
       });
 
-      expect(() => decryptLicenseKey('iv:encrypted:authtag')).toThrow(
+      expect(() => decryptString('iv:encrypted:authtag')).toThrow(
         'Decryption failed',
       );
     });

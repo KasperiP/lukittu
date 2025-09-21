@@ -1,8 +1,8 @@
 import { HttpStatus } from '@/types/http-status';
 import {
   BuiltByBitIntegration,
-  decryptLicenseKey,
-  encryptLicenseKey,
+  decryptString,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   Limits,
@@ -110,8 +110,8 @@ describe('BuiltByBit Integration', () => {
     );
     (generateHMAC as jest.Mock).mockReturnValue('test-hmac');
     (generateUniqueLicense as jest.Mock).mockResolvedValue('test-license-key');
-    (encryptLicenseKey as jest.Mock).mockReturnValue('encrypted-license-key');
-    (decryptLicenseKey as jest.Mock).mockReturnValue('decrypted-license-key');
+    (encryptString as jest.Mock).mockReturnValue('encrypted-license-key');
+    (decryptString as jest.Mock).mockReturnValue('decrypted-license-key');
   });
 
   describe('handleBuiltByBitPurchase', () => {

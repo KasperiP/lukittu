@@ -4,7 +4,7 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { decryptLicenseKey, logger, regex } from '@lukittu/shared';
+import { decryptString, logger, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -154,7 +154,7 @@ export async function POST(
       );
     }
 
-    const licenseKey = decryptLicenseKey(license.licenseKey);
+    const licenseKey = decryptString(license.licenseKey);
 
     const emails = await Promise.all(
       license.customers

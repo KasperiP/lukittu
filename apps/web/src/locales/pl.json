@@ -262,6 +262,7 @@
     "day": "Dzień",
     "reset_filters": "Resetuj filtry",
     "week": "Tydzień",
+    "connected": "Połączono",
     "month": "Miesiąc",
     "error_occurred": "Wystąpił błąd",
     "type": "Typ",
@@ -385,7 +386,9 @@
     "hardware_identifier": "Identyfikator sprzętu",
     "hardware_identifiers": "Identyfikatory sprzętu",
     "upcoming": "Nadchodzący",
-    "original_parameters": "Oryginalne parametry"
+    "original_parameters": "Oryginalne parametry",
+    "reconnect": "Połącz ponownie",
+    "token_expired": "Token wygasł"
   },
   "auth": {
     "oauth": {
@@ -683,7 +686,6 @@
       "delete_customer_confirm_description": "Zamierzasz usunąć klienta <strong>{name}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tego klienta. Tej akcji nie można cofnąć.",
       "editing_customers_of_license": "Edytujesz klientów licencji <strong>{license}</strong>.",
       "connections": "Połączenia",
-      "connected": "Połączono",
       "discord_id": "ID Discord",
       "address_details": "Szczegóły adresu",
       "address_added": "Adres dodany",

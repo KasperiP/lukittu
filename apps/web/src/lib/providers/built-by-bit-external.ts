@@ -8,8 +8,8 @@ import {
   createCustomerPayload,
   createLicensePayload,
   createWebhookEvents,
-  decryptLicenseKey,
-  encryptLicenseKey,
+  decryptString,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   Limits,
@@ -20,6 +20,7 @@ import {
   updateCustomerPayload,
   WebhookEventType,
 } from '@lukittu/shared';
+import 'server-only';
 import { BuiltByBitMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';
 import { PlaceholderBuiltByBitSchema } from '../validation/integrations/placeholder-built-by-bit-schema';
@@ -283,7 +284,7 @@ export const handleBuiltByBitPurchase = async (
         return null;
       }
 
-      const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+      const encryptedLicenseKey = encryptString(licenseKey);
 
       const license = await prisma.license.create({
         data: {
@@ -501,7 +502,7 @@ export const handleBuiltByBitPlaceholder = async (
       },
     );
 
-    const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
+    const decryptedKey = decryptString(licenseKey.licenseKey);
 
     await createAuditLog({
       teamId,
