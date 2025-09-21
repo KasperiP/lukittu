@@ -53,6 +53,7 @@ interface CustomerCreationState {
     discordId: string | null;
     username: string | null;
     avatar: string | null;
+    globalName: string | null;
     isAlreadyLinked?: boolean;
   };
   step: WizardStep;
@@ -295,6 +296,7 @@ export default Command({
           discordId: null,
           username: null,
           avatar: null,
+          globalName: null,
           isAlreadyLinked: false,
         },
         step: 'basic_info',
@@ -846,7 +848,11 @@ async function showDiscordUserStep(
   // Handle the interaction response properly
   try {
     // For button interactions, we need to defer first if not already done
-    if (!interaction.isModalSubmit() && !interaction.deferred && !interaction.replied) {
+    if (
+      !interaction.isModalSubmit() &&
+      !interaction.deferred &&
+      !interaction.replied
+    ) {
       await interaction.deferUpdate();
     }
     await interaction.editReply({
@@ -1558,6 +1564,7 @@ async function handleDiscordUserSelect(
             discordId: selectedUser.id,
             username: selectedUser.username,
             avatar: selectedUser.avatar,
+            globalName: selectedUser.globalName || null,
             isAlreadyLinked: true,
           };
 
@@ -1574,6 +1581,7 @@ async function handleDiscordUserSelect(
           discordId: selectedUser.id,
           username: selectedUser.username,
           avatar: selectedUser.avatar,
+          globalName: selectedUser.globalName || null,
           isAlreadyLinked: false,
         };
       } else {
@@ -1582,6 +1590,7 @@ async function handleDiscordUserSelect(
           discordId: null,
           username: null,
           avatar: null,
+          globalName: null,
           isAlreadyLinked: false,
         };
       }
@@ -1591,6 +1600,7 @@ async function handleDiscordUserSelect(
         discordId: null,
         username: null,
         avatar: null,
+        globalName: null,
         isAlreadyLinked: false,
       };
     }

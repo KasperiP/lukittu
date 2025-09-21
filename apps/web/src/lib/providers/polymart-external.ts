@@ -7,8 +7,8 @@ import {
   createCustomerPayload,
   createLicensePayload,
   createWebhookEvents,
-  decryptLicenseKey,
-  encryptLicenseKey,
+  decryptString,
+  encryptString,
   generateHMAC,
   generateUniqueLicense,
   Limits,
@@ -419,7 +419,7 @@ export const handlePolymartPurchase = async (
         return null;
       }
 
-      const encryptedLicenseKey = encryptLicenseKey(licenseKey);
+      const encryptedLicenseKey = encryptString(licenseKey);
 
       const license = await prisma.license.create({
         data: {
@@ -651,7 +651,7 @@ export const handlePolymartPlaceholder = async (
       licenseId: licenseKey.id,
     });
 
-    const decryptedKey = decryptLicenseKey(licenseKey.licenseKey);
+    const decryptedKey = decryptString(licenseKey.licenseKey);
 
     await createAuditLog({
       teamId,

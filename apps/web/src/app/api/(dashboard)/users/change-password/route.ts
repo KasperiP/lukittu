@@ -99,8 +99,8 @@ export async function POST(
       prisma.session.deleteMany({
         where: {
           userId: session.user.id,
-          sessionId: {
-            not: session.sessionId,
+          id: {
+            not: session.id,
           },
         },
       }),

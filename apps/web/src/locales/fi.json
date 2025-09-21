@@ -213,6 +213,7 @@
     "country": "Maa",
     "days": "Päivät",
     "classloader": "Luokkalataaja",
+    "connected": "Yhdistetty",
     "verify": "Vahvistus",
     "heartbeat": "Sydämenlyönti",
     "enabled": "Otkettu käyttöön",
@@ -385,7 +386,9 @@
     "hardware_identifier": "Laitetunniste",
     "hardware_identifiers": "Laitetunnisteet",
     "upcoming": "Tuleva",
-    "original_parameters": "Alkuperäiset parametrit"
+    "original_parameters": "Alkuperäiset parametrit",
+    "reconnect": "Yhdistä uudelleen",
+    "token_expired": "Istunto vanhentunut"
   },
   "auth": {
     "oauth": {
@@ -683,7 +686,6 @@
       "delete_customer_confirm_description": "Olet poistamassa asiakasta <strong>{name}</strong>! Tämä poistaa asiakkaan <strong>lopullisesti</strong>. Tätä toimintoa ei voi peruuttaa.",
       "editing_customers_of_license": "Olet muokkaamassa lisenssin <strong>{license}</strong> asiakkaita.",
       "connections": "Yhteydet",
-      "connected": "Yhdistetty",
       "discord_id": "Discord ID",
       "address_details": "Osoitetiedot",
       "address_added": "Osoite lisätty",

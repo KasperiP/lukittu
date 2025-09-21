@@ -53,7 +53,7 @@ export function verifyPassword(password: string, storedHash: string) {
   }
 }
 
-export function encryptLicenseKey(licenseKey: string): string {
+export function encryptString(string: string): string {
   try {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(
@@ -62,19 +62,19 @@ export function encryptLicenseKey(licenseKey: string): string {
       iv,
     );
 
-    let encrypted = cipher.update(licenseKey, 'utf8', 'hex');
+    let encrypted = cipher.update(string, 'utf8', 'hex');
     encrypted += cipher.final('hex');
 
     const authTag = cipher.getAuthTag().toString('hex');
 
     return `${iv.toString('hex')}:${encrypted}:${authTag}`;
   } catch (error) {
-    logger.error('Error occurred in encryptLicenseKey:', error);
+    logger.error('Error occurred in encryptString:', error);
     throw new Error('Encryption failed');
   }
 }
 
-export function decryptLicenseKey(encryptedString: string): string {
+export function decryptString(encryptedString: string): string {
   try {
     const [ivHex, encryptedData, authTagHex] = encryptedString.split(':');
     const iv = Buffer.from(ivHex, 'hex');
@@ -92,7 +92,7 @@ export function decryptLicenseKey(encryptedString: string): string {
 
     return decrypted;
   } catch (error) {
-    logger.error('Error occurred in decryptLicenseKey:', error);
+    logger.error('Error occurred in decryptString:', error);
     throw new Error('Decryption failed');
   }
 }

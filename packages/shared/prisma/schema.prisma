@@ -50,7 +50,9 @@ model UserDiscordAccount {
     user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     discordId      String   @unique
     username       String
+    globalName     String?
     avatar         String?
+    refreshToken   String?
     selectedTeamId String?
     selectedTeam   Team?    @relation(fields: [selectedTeamId], references: [id], onDelete: SetNull)
     createdAt      DateTime @default(now())
@@ -466,6 +468,7 @@ model CustomerDiscordAccount {
     customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
     discordId  String
     username   String
+    globalName String?
     avatar     String?
     teamId     String
     team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)

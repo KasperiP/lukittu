@@ -7,7 +7,7 @@ import { sendEmail } from '../nodemailer';
 interface SendTeamInviteEmailProps {
   email: string;
   inviteLink: string;
-  session: Session & { user: { fullName: string } };
+  session: Omit<Session, 'sessionId'> & { user: { fullName: string } };
   team: Team;
 }
 

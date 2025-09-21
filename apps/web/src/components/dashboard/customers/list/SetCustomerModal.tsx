@@ -2,12 +2,10 @@
 import { ICustomersUpdateResponse } from '@/app/api/(dashboard)/customers/[slug]/route';
 import { ICustomerDiscordSearchGetResponse } from '@/app/api/(dashboard)/customers/discord-search/route';
 import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route';
+import { DiscordAccountDisplay } from '@/components/shared/discord/DiscordAccountDisplay';
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import LoadingButton from '@/components/shared/LoadingButton';
-import { ClickableIdentifier } from '@/components/shared/misc/ClickableIdentifier';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Collapsible,
@@ -33,7 +31,7 @@ import {
 } from '@/components/ui/responsive-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DiscordUser, getDiscordAvatarUrl } from '@/lib/providers/discord';
+import { DiscordUser } from '@/lib/providers/discord';
 import {
   SetCustomerSchema,
   setCustomerSchema,
@@ -150,8 +148,6 @@ export default function SetCustomerModal() {
     return () => clearTimeout(timeoutId);
   }, [discordIdValue, searchDiscordUser]);
 
-  const getDiscordDisplayName = (user: DiscordUser) => user.username;
-
   const hasAddressData = (address: Address | null) => {
     if (!address) return false;
     return Boolean(
@@ -205,8 +201,8 @@ export default function SetCustomerModal() {
           id: ctx.customerToEdit.discordAccount.discordId,
           username: ctx.customerToEdit.discordAccount.username,
           avatar: ctx.customerToEdit.discordAccount.avatar,
+          global_name: ctx.customerToEdit.discordAccount.globalName,
           discriminator: '', // Not stored, so leave empty
-          global_name: '', // Not stored, so leave empty
         });
       }
       if (hasAddressData(ctx.customerToEdit.address)) {
@@ -401,7 +397,7 @@ export default function SetCustomerModal() {
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
                         <span className="text-sm font-medium text-muted-foreground">
-                          {t('dashboard.customers.connected')}
+                          {t('general.connected')}
                         </span>
                       </div>
                     )}
@@ -449,41 +445,15 @@ export default function SetCustomerModal() {
                 {discordUser && (
                   <Card>
                     <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage
-                            alt={getDiscordDisplayName(discordUser)}
-                            src={
-                              getDiscordAvatarUrl(
-                                discordUser.id,
-                                discordUser.avatar,
-                              ) ?? undefined
-                            }
-                          />
-                          <AvatarFallback className="bg-[#5865F2] text-white">
-                            {discordUser.username.slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
-                            <p className="truncate font-medium">
-                              {getDiscordDisplayName(discordUser)}
-                            </p>
-                            <Badge
-                              className="w-fit flex-shrink-0 text-xs"
-                              variant="secondary"
-                            >
-                              @{discordUser.username}
-                            </Badge>
-                          </div>
-                          <ClickableIdentifier
-                            className="text-sm text-muted-foreground"
-                            value={discordUser.id}
-                          >
-                            {discordUser.id}
-                          </ClickableIdentifier>
-                        </div>
-                      </div>
+                      <DiscordAccountDisplay
+                        discordAccount={{
+                          discordId: discordUser.id,
+                          username: discordUser.username,
+                          avatar: discordUser.avatar,
+                          globalName: discordUser.global_name,
+                        }}
+                        size="lg"
+                      />
                     </CardContent>
                   </Card>
                 )}

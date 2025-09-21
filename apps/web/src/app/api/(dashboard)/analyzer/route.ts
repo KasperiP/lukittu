@@ -7,12 +7,7 @@ import {
 } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import {
-  decryptLicenseKey,
-  generateHMAC,
-  logger,
-  prisma,
-} from '@lukittu/shared';
+import { decryptString, generateHMAC, logger, prisma } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -205,7 +200,7 @@ export async function POST(request: NextRequest) {
 
       if (licenseKey) {
         return NextResponse.json({
-          licenseKey: decryptLicenseKey(licenseKey.licenseKey),
+          licenseKey: decryptString(licenseKey.licenseKey),
           timestamp: result.timestamp,
         });
       }

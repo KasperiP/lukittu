@@ -3,12 +3,13 @@ import {
   DiscordUser,
   exchangeDiscordCode,
   getDiscordUserProfile,
+  revokeDiscordToken,
 } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, prisma } from '@lukittu/shared';
+import { decryptString, encryptString, logger, prisma } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
@@ -75,6 +76,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    const encryptedRefreshToken = encryptString(tokenData.refresh_token);
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
@@ -84,11 +87,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               username: userData.username,
               avatar: userData.avatar,
               discordId: userData.id,
+              refreshToken: encryptedRefreshToken,
+              globalName: userData.global_name,
             },
             update: {
               username: userData.username,
               avatar: userData.avatar,
               discordId: userData.id,
+              refreshToken: encryptedRefreshToken,
+              globalName: userData.global_name,
             },
           },
         },
@@ -119,7 +126,11 @@ export async function DELETE(): Promise<NextResponse> {
     const session = await getSession({
       user: {
         include: {
-          discordAccount: true,
+          discordAccount: {
+            omit: {
+              refreshToken: false,
+            },
+          },
         },
       },
     });
@@ -140,6 +151,25 @@ export async function DELETE(): Promise<NextResponse> {
       );
     }
 
+    // Try revoking the refresh token if it exists
+    if (discordAccount.refreshToken) {
+      try {
+        const decryptedRefreshToken = decryptString(
+          discordAccount.refreshToken,
+        );
+        await revokeDiscordToken(decryptedRefreshToken);
+        logger.info('Discord refresh token revoked successfully', {
+          userId: session.user.id,
+        });
+      } catch (error) {
+        logger.warn('Failed to revoke Discord refresh token', {
+          userId: session.user.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Remove the Discord account from database
     await prisma.userDiscordAccount.delete({
       where: { userId: session.user.id },
     });

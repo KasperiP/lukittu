@@ -599,12 +599,14 @@ export async function PUT(
                       discordId,
                       username: discordUser.username,
                       avatar: discordUser.avatar,
+                      globalName: discordUser.global_name,
                       teamId: team.id,
                     },
                     update: {
                       discordId,
                       username: discordUser.username,
                       avatar: discordUser.avatar,
+                      globalName: discordUser.global_name,
                     },
                   },
                 }

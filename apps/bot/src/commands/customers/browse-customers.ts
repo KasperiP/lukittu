@@ -1,6 +1,6 @@
 import {
   Customer,
-  decryptLicenseKey,
+  decryptString,
   generateHMAC,
   logger,
   prisma,
@@ -174,7 +174,7 @@ function createCustomerEmbed(
     const hasMoreLicenses = customer.licenses.length > 5;
 
     displayLicenses.forEach((license, index) => {
-      const decryptedKey = decryptLicenseKey(license.licenseKey);
+      const decryptedKey = decryptString(license.licenseKey);
 
       let productsText = '';
       if (license.products && license.products.length > 0) {
@@ -336,6 +336,12 @@ export default Command({
                         },
                         {
                           username: {
+                            contains: search,
+                            mode: 'insensitive',
+                          },
+                        },
+                        {
+                          globalName: {
                             contains: search,
                             mode: 'insensitive',
                           },

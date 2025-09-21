@@ -215,6 +215,7 @@
     "filter_ip_count": "筛选IP数量",
     "hwid_count": "HWID数量",
     "filter_hwid_count": "筛选HWID数量",
+    "connected": "已连接",
     "license_count": "许可证数量",
     "filter_license_count": "筛选许可证数量",
     "min": "最小",
@@ -385,7 +386,9 @@
     "hardware_identifier": "硬件标识符",
     "hardware_identifiers": "硬件标识符",
     "upcoming": "即将到来",
-    "original_parameters": "原始参数"
+    "original_parameters": "原始参数",
+    "reconnect": "重新连接",
+    "token_expired": "令牌已过期"
   },
   "auth": {
     "oauth": {
@@ -683,7 +686,6 @@
       "delete_customer_confirm_description": "您即将删除客户 <strong>{name}</strong>！这将<strong>永久删除</strong>此客户。此操作无法撤销。",
       "editing_customers_of_license": "您正在编辑许可证 <strong>{license}</strong> 的客户。",
       "connections": "连接",
-      "connected": "已连接",
       "discord_id": "Discord账号",
       "address_details": "地址详情",
       "address_added": "地址已添加",

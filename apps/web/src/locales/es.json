@@ -247,6 +247,7 @@
     "uploaded": "Cargado",
     "email": "Correo electrónico",
     "full_name": "Nombre completo",
+    "connected": "Conectado",
     "password": "Contraseña",
     "duration": "Duración",
     "blacklist": "Lista negra",
@@ -385,7 +386,9 @@
     "hardware_identifier": "Identificador de hardware",
     "hardware_identifiers": "Identificadores de hardware",
     "upcoming": "Próximo",
-    "original_parameters": "Parámetros originales"
+    "original_parameters": "Parámetros originales",
+    "reconnect": "Reconectar",
+    "token_expired": "Token expirado"
   },
   "auth": {
     "oauth": {
@@ -683,7 +686,6 @@
       "delete_customer_confirm_description": "Estás a punto de eliminar al cliente <strong>{name}</strong>! Esto <strong>eliminará permanentemente</strong> a este cliente. Esta acción no se puede deshacer.",
       "editing_customers_of_license": "Estás editando clientes de la licencia <strong>{license}</strong>.",
       "connections": "Conexiones",
-      "connected": "Conectado",
       "discord_id": "ID de Discord",
       "address_details": "Detalles de la dirección",
       "address_added": "Dirección añadida",
