@@ -397,7 +397,7 @@ export default function SetCustomerModal() {
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
                         <span className="text-sm font-medium text-muted-foreground">
-                          {t('dashboard.customers.connected')}
+                          {t('general.connected')}
                         </span>
                       </div>
                     )}
