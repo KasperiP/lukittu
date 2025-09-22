@@ -115,110 +115,119 @@ export async function POST() {
       };
 
       try {
-        await prisma.$transaction(async (tx) => {
-          if (danglingCustomerCleanupDays && danglingCustomerCleanupDays > 0) {
-            const cutoffDate = new Date();
-            cutoffDate.setDate(
-              cutoffDate.getDate() - danglingCustomerCleanupDays,
-            );
+        await prisma.$transaction(
+          async (tx) => {
+            if (
+              danglingCustomerCleanupDays &&
+              danglingCustomerCleanupDays > 0
+            ) {
+              const cutoffDate = new Date();
+              cutoffDate.setDate(
+                cutoffDate.getDate() - danglingCustomerCleanupDays,
+              );
 
-            logger.info('Cleaning up dangling customers', {
+              logger.info('Cleaning up dangling customers', {
+                cleanupId,
+                teamId,
+                cutoffDate: cutoffDate.toISOString(),
+                danglingCustomerCleanupDays,
+              });
+
+              const customerResult = await tx.customer.deleteMany({
+                where: {
+                  teamId,
+                  updatedAt: {
+                    lt: cutoffDate,
+                  },
+                  licenses: {
+                    none: {},
+                  },
+                },
+              });
+
+              teamStats.customersDeleted = customerResult.count;
+              logger.info('Deleted dangling customers', {
+                cleanupId,
+                teamId,
+                customersDeleted: customerResult.count,
+              });
+            }
+
+            if (expiredLicenseCleanupDays && expiredLicenseCleanupDays > 0) {
+              const cutoffDate = new Date();
+              cutoffDate.setDate(
+                cutoffDate.getDate() - expiredLicenseCleanupDays,
+              );
+
+              logger.info('Cleaning up expired licenses', {
+                cleanupId,
+                teamId,
+                cutoffDate: cutoffDate.toISOString(),
+                expiredLicenseCleanupDays,
+              });
+
+              const licenseResult = await tx.license.deleteMany({
+                where: {
+                  teamId,
+                  expirationDate: {
+                    lt: cutoffDate,
+                  },
+                },
+              });
+
+              teamStats.licensesDeleted = licenseResult.count;
+              logger.info('Deleted expired licenses', {
+                cleanupId,
+                teamId,
+                licensesDeleted: licenseResult.count,
+              });
+            }
+
+            // Use a default of 90 days for log cleanup - this could be made configurable in Settings model
+            const logCleanupDays = 90;
+            const logCutoffDate = new Date();
+            logCutoffDate.setDate(logCutoffDate.getDate() - logCleanupDays);
+
+            logger.info('Cleaning up old logs', {
               cleanupId,
               teamId,
-              cutoffDate: cutoffDate.toISOString(),
-              danglingCustomerCleanupDays,
+              logCutoffDate: logCutoffDate.toISOString(),
+              logCleanupDays,
             });
 
-            const customerResult = await tx.customer.deleteMany({
+            const requestLogResult = await tx.requestLog.deleteMany({
               where: {
                 teamId,
-                updatedAt: {
-                  lt: cutoffDate,
-                },
-                licenses: {
-                  none: {},
+                createdAt: {
+                  lt: logCutoffDate,
                 },
               },
             });
 
-            teamStats.customersDeleted = customerResult.count;
-            logger.info('Deleted dangling customers', {
-              cleanupId,
-              teamId,
-              customersDeleted: customerResult.count,
-            });
-          }
-
-          if (expiredLicenseCleanupDays && expiredLicenseCleanupDays > 0) {
-            const cutoffDate = new Date();
-            cutoffDate.setDate(
-              cutoffDate.getDate() - expiredLicenseCleanupDays,
-            );
-
-            logger.info('Cleaning up expired licenses', {
-              cleanupId,
-              teamId,
-              cutoffDate: cutoffDate.toISOString(),
-              expiredLicenseCleanupDays,
-            });
-
-            const licenseResult = await tx.license.deleteMany({
+            const auditLogResult = await tx.auditLog.deleteMany({
               where: {
                 teamId,
-                expirationDate: {
-                  lt: cutoffDate,
+                createdAt: {
+                  lt: logCutoffDate,
                 },
               },
             });
 
-            teamStats.licensesDeleted = licenseResult.count;
-            logger.info('Deleted expired licenses', {
+            teamStats.requestLogsDeleted = requestLogResult.count;
+            teamStats.auditLogsDeleted = auditLogResult.count;
+
+            logger.info('Deleted old logs', {
               cleanupId,
               teamId,
-              licensesDeleted: licenseResult.count,
+              requestLogsDeleted: requestLogResult.count,
+              auditLogsDeleted: auditLogResult.count,
             });
-          }
-
-          // Use a default of 90 days for log cleanup - this could be made configurable in Settings model
-          const logCleanupDays = 90;
-          const logCutoffDate = new Date();
-          logCutoffDate.setDate(logCutoffDate.getDate() - logCleanupDays);
-
-          logger.info('Cleaning up old logs', {
-            cleanupId,
-            teamId,
-            logCutoffDate: logCutoffDate.toISOString(),
-            logCleanupDays,
-          });
-
-          const requestLogResult = await tx.requestLog.deleteMany({
-            where: {
-              teamId,
-              createdAt: {
-                lt: logCutoffDate,
-              },
-            },
-          });
-
-          const auditLogResult = await tx.auditLog.deleteMany({
-            where: {
-              teamId,
-              createdAt: {
-                lt: logCutoffDate,
-              },
-            },
-          });
-
-          teamStats.requestLogsDeleted = requestLogResult.count;
-          teamStats.auditLogsDeleted = auditLogResult.count;
-
-          logger.info('Deleted old logs', {
-            cleanupId,
-            teamId,
-            requestLogsDeleted: requestLogResult.count,
-            auditLogsDeleted: auditLogResult.count,
-          });
-        });
+          },
+          {
+            maxWait: 15000, // 15 seconds
+            timeout: 30000, // 30 seconds
+          },
+        );
 
         teamStats.duration = Date.now() - teamStartTime;
 
