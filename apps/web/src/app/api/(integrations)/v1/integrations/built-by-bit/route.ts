@@ -145,7 +145,11 @@ export async function POST(request: NextRequest) {
 
     const integration = team.builtByBitIntegration;
 
-    if (apiSecret !== integration.apiSecret) {
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(apiSecret),
+      Buffer.from(integration.apiSecret),
+    );
+    if (!isValid) {
       logger.warn('BuiltByBit webhook: Invalid API secret', {
         requestId,
         teamId,

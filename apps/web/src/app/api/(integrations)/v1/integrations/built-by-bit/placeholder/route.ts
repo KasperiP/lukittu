@@ -132,7 +132,11 @@ export async function POST(
 
     const { secret } = validated.data;
 
-    if (secret !== builtByBitIntegration.apiSecret) {
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(secret),
+      Buffer.from(builtByBitIntegration.apiSecret),
+    );
+    if (!isValid) {
       logger.warn('BuiltByBit placeholder: Invalid API secret', {
         requestId,
         teamId,
