@@ -114,8 +114,8 @@ export const regex = {
   markdownLink: /\[([^\]]+)\]\(([^)]+)\)/g,
 
   /** Matches a Discord ID:
-   * - A string of 17 to 24 digits.
+   * - A string of 17 to 19 digits.
    * - Example: `12345678901234567`
    */
-  discordId: /^\d{17,24}$/,
+  discordId: /^\d{17,19}$/,
 };

@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
         hostname: 'storage.lukittu.com',
         protocol: 'https',
       },
+      {
+        hostname: 'cdn.discordapp.com',
+        protocol: 'https',
+      },
     ],
   },
 };

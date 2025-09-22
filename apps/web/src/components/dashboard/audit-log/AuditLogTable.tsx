@@ -536,16 +536,7 @@ export default function AuditLogTable() {
                                 <>
                                   <AvatarImage
                                     src={auditLog.user?.imageUrl || undefined}
-                                    asChild
-                                  >
-                                    {auditLog.user?.imageUrl && (
-                                      <Image
-                                        alt="Avatar"
-                                        src={auditLog.user.imageUrl}
-                                        fill
-                                      />
-                                    )}
-                                  </AvatarImage>
+                                  />
                                   <AvatarFallback className="bg-primary text-xs text-white">
                                     {getInitials(
                                       auditLog.user?.fullName ?? '??',
@@ -700,16 +691,7 @@ export default function AuditLogTable() {
                                 <>
                                   <AvatarImage
                                     src={auditLog.user?.imageUrl || undefined}
-                                    asChild
-                                  >
-                                    {auditLog.user?.imageUrl && (
-                                      <Image
-                                        alt="Avatar"
-                                        src={auditLog.user.imageUrl}
-                                        fill
-                                      />
-                                    )}
-                                  </AvatarImage>
+                                  />
                                   <AvatarFallback className="bg-primary text-xs text-white">
                                     {getInitials(
                                       auditLog.user?.fullName ?? '??',

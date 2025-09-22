@@ -1,12 +1,9 @@
 'use client';
 import { ICustomersUpdateResponse } from '@/app/api/(dashboard)/customers/[slug]/route';
-import { ICustomerDiscordSearchGetResponse } from '@/app/api/(dashboard)/customers/discord-search/route';
 import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route';
-import { DiscordAccountDisplay } from '@/components/shared/discord/DiscordAccountDisplay';
+import DiscordUserSelector from '@/components/dashboard/customers/DiscordUserSelector';
 import MetadataFields from '@/components/shared/form/MetadataFields';
 import LoadingButton from '@/components/shared/LoadingButton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   Collapsible,
   CollapsibleContent,
@@ -30,19 +27,16 @@ import {
   ResponsiveDialogTitle,
 } from '@/components/ui/responsive-dialog';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DiscordUser } from '@/lib/providers/discord';
 import {
   SetCustomerSchema,
   setCustomerSchema,
 } from '@/lib/validation/customers/set-customer-schema';
 import { CustomerModalContext } from '@/providers/CustomerModalProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Address, regex } from '@lukittu/shared';
-import { AlertCircle, ChevronDown, Link2, Loader2, MapPin } from 'lucide-react';
+import { Address } from '@lukittu/shared';
+import { ChevronDown, Link2, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
@@ -51,15 +45,6 @@ export default function SetCustomerModal() {
   const t = useTranslations();
   const ctx = useContext(CustomerModalContext);
   const [loading, setLoading] = useState(false);
-  const [discordSearchLoading, setDiscordSearchLoading] = useState(false);
-  const [discordUser, setDiscordUser] = useState<DiscordUser | null>(null);
-  const [discordError, setDiscordError] = useState<string | null>(null);
-  const [existingCustomer, setExistingCustomer] = useState<{
-    id: string;
-    fullName: string | null;
-    username: string | null;
-    email: string | null;
-  } | null>(null);
   const [connectionsOpen, setConnectionsOpen] = useState(false);
   const [addressOpen, setAddressOpen] = useState(false);
   const { mutate } = useSWRConfig();
@@ -86,67 +71,6 @@ export default function SetCustomerModal() {
   const { setValue, handleSubmit, reset, setError, control, watch } = form;
 
   const discordIdValue = watch('discordId');
-
-  // Debounced Discord user search
-  const searchDiscordUser = useCallback(
-    async (discordId: string) => {
-      if (
-        !discordId ||
-        !regex.discordId.test(discordId) ||
-        discordId.length < 17
-      ) {
-        setDiscordUser(null);
-        setDiscordError(null);
-        setExistingCustomer(null);
-        return;
-      }
-
-      setDiscordSearchLoading(true);
-      setDiscordError(null);
-      setExistingCustomer(null);
-
-      try {
-        const response = await fetch(
-          `/api/customers/discord-search?discordId=${encodeURIComponent(discordId)}`,
-        );
-
-        const data =
-          (await response.json()) as ICustomerDiscordSearchGetResponse;
-
-        if ('message' in data) {
-          setDiscordError(data.message);
-          setDiscordUser(null);
-          setExistingCustomer(null);
-          return;
-        }
-
-        setDiscordUser(data.user);
-        setExistingCustomer(data.existingCustomer || null);
-      } catch (_error) {
-        setDiscordError(t('validation.discord_api_error'));
-        setDiscordUser(null);
-        setExistingCustomer(null);
-      } finally {
-        setDiscordSearchLoading(false);
-      }
-    },
-    [t],
-  );
-
-  // Debounce Discord search
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (discordIdValue) {
-        searchDiscordUser(discordIdValue);
-      } else {
-        setDiscordUser(null);
-        setDiscordError(null);
-        setExistingCustomer(null);
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [discordIdValue, searchDiscordUser]);
 
   const hasAddressData = (address: Address | null) => {
     if (!address) return false;
@@ -195,15 +119,6 @@ export default function SetCustomerModal() {
       // Auto-open sections that have content
       if (ctx.customerToEdit.discordAccount?.discordId) {
         setConnectionsOpen(true);
-
-        // Use existing Discord account data immediately
-        setDiscordUser({
-          id: ctx.customerToEdit.discordAccount.discordId,
-          username: ctx.customerToEdit.discordAccount.username,
-          avatar: ctx.customerToEdit.discordAccount.avatar,
-          global_name: ctx.customerToEdit.discordAccount.globalName,
-          discriminator: '', // Not stored, so leave empty
-        });
       }
       if (hasAddressData(ctx.customerToEdit.address)) {
         setAddressOpen(true);
@@ -277,10 +192,6 @@ export default function SetCustomerModal() {
     reset();
     if (!open) {
       ctx.setCustomerToEdit(null);
-      setDiscordUser(null);
-      setDiscordError(null);
-      setExistingCustomer(null);
-      setDiscordSearchLoading(false);
       setConnectionsOpen(false);
       setAddressOpen(false);
     }
@@ -393,7 +304,7 @@ export default function SetCustomerModal() {
                     <span className="text-base font-semibold">
                       {t('dashboard.customers.connections')}
                     </span>
-                    {(discordUser || ctx.customerToEdit?.discordAccount) && (
+                    {ctx.customerToEdit?.discordAccount && (
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
                         <span className="text-sm font-medium text-muted-foreground">
@@ -410,107 +321,13 @@ export default function SetCustomerModal() {
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-4 pt-4">
-                <FormField
+                <DiscordUserSelector
                   control={control}
-                  name="discordId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        {t('dashboard.customers.discord_id')}
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            {...field}
-                            placeholder="123456789012345678"
-                            value={field.value ?? ''}
-                            onChange={(e) => {
-                              if (!e.target.value) {
-                                return setValue('discordId', null);
-                              }
-                              return setValue('discordId', e.target.value);
-                            }}
-                          />
-                          {discordSearchLoading && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  currentCustomerId={ctx.customerToEdit?.id ?? null}
+                  discordId={discordIdValue}
+                  existingDiscordUser={ctx.customerToEdit?.discordAccount}
+                  setValue={setValue}
                 />
-                {discordUser && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <DiscordAccountDisplay
-                        discordAccount={{
-                          discordId: discordUser.id,
-                          username: discordUser.username,
-                          avatar: discordUser.avatar,
-                          globalName: discordUser.global_name,
-                        }}
-                        size="lg"
-                      />
-                    </CardContent>
-                  </Card>
-                )}
-                {existingCustomer &&
-                  existingCustomer.id !== ctx.customerToEdit?.id && (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">
-                            {t('validation.discord_account_already_linked')}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {t.rich(
-                              'dashboard.customers.discord_account_linked_to',
-                              {
-                                customerName:
-                                  existingCustomer.fullName ||
-                                  existingCustomer.username ||
-                                  existingCustomer.email ||
-                                  'Unknown Customer',
-                                link: (child) => (
-                                  <Link
-                                    className="font-medium text-primary underline hover:text-primary/80"
-                                    href={`/dashboard/customers/${existingCustomer.id}`}
-                                    rel="noopener noreferrer"
-                                    target="_blank"
-                                  >
-                                    {child}
-                                  </Link>
-                                ),
-                              },
-                            )}
-                          </p>
-                        </div>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                {discordError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{discordError}</AlertDescription>
-                  </Alert>
-                )}
-                {discordSearchLoading && !discordUser && !discordError && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
               </CollapsibleContent>
             </Collapsible>
             <Collapsible open={addressOpen} onOpenChange={setAddressOpen}>

@@ -20,7 +20,6 @@ import { getInitials } from '@/lib/utils/text-helpers';
 import { AuthContext } from '@/providers/AuthProvider';
 import { LogOut, UserIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useContext, useMemo } from 'react';
@@ -55,11 +54,7 @@ export function UserDropdown() {
                 variant="default"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.imageUrl!} asChild>
-                    {user?.imageUrl && (
-                      <Image alt="Avatar" src={user.imageUrl} fill />
-                    )}
-                  </AvatarImage>
+                  <AvatarImage src={user?.imageUrl || undefined} />
                   <AvatarFallback className="bg-transparent">
                     {getInitials(user?.fullName ?? '??')}
                   </AvatarFallback>

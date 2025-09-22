@@ -29,7 +29,6 @@ import { AuthContext } from '@/providers/AuthProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Trash2, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -219,17 +218,7 @@ export default function GeneralSettingsCard() {
                     {t('general.avatar')}
                   </div>
                   <Avatar className="h-32 w-32 border max-md:h-28 max-md:w-28">
-                    <AvatarImage src={user?.imageUrl!} asChild>
-                      {user?.imageUrl && (
-                        <Image
-                          alt="User image"
-                          className="object-cover"
-                          height={128}
-                          src={user.imageUrl}
-                          width={128}
-                        />
-                      )}
-                    </AvatarImage>
+                    <AvatarImage src={user?.imageUrl || undefined} />
                     <AvatarFallback className="bg-primary text-2xl text-white">
                       {getInitials(user?.fullName ?? '??')}
                     </AvatarFallback>

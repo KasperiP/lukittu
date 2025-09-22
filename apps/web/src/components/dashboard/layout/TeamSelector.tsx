@@ -22,7 +22,6 @@ import { Team } from '@lukittu/shared';
 import { CommandList } from 'cmdk';
 import { Check, ChevronsUpDown, Users } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useContext, useState } from 'react';
 import SetTeamModal from './SetTeamModal';
 
@@ -66,17 +65,7 @@ export function TeamSelector({ fullWidth }: TeamSelectorProps) {
             ) : ctx.selectedTeam ? (
               <div className="grid grid-flow-col items-center gap-2">
                 <Avatar className="h-6 w-6 border">
-                  <AvatarImage src={team?.imageUrl!} asChild>
-                    {team?.imageUrl && (
-                      <Image
-                        alt="Team image"
-                        className="object-cover"
-                        height={64}
-                        src={team.imageUrl}
-                        width={64}
-                      />
-                    )}
-                  </AvatarImage>
+                  <AvatarImage src={team?.imageUrl || undefined} />
                   <AvatarFallback className="bg-primary text-xs text-white">
                     {getInitials(team?.name ?? '??')}
                   </AvatarFallback>
@@ -133,17 +122,7 @@ export function TeamSelector({ fullWidth }: TeamSelectorProps) {
                         />
                         <div className="grid grid-flow-col items-center gap-2">
                           <Avatar className="h-6 w-6 border">
-                            <AvatarImage src={team.imageUrl!} asChild>
-                              {team.imageUrl && (
-                                <Image
-                                  alt="Team image"
-                                  className="object-cover"
-                                  height={64}
-                                  src={team.imageUrl}
-                                  width={64}
-                                />
-                              )}
-                            </AvatarImage>
+                            <AvatarImage src={team.imageUrl || undefined} />
                             <AvatarFallback className="bg-primary text-xs text-white">
                               {getInitials(team.name)}
                             </AvatarFallback>

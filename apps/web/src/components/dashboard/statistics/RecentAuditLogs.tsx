@@ -161,14 +161,7 @@ export default function RecentAuditLogs() {
                         (row.source === AuditLogSource.DISCORD_INTEGRATION &&
                           row.email) ? (
                           <>
-                            <AvatarImage
-                              src={row.imageUrl || undefined}
-                              asChild
-                            >
-                              {row.imageUrl && (
-                                <Image alt="Avatar" src={row.imageUrl} fill />
-                              )}
-                            </AvatarImage>
+                            <AvatarImage src={row.imageUrl!} />
                             <AvatarFallback className="bg-primary text-xs text-white">
                               {getInitials(row.fullName ?? '??')}
                             </AvatarFallback>

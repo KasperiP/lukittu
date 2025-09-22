@@ -31,7 +31,6 @@ import { MemberModalProvider } from '@/providers/MemberModalProvider';
 import { TeamContext } from '@/providers/TeamProvider';
 import { ChevronsUp, ChevronUp, Filter, Search, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -180,17 +179,12 @@ export function MembersTable() {
                         <div className="z-10 flex items-center gap-2">
                           <Avatar className="h-12 w-12 border">
                             <AvatarImage
-                              src={'imageUrl' in member ? member.imageUrl! : ''}
-                              asChild
-                            >
-                              {'imageUrl' in member && member.imageUrl && (
-                                <Image
-                                  alt="Avatar"
-                                  src={member.imageUrl}
-                                  fill
-                                />
-                              )}
-                            </AvatarImage>
+                              src={
+                                'imageUrl' in member
+                                  ? member.imageUrl!
+                                  : undefined
+                              }
+                            />
                             <AvatarFallback className="bg-primary text-xs text-white">
                               {getInitials(
                                 'fullName' in member ? member.fullName : '??',
@@ -264,22 +258,11 @@ export function MembersTable() {
                             <Avatar className="h-8 w-8 border">
                               <AvatarImage
                                 src={
-                                  'imageUrl' in member ? member.imageUrl! : ''
+                                  'imageUrl' in member
+                                    ? member.imageUrl!
+                                    : undefined
                                 }
-                                asChild
-                              >
-                                {'imageUrl' in member && member.imageUrl && (
-                                  <Image
-                                    alt="Avatar"
-                                    src={
-                                      'imageUrl' in member
-                                        ? member.imageUrl
-                                        : ''
-                                    }
-                                    fill
-                                  />
-                                )}
-                              </AvatarImage>
+                              />
                               <AvatarFallback className="bg-primary text-xs text-white">
                                 {getInitials(
                                   'fullName' in member ? member.fullName : '??',

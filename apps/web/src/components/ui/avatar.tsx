@@ -1,9 +1,7 @@
-'use client';
-
-import * as AvatarPrimitive from '@radix-ui/react-avatar';
-import * as React from 'react';
-
 import { cn } from '@/lib/utils/tailwind-helpers';
+import * as AvatarPrimitive from '@radix-ui/react-avatar';
+import { getImageProps } from 'next/image';
+import * as React from 'react';
 
 const Avatar = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
@@ -20,16 +18,33 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
-const AvatarImage = React.forwardRef<
-  React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image
-    ref={ref}
-    className={cn('aspect-square h-full w-full', className)}
-    {...props}
-  />
-));
+function AvatarImage(
+  props: React.ComponentProps<typeof AvatarPrimitive.Image>,
+) {
+  const { src, alt, width, height, ...rest } = props;
+
+  if (!src) {
+    // fallback to the original behavior
+    return <AvatarPrimitive.Image {...props} />;
+  }
+
+  const size =
+    width && height
+      ? { width: Number(width), height: Number(height) }
+      : { fill: true };
+
+  // This is the key line that makes Next.js image optimization take effect
+  // Ensure src is only string or StaticImport, not Blob
+  const safeSrc = typeof src === 'string' ? src : undefined;
+  const { props: nextOptimizedProps } = getImageProps({
+    src: safeSrc as string,
+    alt: String(alt),
+    ...size,
+    ...rest,
+  });
+
+  return <AvatarPrimitive.Image {...nextOptimizedProps} />;
+}
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
 const AvatarFallback = React.forwardRef<

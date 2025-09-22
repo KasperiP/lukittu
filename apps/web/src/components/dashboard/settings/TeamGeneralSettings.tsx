@@ -35,7 +35,6 @@ import { AuthContext } from '@/providers/AuthProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, Trash2, Upload } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -232,19 +231,7 @@ export default function TeamGeneralSettings({
                 {t('general.avatar')}
               </div>
               <Avatar className="h-32 w-32 border max-md:h-28 max-md:w-28">
-                <AvatarImage src={imageUrl!} asChild>
-                  {imageUrl && (
-                    <Image
-                      alt="Team image"
-                      className="object-cover"
-                      height={128}
-                      quality={100}
-                      src={imageUrl}
-                      width={128}
-                      priority
-                    />
-                  )}
-                </AvatarImage>
+                <AvatarImage src={imageUrl!} />
                 <AvatarFallback className="bg-primary text-2xl text-white">
                   {getInitials(team?.name ?? '??')}
                 </AvatarFallback>

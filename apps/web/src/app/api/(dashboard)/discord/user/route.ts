@@ -7,7 +7,7 @@ import { logger, prisma, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export interface ICustomerDiscordSearchGetSuccess {
+export interface IDiscordUserGetSuccessResponse {
   user: {
     id: string;
     username: string;
@@ -23,13 +23,13 @@ export interface ICustomerDiscordSearchGetSuccess {
   };
 }
 
-export type ICustomerDiscordSearchGetResponse =
-  | ICustomerDiscordSearchGetSuccess
+export type IDiscordUserGetResponse =
+  | IDiscordUserGetSuccessResponse
   | ErrorResponse;
 
 export async function GET(
   request: NextRequest,
-): Promise<NextResponse<ICustomerDiscordSearchGetResponse>> {
+): Promise<NextResponse<IDiscordUserGetResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
