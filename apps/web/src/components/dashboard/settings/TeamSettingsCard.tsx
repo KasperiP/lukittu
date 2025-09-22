@@ -46,9 +46,6 @@ export default function TeamSettingsCard() {
   const { data, error } = useSWR<ITeamGetSuccessResponse>(
     teamCtx.selectedTeam ? ['/api/teams', teamCtx.selectedTeam] : null,
     ([url, selectedTeam]) => fetchTeams(`${url}/${selectedTeam}`),
-    {
-      refreshInterval: 0, // Disable automatic refresh
-    },
   );
 
   useEffect(() => {

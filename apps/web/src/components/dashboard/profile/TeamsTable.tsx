@@ -79,7 +79,7 @@ export default function TeamsTable() {
   const router = useRouter();
 
   const { data, error, isLoading } = useSWR<ITeamsGetSuccessResponse>(
-    ['/api/teams', teamCtx.selectedTeam],
+    ['/api/teams', teamCtx.selectedTeam, 1], // 1 is a dummy value to have a stable key
     ([url]) => fetchTeams(url),
   );
 
