@@ -1,4 +1,4 @@
-import { decryptString, logger } from '@lukittu/shared';
+import { decryptString, encryptString, logger } from '@lukittu/shared';
 import 'server-only';
 import { redisClient } from '../database/redis';
 
@@ -63,6 +63,143 @@ interface DiscordTokenResult {
   tokenRotated: boolean;
 }
 
+interface RateLimitInfo {
+  limit?: number;
+  remaining?: number;
+  reset?: number;
+  resetAfter?: number;
+  global?: boolean;
+}
+
+interface DiscordApiResponse {
+  response: Response;
+  rateLimitInfo: RateLimitInfo;
+}
+
+/**
+ * Discord permission constants
+ * @see https://discord.com/developers/docs/topics/permissions#permissions-bitwise-permission-flags
+ */
+const DiscordPermissions = {
+  ADMINISTRATOR: 0x8,
+  MANAGE_ROLES: 0x10000000,
+} as const;
+
+/**
+ * Parses rate limit information from Discord API response headers
+ * @param response The fetch response from Discord API
+ * @returns Rate limit information
+ */
+function parseRateLimitHeaders(response: Response): RateLimitInfo {
+  return {
+    limit: response.headers.get('x-ratelimit-limit')
+      ? parseInt(response.headers.get('x-ratelimit-limit')!)
+      : undefined,
+    remaining: response.headers.get('x-ratelimit-remaining')
+      ? parseInt(response.headers.get('x-ratelimit-remaining')!)
+      : undefined,
+    reset: response.headers.get('x-ratelimit-reset')
+      ? parseInt(response.headers.get('x-ratelimit-reset')!)
+      : undefined,
+    resetAfter: response.headers.get('x-ratelimit-reset-after')
+      ? parseFloat(response.headers.get('x-ratelimit-reset-after')!)
+      : undefined,
+    global: response.headers.get('x-ratelimit-global') === 'true',
+  };
+}
+
+/**
+ * Makes a Discord API request with proper rate limit handling and retries
+ * @param url The API endpoint URL
+ * @param options Fetch options
+ * @param maxRetries Maximum number of retries for rate limited requests
+ * @param context Context string for logging
+ * @returns Promise resolving to DiscordApiResponse
+ */
+async function makeDiscordApiRequest(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3,
+  context = 'Discord API',
+): Promise<DiscordApiResponse> {
+  let attempt = 0;
+
+  while (attempt <= maxRetries) {
+    try {
+      const response = await fetch(url, options);
+      const rateLimitInfo = parseRateLimitHeaders(response);
+
+      // Log rate limit information for monitoring
+      if (
+        rateLimitInfo.remaining !== undefined &&
+        rateLimitInfo.remaining < 5
+      ) {
+        logger.warn('Discord API rate limit approaching', {
+          context,
+          remaining: rateLimitInfo.remaining,
+          limit: rateLimitInfo.limit,
+          resetAfter: rateLimitInfo.resetAfter,
+        });
+      }
+
+      // Handle rate limiting (429 status)
+      if (response.status === 429) {
+        const retryAfter =
+          rateLimitInfo.resetAfter ||
+          parseFloat(response.headers.get('retry-after') || '1');
+
+        if (attempt < maxRetries) {
+          logger.warn('Discord API rate limited, retrying', {
+            context,
+            attempt: attempt + 1,
+            retryAfter,
+            global: rateLimitInfo.global,
+          });
+
+          // Wait for the specified retry-after time (convert to milliseconds)
+          await new Promise((resolve) =>
+            setTimeout(resolve, retryAfter * 1000),
+          );
+          attempt++;
+          continue;
+        } else {
+          logger.error('Discord API rate limit exceeded max retries', {
+            context,
+            maxRetries,
+            retryAfter,
+          });
+
+          // Return the rate limited response for the caller to handle
+          return { response, rateLimitInfo };
+        }
+      }
+
+      // Return successful or non-rate-limited error response
+      return { response, rateLimitInfo };
+    } catch (error) {
+      if (attempt < maxRetries) {
+        logger.warn('Discord API request failed, retrying', {
+          context,
+          attempt: attempt + 1,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        // Wait with exponential backoff for network errors
+        await new Promise((resolve) =>
+          setTimeout(resolve, Math.pow(2, attempt) * 1000),
+        );
+        attempt++;
+        continue;
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  // This should never be reached, but TypeScript requires it
+  throw new Error('Unexpected end of Discord API request function');
+}
+
 /**
  * Fetches Discord user by ID with caching
  * @param discordId The Discord user ID
@@ -82,13 +219,15 @@ export async function fetchDiscordUserById(
       return JSON.parse(cached);
     }
 
-    const response = await fetch(
+    const { response } = await makeDiscordApiRequest(
       `https://discord.com/api/v10/users/${discordId}`,
       {
         headers: {
           Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
       },
+      3,
+      `fetchDiscordUserById(${discordId})`,
     );
 
     if (response.status === 404) {
@@ -184,8 +323,9 @@ export async function exchangeDiscordAuthCode(
   try {
     const cacheKey = `discord_access_token:${userId}`;
     const cacheTTL = Math.max(tokenResponse.expires_in - 300, 60); // 5 minute buffer, at least 1 minute
+    const encryptedAccessToken = encryptString(tokenResponse.access_token);
 
-    await redisClient.setex(cacheKey, cacheTTL, tokenResponse.access_token);
+    await redisClient.setex(cacheKey, cacheTTL, encryptedAccessToken);
 
     logger.info('Cached initial Discord access token', { userId });
   } catch (error) {
@@ -208,11 +348,16 @@ export async function exchangeDiscordAuthCode(
 export async function fetchDiscordUserProfile(
   accessToken: string,
 ): Promise<DiscordUser> {
-  const response = await fetch('https://discord.com/api/v10/users/@me', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  const { response } = await makeDiscordApiRequest(
+    'https://discord.com/api/v10/users/@me',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+    3,
+    'fetchDiscordUserProfile',
+  );
 
   if (!response.ok) {
     let responseData;
@@ -280,8 +425,9 @@ async function refreshDiscordAccessToken(
   try {
     const cacheKey = `discord_access_token:${userId}`;
     const cacheTTL = Math.max(tokenResponse.expires_in - 300, 60); // 5 minute buffer, at least 1 minute
+    const encryptedAccessToken = encryptString(tokenResponse.access_token);
 
-    await redisClient.setex(cacheKey, cacheTTL, tokenResponse.access_token);
+    await redisClient.setex(cacheKey, cacheTTL, encryptedAccessToken);
 
     logger.info('Cached refreshed Discord access token', { userId });
   } catch (error) {
@@ -358,13 +504,30 @@ export async function getDiscordTokens(
   const cacheKey = `discord_access_token:${userId}`;
 
   try {
-    const cachedAccessToken = await redisClient.get(cacheKey);
-    if (cachedAccessToken) {
-      return {
-        accessToken: cachedAccessToken,
-        refreshToken: decryptedRefreshToken,
-        tokenRotated: false,
-      };
+    const cachedEncryptedAccessToken = await redisClient.get(cacheKey);
+    if (cachedEncryptedAccessToken) {
+      try {
+        const decryptedAccessToken = decryptString(cachedEncryptedAccessToken);
+        return {
+          accessToken: decryptedAccessToken,
+          refreshToken: decryptedRefreshToken,
+          tokenRotated: false,
+        };
+      } catch (decryptError) {
+        logger.warn(
+          'Failed to decrypt cached Discord access token, refreshing',
+          {
+            userId,
+            error:
+              decryptError instanceof Error
+                ? decryptError.message
+                : String(decryptError),
+          },
+        );
+
+        // Clear the invalid cached token and continue to refresh
+        await redisClient.del(cacheKey);
+      }
     }
 
     const tokenResponse = await refreshDiscordAccessToken(
@@ -404,26 +567,29 @@ export async function fetchDiscordUserGuilds(
   const cacheTTL = 180; // 3 minutes (guild membership can change more frequently)
 
   // Try to get from cache first if userDiscordId is provided
-  if (cacheKey) {
-    try {
-      const cached = await redisClient.get(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch (cacheError) {
-      logger.warn('Failed to read Discord user guilds cache', {
-        userDiscordId,
-        error:
-          cacheError instanceof Error ? cacheError.message : String(cacheError),
-      });
+  try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
     }
+  } catch (cacheError) {
+    logger.warn('Failed to read Discord user guilds cache', {
+      userDiscordId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
   }
 
-  const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  const { response } = await makeDiscordApiRequest(
+    'https://discord.com/api/v10/users/@me/guilds',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+    3,
+    `fetchDiscordUserGuilds(${userDiscordId})`,
+  );
 
   if (!response.ok) {
     let responseData;
@@ -443,17 +609,14 @@ export async function fetchDiscordUserGuilds(
 
   const guildsData = await response.json();
 
-  // Cache the result if userId is provided
-  if (cacheKey) {
-    try {
-      await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(guildsData));
-    } catch (cacheError) {
-      logger.warn('Failed to cache Discord user guilds data', {
-        userDiscordId,
-        error:
-          cacheError instanceof Error ? cacheError.message : String(cacheError),
-      });
-    }
+  try {
+    await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(guildsData));
+  } catch (cacheError) {
+    logger.warn('Failed to cache Discord user guilds data', {
+      userDiscordId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
   }
 
   return guildsData;
@@ -481,11 +644,16 @@ export async function fetchBotGuilds(): Promise<DiscordGuild[]> {
     });
   }
 
-  const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
-    headers: {
-      Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+  const { response } = await makeDiscordApiRequest(
+    'https://discord.com/api/v10/users/@me/guilds',
+    {
+      headers: {
+        Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+      },
     },
-  });
+    3,
+    'fetchBotGuilds',
+  );
 
   if (!response.ok) {
     let responseData;
@@ -519,14 +687,90 @@ export async function fetchBotGuilds(): Promise<DiscordGuild[]> {
 }
 
 /**
- * Checks if a permission number includes MANAGE_ROLES permission (0x10000000)
+ * Checks if a permission bitfield includes specific permissions
  * @param permissions Permission bitfield as string
- * @returns True if has manage roles permission
+ * @param requiredPermission Permission constant to check for
+ * @returns True if has the required permission or administrator permission
+ */
+export function hasPermission(
+  permissions: string,
+  requiredPermission: number,
+): boolean {
+  try {
+    const permissionBits = BigInt(permissions);
+    const required = BigInt(requiredPermission);
+    const admin = BigInt(DiscordPermissions.ADMINISTRATOR);
+
+    // Administrator permission grants all permissions
+    if ((permissionBits & admin) === admin) {
+      return true;
+    }
+
+    // Check for specific permission
+    return (permissionBits & required) === required;
+  } catch (error) {
+    logger.warn('Invalid permission bitfield', {
+      permissions,
+      requiredPermission,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return false;
+  }
+}
+
+/**
+ * Checks if a permission number includes MANAGE_ROLES permission
+ * @param permissions Permission bitfield as string
+ * @returns True if has manage roles permission or administrator permission
  */
 export function hasManageRolesPermission(permissions: string): boolean {
-  const MANAGE_ROLES = 0x10000000;
-  const permissionBits = BigInt(permissions);
-  return (permissionBits & BigInt(MANAGE_ROLES)) === BigInt(MANAGE_ROLES);
+  return hasPermission(permissions, DiscordPermissions.MANAGE_ROLES);
+}
+
+/**
+ * Gets a list of permissions that a user has from the defined permission constants
+ * @param permissions Permission bitfield as string
+ * @returns Array of permission names the user has
+ */
+export function getUserPermissions(permissions: string): string[] {
+  const userPermissions: string[] = [];
+
+  try {
+    const permissionBits = BigInt(permissions);
+
+    for (const [permissionName, permissionValue] of Object.entries(
+      DiscordPermissions,
+    )) {
+      if (
+        (permissionBits & BigInt(permissionValue)) ===
+        BigInt(permissionValue)
+      ) {
+        userPermissions.push(permissionName);
+      }
+    }
+
+    return userPermissions;
+  } catch (error) {
+    logger.warn('Failed to parse user permissions', {
+      permissions,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return [];
+  }
+}
+
+/**
+ * Validates if a permissions string is valid
+ * @param permissions Permission bitfield as string
+ * @returns True if valid permissions string
+ */
+export function isValidPermissions(permissions: string): boolean {
+  try {
+    BigInt(permissions);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -547,6 +791,15 @@ export function findCommonGuildsWithPermissions(
       return false;
     }
 
+    // Validate permissions strings
+    if (!isValidPermissions(userGuild.permissions)) {
+      logger.warn('Invalid user guild permissions', {
+        guildId: userGuild.id,
+        permissions: userGuild.permissions,
+      });
+      return false;
+    }
+
     // Check if user has manage roles permission
     const userHasPermission =
       userGuild.owner || hasManageRolesPermission(userGuild.permissions);
@@ -557,6 +810,15 @@ export function findCommonGuildsWithPermissions(
     // Find bot guild info to check bot permissions
     const botGuild = botGuilds.find((guild) => guild.id === userGuild.id);
     if (!botGuild) {
+      return false;
+    }
+
+    // Validate bot permissions string
+    if (!isValidPermissions(botGuild.permissions)) {
+      logger.warn('Invalid bot guild permissions', {
+        guildId: botGuild.id,
+        permissions: botGuild.permissions,
+      });
       return false;
     }
 
@@ -592,13 +854,15 @@ export async function fetchGuildRoles(guildId: string): Promise<DiscordRole[]> {
     });
   }
 
-  const response = await fetch(
+  const { response } = await makeDiscordApiRequest(
     `https://discord.com/api/v10/guilds/${guildId}/roles`,
     {
       headers: {
         Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
       },
     },
+    3,
+    `fetchGuildRoles(${guildId})`,
   );
 
   if (!response.ok) {
@@ -651,47 +915,45 @@ export async function fetchUserGuildMember(
   const cacheTTL = 180; // 3 minutes (member data can change)
 
   // Try to get from cache first if userDiscordId is provided
-  if (cacheKey) {
-    try {
-      const cached = await redisClient.get(cacheKey);
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch (cacheError) {
-      logger.warn('Failed to read Discord user guild member cache', {
-        userDiscordId,
-        guildId,
-        error:
-          cacheError instanceof Error ? cacheError.message : String(cacheError),
-      });
+  try {
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
     }
+  } catch (cacheError) {
+    logger.warn('Failed to read Discord user guild member cache', {
+      userDiscordId,
+      guildId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
   }
 
   try {
-    const response = await fetch(
+    const { response } = await makeDiscordApiRequest(
       `https://discord.com/api/v10/users/@me/guilds/${guildId}/member`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       },
+      3,
+      `fetchUserGuildMember(${userDiscordId}, ${guildId})`,
     );
 
     if (response.status === 404) {
       // Cache the null result for a shorter time
-      if (cacheKey) {
-        try {
-          await redisClient.setex(cacheKey, 60, JSON.stringify(null));
-        } catch (cacheError) {
-          logger.warn('Failed to cache Discord user guild member null result', {
-            userDiscordId,
-            guildId,
-            error:
-              cacheError instanceof Error
-                ? cacheError.message
-                : String(cacheError),
-          });
-        }
+      try {
+        await redisClient.setex(cacheKey, 60, JSON.stringify(null));
+      } catch (cacheError) {
+        logger.warn('Failed to cache Discord user guild member null result', {
+          userDiscordId,
+          guildId,
+          error:
+            cacheError instanceof Error
+              ? cacheError.message
+              : String(cacheError),
+        });
       }
       return null;
     }
@@ -717,20 +979,15 @@ export async function fetchUserGuildMember(
 
     const memberData = await response.json();
 
-    // Cache the result if userId is provided
-    if (cacheKey) {
-      try {
-        await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(memberData));
-      } catch (cacheError) {
-        logger.warn('Failed to cache Discord user guild member data', {
-          userDiscordId,
-          guildId,
-          error:
-            cacheError instanceof Error
-              ? cacheError.message
-              : String(cacheError),
-        });
-      }
+    try {
+      await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(memberData));
+    } catch (cacheError) {
+      logger.warn('Failed to cache Discord user guild member data', {
+        userDiscordId,
+        guildId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
     }
 
     return memberData;
@@ -812,13 +1069,15 @@ export async function fetchBotGuildMember(
 
   try {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!;
-    const response = await fetch(
+    const { response } = await makeDiscordApiRequest(
       `https://discord.com/api/v10/guilds/${guildId}/members/${clientId}`,
       {
         headers: {
           Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
       },
+      3,
+      `fetchBotGuildMember(${guildId})`,
     );
 
     if (response.status === 404) {
@@ -898,6 +1157,32 @@ export function getAssignableRoles(
   userGuild: DiscordGuild,
   botGuild: DiscordGuild,
 ): DiscordRole[] {
+  // Validate input parameters
+  if (!userGuild || !botGuild || !guildRoles || !userMember || !botMember) {
+    logger.warn('Invalid parameters for getAssignableRoles', {
+      guildId: userGuild?.id,
+      hasUserGuild: !!userGuild,
+      hasBotGuild: !!botGuild,
+      hasGuildRoles: !!guildRoles,
+      hasUserMember: !!userMember,
+      hasBotMember: !!botMember,
+    });
+    return [];
+  }
+
+  // Validate permission strings
+  if (
+    !isValidPermissions(userGuild.permissions) ||
+    !isValidPermissions(botGuild.permissions)
+  ) {
+    logger.warn('Invalid permission strings in getAssignableRoles', {
+      guildId: userGuild.id,
+      userPermissionsValid: isValidPermissions(userGuild.permissions),
+      botPermissionsValid: isValidPermissions(botGuild.permissions),
+    });
+    return [];
+  }
+
   // Check if both user and bot have manage roles permission
   const userHasPermission =
     userGuild.owner || hasManageRolesPermission(userGuild.permissions);
@@ -905,6 +1190,14 @@ export function getAssignableRoles(
     botGuild.owner || hasManageRolesPermission(botGuild.permissions);
 
   if (!userHasPermission || !botHasPermission) {
+    logger.info('Insufficient permissions for role assignment', {
+      guildId: userGuild.id,
+      guildName: userGuild.name,
+      userHasPermission,
+      botHasPermission,
+      userPermissions: getUserPermissions(userGuild.permissions),
+      botPermissions: getUserPermissions(botGuild.permissions),
+    });
     return [];
   }
 
