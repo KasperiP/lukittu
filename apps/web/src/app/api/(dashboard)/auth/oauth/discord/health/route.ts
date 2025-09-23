@@ -1,4 +1,4 @@
-import { validateDiscordRefreshTokenCached } from '@/lib/providers/discord';
+import { getDiscordTokens } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
@@ -53,21 +53,17 @@ export async function GET(): Promise<NextResponse<IDiscordHealthResponse>> {
 
     if (refreshTokenExists) {
       try {
-        const healthResult = await validateDiscordRefreshTokenCached(
+        const tokens = await getDiscordTokens(
           discordAccount.refreshToken!,
           session.user.id,
         );
-        tokenValid = healthResult.tokenValid;
 
-        if (healthResult.tokenValid) {
-          // Update the refresh token in database if Discord rotated it
-          if (
-            healthResult.refreshTokenRotated &&
-            healthResult.newRefreshToken
-          ) {
-            const encryptedRefreshToken = encryptString(
-              healthResult.newRefreshToken,
-            );
+        if (tokens) {
+          tokenValid = true;
+
+          // Handle token rotation
+          if (tokens.tokenRotated) {
+            const encryptedRefreshToken = encryptString(tokens.refreshToken);
 
             await prisma.userDiscordAccount.update({
               where: { userId: session.user.id },
@@ -75,6 +71,7 @@ export async function GET(): Promise<NextResponse<IDiscordHealthResponse>> {
                 refreshToken: encryptedRefreshToken,
               },
             });
+
             logger.info('Discord refresh token rotated and updated', {
               userId: session.user.id,
             });
@@ -92,7 +89,7 @@ export async function GET(): Promise<NextResponse<IDiscordHealthResponse>> {
           });
         }
       } catch (error) {
-        logger.error('Failed to validate Discord refresh token', {
+        logger.error('Failed to get Discord access token', {
           userId: session.user.id,
           error: error instanceof Error ? error.message : String(error),
         });

@@ -18,10 +18,10 @@ export interface DiscordOAuthTokenResponse {
   scope: string;
 }
 
-interface DiscordHealthResult {
-  tokenValid: boolean;
-  refreshTokenRotated: boolean;
-  newRefreshToken?: string;
+interface DiscordTokenResult {
+  accessToken: string;
+  refreshToken: string;
+  tokenRotated: boolean;
 }
 
 /**
@@ -30,7 +30,7 @@ interface DiscordHealthResult {
  * @returns Discord user data or null if not found
  * @throws Error if Discord API request fails (non-404 errors)
  */
-export async function getDiscordUser(
+export async function fetchDiscordUserById(
   discordId: string,
 ): Promise<DiscordUser | null> {
   try {
@@ -67,12 +67,13 @@ export async function getDiscordUser(
  * Exchanges Discord OAuth code for access token
  * @param code OAuth authorization code
  * @param redirectUri Redirect URI used in OAuth
+ * @param userId User ID for caching
  * @returns OAuth token response
  * @throws Error if token exchange fails
  */
-export async function exchangeDiscordCode(
+export async function exchangeDiscordAuthCode(
   code: string,
-  redirectUri: string,
+  userId: string,
 ): Promise<DiscordOAuthTokenResponse> {
   const response = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
@@ -82,9 +83,9 @@ export async function exchangeDiscordCode(
     body: new URLSearchParams({
       client_id: process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!,
       client_secret: process.env.DISCORD_CLIENT_SECRET!,
+      redirect_uri: process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI!,
       grant_type: 'authorization_code',
       code,
-      redirect_uri: redirectUri,
     }),
   });
 
@@ -95,7 +96,24 @@ export async function exchangeDiscordCode(
     );
   }
 
-  return await response.json();
+  const tokenResponse = (await response.json()) as DiscordOAuthTokenResponse;
+
+  try {
+    const cacheKey = `discord_access_token:${userId}`;
+    const cacheTTL = Math.max(tokenResponse.expires_in - 300, 60); // 5 minute buffer, at least 1 minute
+
+    await redisClient.setex(cacheKey, cacheTTL, tokenResponse.access_token);
+
+    logger.info('Cached initial Discord access token', { userId });
+  } catch (error) {
+    // Don't fail the OAuth flow if caching fails
+    logger.warn('Failed to cache initial Discord access token', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return tokenResponse;
 }
 
 /**
@@ -104,7 +122,7 @@ export async function exchangeDiscordCode(
  * @returns Discord user profile
  * @throws Error if profile fetch fails
  */
-export async function getDiscordUserProfile(
+export async function fetchDiscordUserProfile(
   accessToken: string,
 ): Promise<DiscordUser> {
   const response = await fetch('https://discord.com/api/v10/users/@me', {
@@ -121,13 +139,15 @@ export async function getDiscordUserProfile(
 }
 
 /**
- * Refreshes Discord OAuth access token using refresh token
+ * Refreshes Discord OAuth access token using refresh token and caches the result
  * @param refreshToken Discord OAuth refresh token
+ * @param userId User ID for caching
  * @returns New OAuth token response with refreshed tokens
  * @throws Error if refresh fails
  */
-export async function refreshDiscordToken(
+async function refreshDiscordAccessToken(
   refreshToken: string,
+  userId: string,
 ): Promise<DiscordOAuthTokenResponse> {
   const response = await fetch('https://discord.com/api/oauth2/token', {
     method: 'POST',
@@ -149,15 +169,37 @@ export async function refreshDiscordToken(
     );
   }
 
-  return await response.json();
+  const tokenResponse = (await response.json()) as DiscordOAuthTokenResponse;
+
+  // Cache the refreshed access token
+  try {
+    const cacheKey = `discord_access_token:${userId}`;
+    const cacheTTL = Math.max(tokenResponse.expires_in - 300, 60); // 5 minute buffer, at least 1 minute
+
+    await redisClient.setex(cacheKey, cacheTTL, tokenResponse.access_token);
+
+    logger.info('Cached refreshed Discord access token', { userId });
+  } catch (error) {
+    // Don't fail the refresh if caching fails
+    logger.warn('Failed to cache refreshed Discord access token', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return tokenResponse;
 }
 
 /**
- * Revokes Discord OAuth token
+ * Revokes Discord OAuth token and clears cached access token
  * @param token Access token or refresh token to revoke
+ * @param userId User ID to clear cached tokens for
  * @throws Error if revocation fails
  */
-export async function revokeDiscordToken(token: string): Promise<void> {
+export async function revokeDiscordToken(
+  token: string,
+  userId: string,
+): Promise<void> {
   const response = await fetch('https://discord.com/api/oauth2/token/revoke', {
     method: 'POST',
     headers: {
@@ -176,82 +218,58 @@ export async function revokeDiscordToken(token: string): Promise<void> {
       `Discord OAuth token revocation failed: ${response.status} - ${errorText}`,
     );
   }
-}
 
-/**
- * Validates Discord refresh token and handles token rotation
- * @param refreshToken Discord OAuth refresh token
- * @returns Health result with validation status and any new refresh token
- */
-export async function validateDiscordRefreshToken(
-  refreshToken: string,
-): Promise<DiscordHealthResult> {
+  // Clear cached access token since we've revoked the refresh token
   try {
-    const tokenResponse = await refreshDiscordToken(refreshToken);
-
-    return {
-      tokenValid: true,
-      refreshTokenRotated: tokenResponse.refresh_token !== refreshToken,
-      newRefreshToken: tokenResponse.refresh_token,
-    };
-  } catch {
-    return {
-      tokenValid: false,
-      refreshTokenRotated: false,
-    };
-  }
-}
-
-/**
- * Validates Discord refresh token with Redis caching
- * Caches validation results for 5 minutes to reduce Discord API calls
- * @param encryptedRefreshToken Discord OAuth refresh token (encrypted)
- * @param userId User ID for cache key uniqueness
- * @returns Health result with validation status and any new refresh token
- */
-export async function validateDiscordRefreshTokenCached(
-  encryptedRefreshToken: string,
-  userId: string,
-): Promise<DiscordHealthResult> {
-  const decryptedRefreshToken = decryptString(encryptedRefreshToken);
-
-  const cacheKey = `discord_token_validation:${userId}`;
-  const cacheTTL = 300; // 5 minutes
-
-  try {
-    // Check cache first
-    const cachedResult = await redisClient.get(cacheKey);
-    if (cachedResult) {
-      const parsed = JSON.parse(cachedResult) as DiscordHealthResult & {
-        refreshToken: string;
-      };
-
-      // Only use cached result if the refresh token hasn't changed
-      if (parsed.refreshToken === decryptedRefreshToken) {
-        // Return cached result without the stored refresh token
-        const { refreshToken: _, ...result } = parsed;
-        return result;
-      }
-    }
-
-    // Cache miss or token changed - perform validation
-    const result = await validateDiscordRefreshToken(decryptedRefreshToken);
-
-    // Cache the result along with the refresh token for comparison
-    const cacheData = {
-      ...result,
-      refreshToken: result.newRefreshToken || decryptedRefreshToken,
-    };
-
-    await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(cacheData));
-
-    return result;
+    const cacheKey = `discord_access_token:${userId}`;
+    await redisClient.del(cacheKey);
+    logger.info('Cleared Discord access token cache after revocation', {
+      userId,
+    });
   } catch (error) {
-    // If Redis fails, fall back to direct validation
-    logger.error('Redis cache error, falling back to direct validation', {
+    // Don't fail the revocation if cache clearing fails
+    logger.warn('Failed to clear Discord access token cache after revocation', {
       userId,
       error: error instanceof Error ? error.message : String(error),
     });
-    return validateDiscordRefreshToken(decryptedRefreshToken);
+  }
+}
+
+export async function getDiscordTokens(
+  encryptedRefreshToken: string,
+  userId: string,
+): Promise<DiscordTokenResult | null> {
+  const decryptedRefreshToken = decryptString(encryptedRefreshToken);
+  const cacheKey = `discord_access_token:${userId}`;
+
+  try {
+    const cachedAccessToken = await redisClient.get(cacheKey);
+    if (cachedAccessToken) {
+      return {
+        accessToken: cachedAccessToken,
+        refreshToken: decryptedRefreshToken,
+        tokenRotated: false,
+      };
+    }
+
+    const tokenResponse = await refreshDiscordAccessToken(
+      decryptedRefreshToken,
+      userId,
+    );
+
+    const tokenRotated = tokenResponse.refresh_token !== decryptedRefreshToken;
+
+    return {
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token,
+      tokenRotated,
+    };
+  } catch (error) {
+    logger.error('Discord token refresh failed', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return null;
   }
 }

@@ -1,4 +1,4 @@
-import { getDiscordUser } from '@/lib/providers/discord';
+import { fetchDiscordUserById } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
@@ -110,7 +110,7 @@ export async function GET(
 
     // Fetch Discord user information
     try {
-      const user = await getDiscordUser(discordId);
+      const user = await fetchDiscordUserById(discordId);
 
       if (!user) {
         return NextResponse.json(

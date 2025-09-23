@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, fetchDiscordUserById } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -618,7 +618,7 @@ export async function POST(
           discordId,
         });
 
-        discordUser = await getDiscordUser(discordId);
+        discordUser = await fetchDiscordUserById(discordId);
 
         if (!discordUser) {
           const responseTime = Date.now() - requestTime.getTime();

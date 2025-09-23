@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, fetchDiscordUserById } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -288,7 +288,7 @@ export async function PUT(
       }
 
       try {
-        discordUser = await getDiscordUser(discordId);
+        discordUser = await fetchDiscordUserById(discordId);
 
         if (!discordUser) {
           return NextResponse.json(
