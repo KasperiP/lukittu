@@ -133,6 +133,7 @@ export async function GET(
         discordId,
         error: error instanceof Error ? error.message : String(error),
       });
+
       return NextResponse.json(
         {
           message: t('validation.discord_api_error'),

@@ -304,6 +304,7 @@ export async function PUT(
           discordId,
           error: error instanceof Error ? error.message : String(error),
         });
+
         return NextResponse.json(
           {
             field: 'discordId',

@@ -475,6 +475,7 @@ export async function POST(
           discordId,
           error: error instanceof Error ? error.message : String(error),
         });
+
         return NextResponse.json(
           {
             field: 'discordId',

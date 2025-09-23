@@ -134,21 +134,6 @@ export async function GET(
         error: error instanceof Error ? error.message : String(error),
       });
 
-      // Check if it's a token issue
-      if (
-        error instanceof Error &&
-        (error.message.includes('401') ||
-          error.message.includes('unauthorized') ||
-          error.message.includes('token'))
-      ) {
-        return NextResponse.json(
-          {
-            message: t('validation.discord_api_error'),
-          },
-          { status: HttpStatus.BAD_REQUEST },
-        );
-      }
-
       return NextResponse.json(
         {
           message: t('validation.discord_api_error'),
