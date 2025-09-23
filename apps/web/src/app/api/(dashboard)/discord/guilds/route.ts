@@ -119,7 +119,10 @@ export async function GET(
 
       // Fetch user's guilds and bot's guilds concurrently
       const [userGuilds, botGuilds] = await Promise.all([
-        fetchDiscordUserGuilds(tokenResult.accessToken),
+        fetchDiscordUserGuilds(
+          tokenResult.accessToken,
+          session.user.discordAccount.discordId,
+        ),
         fetchBotGuilds(),
       ]);
 

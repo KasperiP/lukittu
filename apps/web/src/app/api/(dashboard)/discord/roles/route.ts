@@ -138,10 +138,17 @@ export async function GET(
       // Fetch all required data concurrently
       const [userGuilds, botGuilds, guildRoles, userMember, botMember] =
         await Promise.all([
-          fetchDiscordUserGuilds(tokenResult.accessToken),
+          fetchDiscordUserGuilds(
+            tokenResult.accessToken,
+            session.user.discordAccount.discordId,
+          ),
           fetchBotGuilds(),
           fetchGuildRoles(guildId),
-          fetchUserGuildMember(guildId, tokenResult.accessToken),
+          fetchUserGuildMember(
+            guildId,
+            tokenResult.accessToken,
+            session.user.discordAccount.discordId,
+          ),
           fetchBotGuildMember(guildId),
         ]);
 

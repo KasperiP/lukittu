@@ -72,20 +72,28 @@ interface DiscordTokenResult {
 export async function fetchDiscordUserById(
   discordId: string,
 ): Promise<DiscordUser | null> {
+  const cacheKey = `discord_user:${discordId}`;
+  const cacheTTL = 300; // 5 minutes
+
   try {
+    // Try to get from cache first
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
     const response = await fetch(
       `https://discord.com/api/v10/users/${discordId}`,
       {
         headers: {
           Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
-
-        // Cache for 5 minutes - Discord user data doesn't change frequently
-        next: { revalidate: 300 },
       },
     );
 
     if (response.status === 404) {
+      // Cache the null result for a shorter time to avoid repeated API calls
+      await redisClient.setex(cacheKey, 60, JSON.stringify(null));
       return null;
     }
 
@@ -106,7 +114,20 @@ export async function fetchDiscordUserById(
       throw new Error(`Discord user fetch failed: ${response.status}`);
     }
 
-    return await response.json();
+    const userData = await response.json();
+
+    // Cache the successful result
+    try {
+      await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(userData));
+    } catch (cacheError) {
+      logger.warn('Failed to cache Discord user data', {
+        discordId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
+    }
+
+    return userData;
   } catch (error) {
     if (error instanceof Error && error.message.includes('404')) {
       return null;
@@ -371,12 +392,33 @@ export async function getDiscordTokens(
 /**
  * Fetches user's Discord guilds using OAuth access token
  * @param accessToken OAuth access token
+ * @param userDiscordId User's Discord ID for caching
  * @returns Array of Discord guilds the user is a member of
  * @throws Error if guild fetch fails
  */
 export async function fetchDiscordUserGuilds(
   accessToken: string,
+  userDiscordId: string,
 ): Promise<DiscordGuild[]> {
+  const cacheKey = `discord_user_guilds:${userDiscordId}`;
+  const cacheTTL = 180; // 3 minutes (guild membership can change more frequently)
+
+  // Try to get from cache first if userDiscordId is provided
+  if (cacheKey) {
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (cacheError) {
+      logger.warn('Failed to read Discord user guilds cache', {
+        userDiscordId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
+    }
+  }
+
   const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -399,7 +441,22 @@ export async function fetchDiscordUserGuilds(
     throw new Error(`Discord user guilds fetch failed: ${response.status}`);
   }
 
-  return await response.json();
+  const guildsData = await response.json();
+
+  // Cache the result if userId is provided
+  if (cacheKey) {
+    try {
+      await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(guildsData));
+    } catch (cacheError) {
+      logger.warn('Failed to cache Discord user guilds data', {
+        userDiscordId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
+    }
+  }
+
+  return guildsData;
 }
 
 /**
@@ -408,11 +465,26 @@ export async function fetchDiscordUserGuilds(
  * @throws Error if guild fetch fails
  */
 export async function fetchBotGuilds(): Promise<DiscordGuild[]> {
+  const cacheKey = 'discord_bot_guilds';
+  const cacheTTL = 300; // 5 minutes
+
+  try {
+    // Try to get from cache first
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (cacheError) {
+    logger.warn('Failed to read Discord bot guilds cache', {
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
+
   const response = await fetch('https://discord.com/api/v10/users/@me/guilds', {
     headers: {
       Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
     },
-    next: { revalidate: 300 }, // Cache bot guilds for 5 minutes
   });
 
   if (!response.ok) {
@@ -431,7 +503,19 @@ export async function fetchBotGuilds(): Promise<DiscordGuild[]> {
     throw new Error(`Discord bot guilds fetch failed: ${response.status}`);
   }
 
-  return await response.json();
+  const guildsData = await response.json();
+
+  // Cache the result
+  try {
+    await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(guildsData));
+  } catch (cacheError) {
+    logger.warn('Failed to cache Discord bot guilds data', {
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
+
+  return guildsData;
 }
 
 /**
@@ -491,13 +575,29 @@ export function findCommonGuildsWithPermissions(
  * @throws Error if fetch fails
  */
 export async function fetchGuildRoles(guildId: string): Promise<DiscordRole[]> {
+  const cacheKey = `discord_guild_roles:${guildId}`;
+  const cacheTTL = 300; // 5 minutes
+
+  try {
+    // Try to get from cache first
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (cacheError) {
+    logger.warn('Failed to read Discord guild roles cache', {
+      guildId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
+
   const response = await fetch(
     `https://discord.com/api/v10/guilds/${guildId}/roles`,
     {
       headers: {
         Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
       },
-      next: { revalidate: 300 }, // Cache roles for 5 minutes
     },
   );
 
@@ -518,20 +618,55 @@ export async function fetchGuildRoles(guildId: string): Promise<DiscordRole[]> {
     throw new Error(`Discord guild roles fetch failed: ${response.status}`);
   }
 
-  return await response.json();
+  const rolesData = await response.json();
+
+  // Cache the result
+  try {
+    await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(rolesData));
+  } catch (cacheError) {
+    logger.warn('Failed to cache Discord guild roles data', {
+      guildId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
+
+  return rolesData;
 }
 
 /**
  * Fetches user's member info for a specific guild using OAuth token
  * @param guildId Guild ID
  * @param accessToken OAuth access token
+ * @param userDiscordId User's Discord ID for caching
  * @returns User's member info or null if not in guild
  * @throws Error if fetch fails (non-404 errors)
  */
 export async function fetchUserGuildMember(
   guildId: string,
   accessToken: string,
+  userDiscordId: string,
 ): Promise<DiscordGuildMember | null> {
+  const cacheKey = `discord_user_member:${userDiscordId}:${guildId}`;
+  const cacheTTL = 180; // 3 minutes (member data can change)
+
+  // Try to get from cache first if userDiscordId is provided
+  if (cacheKey) {
+    try {
+      const cached = await redisClient.get(cacheKey);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (cacheError) {
+      logger.warn('Failed to read Discord user guild member cache', {
+        userDiscordId,
+        guildId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
+    }
+  }
+
   try {
     const response = await fetch(
       `https://discord.com/api/v10/users/@me/guilds/${guildId}/member`,
@@ -543,6 +678,21 @@ export async function fetchUserGuildMember(
     );
 
     if (response.status === 404) {
+      // Cache the null result for a shorter time
+      if (cacheKey) {
+        try {
+          await redisClient.setex(cacheKey, 60, JSON.stringify(null));
+        } catch (cacheError) {
+          logger.warn('Failed to cache Discord user guild member null result', {
+            userDiscordId,
+            guildId,
+            error:
+              cacheError instanceof Error
+                ? cacheError.message
+                : String(cacheError),
+          });
+        }
+      }
       return null;
     }
 
@@ -565,7 +715,25 @@ export async function fetchUserGuildMember(
       );
     }
 
-    return await response.json();
+    const memberData = await response.json();
+
+    // Cache the result if userId is provided
+    if (cacheKey) {
+      try {
+        await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(memberData));
+      } catch (cacheError) {
+        logger.warn('Failed to cache Discord user guild member data', {
+          userDiscordId,
+          guildId,
+          error:
+            cacheError instanceof Error
+              ? cacheError.message
+              : String(cacheError),
+        });
+      }
+    }
+
+    return memberData;
   } catch (error) {
     if (error instanceof Error && error.message.includes('404')) {
       return null;
@@ -625,6 +793,23 @@ export function getBotHighestRolePosition(
 export async function fetchBotGuildMember(
   guildId: string,
 ): Promise<DiscordGuildMember | null> {
+  const cacheKey = `discord_bot_member:${guildId}`;
+  const cacheTTL = 300; // 5 minutes (bot member data is relatively stable)
+
+  try {
+    // Try to get from cache first
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+  } catch (cacheError) {
+    logger.warn('Failed to read Discord bot guild member cache', {
+      guildId,
+      error:
+        cacheError instanceof Error ? cacheError.message : String(cacheError),
+    });
+  }
+
   try {
     const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID!;
     const response = await fetch(
@@ -637,6 +822,18 @@ export async function fetchBotGuildMember(
     );
 
     if (response.status === 404) {
+      // Cache the null result for a shorter time
+      try {
+        await redisClient.setex(cacheKey, 60, JSON.stringify(null));
+      } catch (cacheError) {
+        logger.warn('Failed to cache Discord bot guild member null result', {
+          guildId,
+          error:
+            cacheError instanceof Error
+              ? cacheError.message
+              : String(cacheError),
+        });
+      }
       return null;
     }
 
@@ -659,7 +856,20 @@ export async function fetchBotGuildMember(
       );
     }
 
-    return await response.json();
+    const memberData = await response.json();
+
+    // Cache the result
+    try {
+      await redisClient.setex(cacheKey, cacheTTL, JSON.stringify(memberData));
+    } catch (cacheError) {
+      logger.warn('Failed to cache Discord bot guild member data', {
+        guildId,
+        error:
+          cacheError instanceof Error ? cacheError.message : String(cacheError),
+      });
+    }
+
+    return memberData;
   } catch (error) {
     if (error instanceof Error && error.message.includes('404')) {
       return null;
