@@ -12,7 +12,7 @@ import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { encryptString, logger, prisma, regex } from '@lukittu/shared';
+import { logger, regex } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -123,16 +123,6 @@ export async function GET(
           },
           { status: HttpStatus.BAD_REQUEST },
         );
-      }
-
-      // Update refresh token if it was rotated
-      if (tokenResult.tokenRotated) {
-        await prisma.userDiscordAccount.update({
-          where: { userId: session.user.id },
-          data: {
-            refreshToken: encryptString(tokenResult.refreshToken),
-          },
-        });
       }
 
       // Fetch all required data concurrently

@@ -1,4 +1,4 @@
-import { decryptString, encryptString, logger } from '@lukittu/shared';
+import { decryptString, encryptString, logger, prisma } from '@lukittu/shared';
 import 'server-only';
 import { redisClient } from '../database/redis';
 
@@ -536,6 +536,16 @@ export async function getDiscordTokens(
     );
 
     const tokenRotated = tokenResponse.refresh_token !== decryptedRefreshToken;
+
+    // Update refresh token if it was rotated
+    if (tokenRotated) {
+      await prisma.userDiscordAccount.update({
+        where: { userId },
+        data: {
+          refreshToken: encryptString(tokenResponse.refresh_token),
+        },
+      });
+    }
 
     return {
       accessToken: tokenResponse.access_token,
