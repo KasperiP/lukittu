@@ -1147,6 +1147,32 @@ export async function fetchBotGuildMember(
   }
 }
 
+export interface DiscordRoleMappingItem {
+  discordRoleId: string;
+  discordGuildId: string;
+}
+
+export interface ValidatedDiscordRoleMapping {
+  discordRoleId: string;
+  discordGuildId: string;
+  roleName: string;
+  guildName: string;
+}
+
+export interface DiscordValidationResult {
+  success: boolean;
+  validatedMappings?: ValidatedDiscordRoleMapping[];
+  error?: string;
+  errorCode?:
+    | 'NO_DISCORD_ACCOUNT'
+    | 'INVALID_TOKEN'
+    | 'INSUFFICIENT_PERMISSIONS'
+    | 'ROLE_NOT_FOUND'
+    | 'GUILD_NOT_FOUND'
+    | 'BOT_NOT_IN_GUILD'
+    | 'DUPLICATE_MAPPING';
+}
+
 /**
  * Filters roles that both user and bot can assign to other users
  * A role can be assigned if:
@@ -1235,4 +1261,206 @@ export function getAssignableRoles(
 
     return userCanAssign && botCanAssign;
   });
+}
+
+/**
+ * Validates Discord role mappings for a user within their team context
+ * Ensures that:
+ * 1. User has a connected Discord account
+ * 2. User and bot are in the specified guilds
+ * 3. User and bot have proper permissions to manage the roles
+ * 4. Roles exist and can be assigned
+ * 5. No duplicate mappings
+ * @param params Validation parameters
+ * @returns Promise resolving to validation result
+ */
+export async function validateDiscordRoleMappingsForUser({
+  roleMappings,
+  userId,
+  userDiscordAccount,
+}: {
+  roleMappings: DiscordRoleMappingItem[];
+  userId: string;
+  userDiscordAccount: { discordId: string; refreshToken: string };
+}): Promise<DiscordValidationResult> {
+  try {
+    if (!roleMappings || roleMappings.length === 0) {
+      return { success: true, validatedMappings: [] };
+    }
+
+    if (!userDiscordAccount.refreshToken) {
+      return {
+        success: false,
+        error: 'Invalid Discord token',
+        errorCode: 'INVALID_TOKEN',
+      };
+    }
+
+    // Get Discord tokens
+    const tokenResult = await getDiscordTokens(
+      userDiscordAccount.refreshToken,
+      userId,
+    );
+
+    if (!tokenResult) {
+      return {
+        success: false,
+        error: 'Invalid or expired Discord token',
+        errorCode: 'INVALID_TOKEN',
+      };
+    }
+
+    // Check for duplicate mappings within this request
+    const uniqueMappings = new Map<string, DiscordRoleMappingItem>();
+    for (const mapping of roleMappings) {
+      const key = `${mapping.discordGuildId}:${mapping.discordRoleId}`;
+      if (uniqueMappings.has(key)) {
+        return {
+          success: false,
+          error: 'Duplicate Discord role mapping detected',
+          errorCode: 'DUPLICATE_MAPPING',
+        };
+      }
+      uniqueMappings.set(key, mapping);
+    }
+
+    // Get unique guild IDs from all mappings
+    const guildIds = [...new Set(roleMappings.map((m) => m.discordGuildId))];
+
+    // Fetch user guilds and bot guilds
+    const [userGuilds, botGuilds] = await Promise.all([
+      fetchDiscordUserGuilds(
+        tokenResult.accessToken,
+        userDiscordAccount.discordId,
+      ),
+      fetchBotGuilds(),
+    ]);
+
+    const validatedMappings: ValidatedDiscordRoleMapping[] = [];
+
+    // Validate each guild and its roles
+    for (const guildId of guildIds) {
+      // Find user's guild info
+      const userGuild = userGuilds.find((g) => g.id === guildId);
+      if (!userGuild) {
+        return {
+          success: false,
+          error: `User is not a member of Discord server ${guildId}`,
+          errorCode: 'GUILD_NOT_FOUND',
+        };
+      }
+
+      // Find bot's guild info
+      const botGuild = botGuilds.find((g) => g.id === guildId);
+      if (!botGuild) {
+        return {
+          success: false,
+          error: `Bot is not a member of Discord server ${guildId}`,
+          errorCode: 'BOT_NOT_IN_GUILD',
+        };
+      }
+
+      try {
+        // Fetch detailed member info and guild roles
+        const [guildRoles, userMember, botMember] = await Promise.all([
+          fetchGuildRoles(guildId),
+          fetchUserGuildMember(
+            guildId,
+            tokenResult.accessToken,
+            userDiscordAccount.discordId,
+          ),
+          fetchBotGuildMember(guildId),
+        ]);
+
+        if (!userMember) {
+          return {
+            success: false,
+            error: `User member data not found in Discord server ${userGuild.name}`,
+            errorCode: 'GUILD_NOT_FOUND',
+          };
+        }
+
+        if (!botMember) {
+          return {
+            success: false,
+            error: `Bot member data not found in Discord server ${userGuild.name}`,
+            errorCode: 'BOT_NOT_IN_GUILD',
+          };
+        }
+
+        // Get roles that can be assigned by both user and bot
+        const assignableRoles = getAssignableRoles(
+          guildRoles,
+          userMember,
+          botMember,
+          userGuild,
+          botGuild,
+        );
+
+        // Validate each role mapping for this guild
+        const guildMappings = roleMappings.filter(
+          (m) => m.discordGuildId === guildId,
+        );
+        for (const mapping of guildMappings) {
+          const role = assignableRoles.find(
+            (r) => r.id === mapping.discordRoleId,
+          );
+          if (!role) {
+            // Try to find the role in all guild roles to provide better error message
+            const roleExists = guildRoles.find(
+              (r) => r.id === mapping.discordRoleId,
+            );
+            if (!roleExists) {
+              return {
+                success: false,
+                error: `Discord role ${mapping.discordRoleId} not found in server ${userGuild.name}`,
+                errorCode: 'ROLE_NOT_FOUND',
+              };
+            } else {
+              return {
+                success: false,
+                error: `Insufficient permissions to assign role "${roleExists.name}" in server ${userGuild.name}`,
+                errorCode: 'INSUFFICIENT_PERMISSIONS',
+              };
+            }
+          }
+
+          validatedMappings.push({
+            discordRoleId: mapping.discordRoleId,
+            discordGuildId: mapping.discordGuildId,
+            roleName: role.name,
+            guildName: userGuild.name,
+          });
+        }
+      } catch (error) {
+        logger.error('Failed to validate Discord role mapping', {
+          guildId,
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+
+        return {
+          success: false,
+          error: `Failed to validate permissions in Discord server ${userGuild.name}`,
+          errorCode: 'INSUFFICIENT_PERMISSIONS',
+        };
+      }
+    }
+
+    return {
+      success: true,
+      validatedMappings,
+    };
+  } catch (error) {
+    logger.error('Discord role mapping validation failed', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return {
+      success: false,
+      error: 'Failed to validate Discord role mappings',
+      errorCode: 'INVALID_TOKEN',
+    };
+  }
 }

@@ -27,6 +27,20 @@ export const setProductSchema = (t: I18nTranslator) =>
         }),
         z.literal(''),
       ]),
+      discordRoleMapping: z
+        .array(
+          z
+            .object({
+              discordRoleId: z.string().regex(regex.discordId, {
+                message: t('validation.discord_role_id_invalid'),
+              }),
+              discordGuildId: z.string().regex(regex.discordId, {
+                message: t('validation.discord_guild_id_invalid'),
+              }),
+            })
+            .strict(),
+        )
+        .optional(),
       metadata: metadataSchema(t),
     })
     .strict();

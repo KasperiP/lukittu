@@ -39,6 +39,7 @@ model User {
     createdPolymartIntegrations   PolymartIntegration[]
     createdInvitations            Invitation[]
     createdWebhookEvents          WebhookEvent[]
+    productDiscordRoles           ProductDiscordRole[]
     blacklist                     Blacklist[]
     releases                      Release[]
     webhooks                      Webhook[]
@@ -99,6 +100,7 @@ model Team {
     settings               Settings?
     keyPair                KeyPair?
     userDiscordAccounts    UserDiscordAccount[]
+    productDiscordRoles    ProductDiscordRole[]
     customerDiscordAccount CustomerDiscordAccount[]
     webhooks               Webhook[]
     deletedAt              DateTime?
@@ -364,21 +366,41 @@ model Invitation {
 }
 
 model Product {
-    id              String          @id @default(uuid())
+    id              String               @id @default(uuid())
     name            String
     url             String?
     metadata        Metadata[]
     teamId          String
-    team            Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    team            Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
     createdByUserId String?
-    createdBy       User?           @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdBy       User?                @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
     licenses        License[]
     releases        Release[]
     branches        ReleaseBranch[]
     requestLogs     RequestLog[]
-    createdAt       DateTime        @default(now())
-    updatedAt       DateTime        @updatedAt
+    discordRoles    ProductDiscordRole[]
+    createdAt       DateTime             @default(now())
+    updatedAt       DateTime             @updatedAt
 
+    @@index([teamId])
+}
+
+model ProductDiscordRole {
+    id              String   @id @default(uuid())
+    productId       String
+    product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+    roleId          String
+    roleName        String
+    guildId         String
+    guildName       String
+    teamId          String
+    team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+    createdByUserId String?
+    createdBy       User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    @@unique([productId, roleId, guildId])
     @@index([teamId])
 }
 
