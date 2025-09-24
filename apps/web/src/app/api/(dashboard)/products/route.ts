@@ -383,7 +383,6 @@ export async function POST(
               errorMessages[discordValidation.errorCode!] ||
               discordValidation.error ||
               'Discord validation failed',
-            field: 'discordRoleMapping',
           },
           { status: HttpStatus.BAD_REQUEST },
         );

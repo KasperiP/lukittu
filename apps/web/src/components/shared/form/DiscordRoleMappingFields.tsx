@@ -11,6 +11,7 @@ import {
   IDiscordRolesGetResponse,
   IDiscordRolesGetSuccessResponse,
 } from '@/app/api/(dashboard)/discord/roles/route';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -33,13 +34,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { TeamContext } from '@/providers/TeamProvider';
-import { Check, ChevronDown, X } from 'lucide-react';
+import { AlertCircle, Check, ChevronDown, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useContext, useState } from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
 import useSWR from 'swr';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 const fetchGuilds = async (url: string) => {
   const response = await fetch(url);
@@ -76,10 +78,17 @@ const fetchDiscordHealth = async (url: string) => {
 
 interface DiscordRoleMappingFieldsProps {
   form: UseFormReturn<any>;
+  existingDiscordRoles?: Array<{
+    roleId: string;
+    roleName: string;
+    guildId: string;
+    guildName: string;
+  }>;
 }
 
 export default function DiscordRoleMappingFields({
   form,
+  existingDiscordRoles,
 }: DiscordRoleMappingFieldsProps) {
   const t = useTranslations();
   const teamCtx = useContext(TeamContext);
@@ -134,78 +143,75 @@ export default function DiscordRoleMappingFields({
     });
   };
 
-  // Show loading state if health check is loading
-  if (!discordHealth && !discordHealthError) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        {t('dashboard.products.checking_discord_connection')}
-      </div>
-    );
-  }
-
   // Show error state if Discord health check failed
   if (discordHealthError) {
     return (
-      <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
-        <p className="text-sm text-destructive">
-          {t('dashboard.products.discord_connection_error')}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t('dashboard.products.discord_connection_error_description')}
-        </p>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">
+              {t('dashboard.products.discord_connection_error')}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {t('dashboard.products.discord_connection_error_description')}
+            </p>
+          </div>
+        </AlertDescription>
+      </Alert>
     );
   }
 
-  // Show reconnection message if Discord is not connected or token is invalid
-  if (
-    discordHealth &&
-    (!discordHealth.connected || !discordHealth.tokenValid)
-  ) {
-    return (
-      <div className="border-warning/20 bg-warning/5 rounded-md border p-3">
-        <p className="text-warning-foreground text-sm">
-          {!discordHealth.connected
-            ? t('dashboard.products.discord_not_connected')
-            : t('dashboard.products.discord_token_expired')}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t('dashboard.products.discord_reconnect_description')}
-        </p>
-        <Link className="mt-2 inline-block" href="/dashboard/profile">
-          <Button size="sm" variant="outline">
-            {t('dashboard.products.reconnect_discord')}
-          </Button>
-        </Link>
-      </div>
-    );
-  }
-
-  // Show loading state if guilds are loading
-  if (!guildsData && !guildsError) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        {t('dashboard.products.loading_discord_guilds')}
-      </div>
-    );
-  }
+  const isDiscordConnectionValid = Boolean(
+    discordHealth?.connected && discordHealth?.tokenValid,
+  );
 
   // Show error state if guilds loading failed
   if (guildsError) {
     return (
-      <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3">
-        <p className="text-sm text-destructive">
-          {t('dashboard.products.discord_connection_error')}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t('dashboard.products.discord_connection_error_description')}
-        </p>
-      </div>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">
+              {t('dashboard.products.discord_connection_error')}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {t('dashboard.products.discord_connection_error_description')}
+            </p>
+          </div>
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <>
+      {/* Show connection warning if Discord is not properly connected and we have roles selected */}
+      {discordHealth && !isDiscordConnectionValid && fields.length > 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="text-sm font-medium">
+                {!discordHealth.connected
+                  ? t('dashboard.products.discord_not_connected')
+                  : t('dashboard.products.discord_token_expired')}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {t('dashboard.products.discord_reconnect_description')}
+              </p>
+              <Link
+                className="font-medium text-primary underline hover:text-primary/80"
+                href="/dashboard/profile"
+              >
+                {t('dashboard.products.reconnect_discord')}
+              </Link>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {fields.length === 0 ? (
         <div className="space-y-3">
           <div className="flex h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed text-sm text-muted-foreground">
@@ -226,9 +232,14 @@ export default function DiscordRoleMappingFields({
           {fields.map((field, index) => (
             <DiscordMappingRow
               key={field.id}
+              discordHealth={discordHealth}
+              discordHealthError={discordHealthError}
+              existingDiscordRoles={existingDiscordRoles}
               form={form}
-              guildsData={guildsData!}
+              guildsData={guildsData}
+              guildsError={guildsError}
               index={index}
+              isConnectionValid={isDiscordConnectionValid}
               openGuildSelectors={openGuildSelectors}
               openRoleSelectors={openRoleSelectors}
               setOpenGuildSelectors={setOpenGuildSelectors}
@@ -256,7 +267,17 @@ export default function DiscordRoleMappingFields({
 interface DiscordMappingRowProps {
   index: number;
   form: UseFormReturn<any>;
-  guildsData: IDiscordGuildsGetSuccessResponse;
+  guildsData: IDiscordGuildsGetSuccessResponse | undefined;
+  discordHealth: IDiscordHealthSuccessResponse | undefined;
+  discordHealthError: any;
+  guildsError: any;
+  existingDiscordRoles?: Array<{
+    roleId: string;
+    roleName: string;
+    guildId: string;
+    guildName: string;
+  }>;
+  isConnectionValid: boolean;
   onRemove: () => void;
   onGuildSelect: (index: number, guildId: string) => void;
   onRoleSelect: (index: number, roleId: string) => void;
@@ -270,6 +291,11 @@ function DiscordMappingRow({
   index,
   form,
   guildsData,
+  discordHealth,
+  discordHealthError,
+  guildsError,
+  existingDiscordRoles,
+  isConnectionValid,
   onRemove,
   onGuildSelect,
   onRoleSelect,
@@ -289,11 +315,18 @@ function DiscordMappingRow({
     fetchRoles,
   );
 
-  const selectedGuild = guildsData.guilds.find(
+  const selectedGuild = guildsData?.guilds.find(
     (guild) => guild.id === selectedGuildId,
   );
+  const existingGuild = existingDiscordRoles?.find(
+    (role) => role.guildId === selectedGuildId,
+  );
+
   const selectedRole = rolesData?.roles.find(
     (role) => role.id === selectedRoleId,
+  );
+  const existingRole = existingDiscordRoles?.find(
+    (role) => role.roleId === selectedRoleId,
   );
 
   return (
@@ -324,6 +357,7 @@ function DiscordMappingRow({
                 <PopoverTrigger asChild>
                   <Button
                     className="w-full justify-between"
+                    disabled={!isConnectionValid}
                     role="combobox"
                     variant="outline"
                   >
@@ -340,10 +374,23 @@ function DiscordMappingRow({
                         )}
                         <span className="truncate">{selectedGuild.name}</span>
                       </div>
+                    ) : existingGuild ? (
+                      <div className="flex items-center gap-2">
+                        <span className="truncate">
+                          {existingGuild.guildName}
+                        </span>
+                      </div>
                     ) : (
-                      t('dashboard.products.select_discord_server')
+                      <span className="text-muted-foreground">
+                        {t('dashboard.products.select_discord_server')}
+                      </span>
                     )}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    {(!discordHealth && !discordHealthError) ||
+                    (!guildsData && !guildsError && isConnectionValid) ? (
+                      <LoadingSpinner className="ml-2 h-4 w-4" />
+                    ) : isConnectionValid ? (
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    ) : null}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0">
@@ -356,7 +403,7 @@ function DiscordMappingRow({
                         {t('dashboard.products.no_servers_found')}
                       </CommandEmpty>
                       <CommandGroup>
-                        {guildsData.guilds.map((guild) => (
+                        {guildsData?.guilds.map((guild) => (
                           <CommandItem
                             key={guild.id}
                             onSelect={() => onGuildSelect(index, guild.id)}
@@ -418,7 +465,7 @@ function DiscordMappingRow({
                 <PopoverTrigger asChild>
                   <Button
                     className="w-full justify-between"
-                    disabled={!selectedGuildId}
+                    disabled={!selectedGuildId || !isConnectionValid}
                     role="combobox"
                     variant="outline"
                   >
@@ -434,12 +481,27 @@ function DiscordMappingRow({
                         />
                         <span className="truncate">{selectedRole.name}</span>
                       </div>
+                    ) : existingRole ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full bg-gray-400" />
+                        <span className="truncate">
+                          {existingRole.roleName}
+                        </span>
+                      </div>
                     ) : selectedGuildId ? (
-                      t('dashboard.products.select_discord_role')
+                      <span className="text-muted-foreground">
+                        {t('dashboard.products.select_discord_role')}
+                      </span>
                     ) : (
-                      t('dashboard.products.select_server_first')
+                      <span className="text-muted-foreground">
+                        {t('dashboard.products.select_server_first')}
+                      </span>
                     )}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    {selectedGuildId && !rolesData && isConnectionValid ? (
+                      <LoadingSpinner className="ml-2 h-4 w-4" />
+                    ) : selectedGuildId && isConnectionValid ? (
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    ) : null}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[300px] p-0">
@@ -449,9 +511,13 @@ function DiscordMappingRow({
                     />
                     <CommandList>
                       <CommandEmpty>
-                        {rolesData
-                          ? t('dashboard.products.no_roles_found')
-                          : t('dashboard.products.loading_roles')}
+                        {!rolesData ? (
+                          <div className="flex w-full items-center justify-center p-4">
+                            <LoadingSpinner />
+                          </div>
+                        ) : (
+                          t('dashboard.products.no_roles_found')
+                        )}
                       </CommandEmpty>
                       <CommandGroup>
                         {rolesData?.roles.map((role) => (
