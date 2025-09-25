@@ -38,7 +38,7 @@ services:
 
   lukittuRedis:
     container_name: lukittuRedis
-    image: redis/redis-stack-server:latest
+    image: redis:8-alpine
     restart: unless-stopped
     ports:
       - '127.0.0.1:6382:6379'
