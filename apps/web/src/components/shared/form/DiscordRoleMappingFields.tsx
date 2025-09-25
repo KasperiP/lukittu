@@ -115,7 +115,9 @@ export default function DiscordRoleMappingFields({
   });
 
   const handleAddMapping = () => {
-    append({ discordGuildId: '', discordRoleId: '' });
+    if (fields.length < 5) {
+      append({ discordGuildId: '', discordRoleId: '' });
+    }
   };
 
   const handleGuildSelect = (index: number, guildId: string) => {
@@ -199,6 +201,7 @@ export default function DiscordRoleMappingFields({
           </div>
           <Button
             className="pl-0"
+            disabled={fields.length >= 5}
             size="sm"
             type="button"
             variant="link"
@@ -229,15 +232,23 @@ export default function DiscordRoleMappingFields({
               onRoleSelect={handleRoleSelect}
             />
           ))}
-          <Button
-            className="pl-0"
-            size="sm"
-            type="button"
-            variant="link"
-            onClick={handleAddMapping}
-          >
-            {t('dashboard.products.add_another_discord_mapping')}
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button
+              className="pl-0"
+              disabled={fields.length >= 5}
+              size="sm"
+              type="button"
+              variant="link"
+              onClick={handleAddMapping}
+            >
+              {t('dashboard.products.add_another_discord_mapping')}
+            </Button>
+            {fields.length >= 4 && (
+              <span className="text-sm text-muted-foreground">
+                {fields.length}/5 {t('general.roles')}
+              </span>
+            )}
+          </div>
         </>
       )}
     </>

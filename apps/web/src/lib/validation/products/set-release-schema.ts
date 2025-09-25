@@ -33,6 +33,6 @@ export const setReleaseSchema = (t: I18nTranslator) =>
       branchId: z.string().uuid().nullable(),
       status: z.enum(['PUBLISHED', 'DRAFT', 'DEPRECATED', 'ARCHIVED']),
       metadata: metadataSchema(t),
-      licenseIds: z.array(z.string().uuid()),
+      licenseIds: z.array(z.string().uuid()).max(30),
     })
     .strict();

@@ -40,7 +40,29 @@ export const setProductSchema = (t: I18nTranslator) =>
             })
             .strict(),
         )
-        .optional(),
+        .max(5, {
+          message: t('validation.discord_role_max_limit', { max: '5' }),
+        })
+        .optional()
+        .superRefine((mappings, ctx) => {
+          if (!mappings || mappings.length === 0) return;
+
+          const seenRoleIds = new Set();
+
+          mappings.forEach((mapping, index) => {
+            const roleId = mapping.discordRoleId;
+
+            if (seenRoleIds.has(roleId)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [index, 'discordRoleId'],
+                message: t('validation.discord_role_duplicate'),
+              });
+            } else {
+              seenRoleIds.add(roleId);
+            }
+          });
+        }),
       metadata: metadataSchema(t),
     })
     .strict();
