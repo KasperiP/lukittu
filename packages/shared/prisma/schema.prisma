@@ -403,6 +403,7 @@ model ProductDiscordRole {
     updatedAt       DateTime @updatedAt
 
     @@unique([productId, roleId, guildId])
+    @@index([guildId])
     @@index([teamId])
 }
 

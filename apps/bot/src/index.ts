@@ -11,14 +11,57 @@ import {
 } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  setClient,
+  startScheduledRoleSync,
+} from './services/discord-role-service';
 import { Command, LinkedDiscordAccount } from './structures/command';
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
 });
 
 client.commands = new Collection<string, Command>();
 const commands: Command[] = [];
+
+// Function to load all events
+async function loadEvents() {
+  const eventsPath = path.join(__dirname, 'events');
+
+  try {
+    const eventFiles = fs
+      .readdirSync(eventsPath)
+      .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+
+    for (const file of eventFiles) {
+      const filePath = path.join(eventsPath, file);
+      try {
+        const importedEvent = await import(filePath);
+        const event = importedEvent.event || importedEvent.default;
+
+        if (event && 'name' in event && 'execute' in event) {
+          if (event.once) {
+            client.once(event.name, event.execute);
+          } else {
+            client.on(event.name, event.execute);
+          }
+          logger.info(`Loaded event: ${event.name}`);
+        } else {
+          logger.warn(
+            `Event at ${filePath} is missing required "name" or "execute" property.`,
+          );
+        }
+      } catch (error) {
+        logger.error(`Error loading event from ${filePath}:`, error);
+      }
+    }
+  } catch {
+    // Events directory doesn't exist or is inaccessible
+    logger.info(
+      'No events directory found or accessible. Skipping event loading.',
+    );
+  }
+}
 
 // Function to load all commands
 async function loadCommands() {
@@ -286,6 +329,13 @@ async function updateBotStatus() {
 
 client.once(Events.ClientReady, () => {
   logger.info('Ready!');
+
+  // Initialize the role service with the client
+  setClient(client);
+
+  // Start the scheduled role sync task
+  startScheduledRoleSync();
+
   registerCommands().catch(logger.error);
 
   updateBotStatus();
@@ -299,9 +349,10 @@ client.once(Events.ClientReady, () => {
   );
 });
 
-// Load commands and login
+// Load events, commands and login
 (async () => {
   try {
+    await loadEvents();
     await loadCommands();
     await client.login(process.env.DISCORD_BOT_TOKEN);
   } catch (error) {
