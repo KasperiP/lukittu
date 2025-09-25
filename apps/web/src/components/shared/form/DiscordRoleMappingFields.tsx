@@ -326,7 +326,7 @@ function DiscordMappingRow({
         control={form.control}
         name={`discordRoleMapping.${index}.discordGuildId`}
         render={() => (
-          <FormItem className="w-full">
+          <FormItem className="min-w-0 flex-1">
             <FormLabel>
               {t('dashboard.products.discord_server')} {index + 1}
             </FormLabel>
@@ -347,17 +347,17 @@ function DiscordMappingRow({
               >
                 <PopoverTrigger asChild>
                   <Button
-                    className="w-full justify-between"
+                    className="w-full min-w-0 justify-between"
                     disabled={!isConnectionValid}
                     role="combobox"
                     variant="outline"
                   >
                     {selectedGuild ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         {selectedGuild.icon && (
                           <Image
                             alt=""
-                            className="h-4 w-4 rounded"
+                            className="h-4 w-4 shrink-0 rounded"
                             height={16}
                             src={`https://cdn.discordapp.com/icons/${selectedGuild.id}/${selectedGuild.icon}.png`}
                             width={16}
@@ -366,11 +366,11 @@ function DiscordMappingRow({
                         <span className="truncate">{selectedGuild.name}</span>
                       </div>
                     ) : existingGuild ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         {existingGuild.guildIcon && (
                           <Image
                             alt=""
-                            className="h-4 w-4 rounded"
+                            className="h-4 w-4 shrink-0 rounded"
                             height={16}
                             src={`https://cdn.discordapp.com/icons/${existingGuild.guildId}/${existingGuild.guildIcon}.png`}
                             width={16}
@@ -393,7 +393,7 @@ function DiscordMappingRow({
                     ) : null}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0">
+                <PopoverContent className="md:popover-content-width-full w-[300px] p-0">
                   <Command>
                     <CommandInput
                       placeholder={t('dashboard.products.search_servers')}
@@ -408,11 +408,11 @@ function DiscordMappingRow({
                             key={guild.id}
                             onSelect={() => onGuildSelect(index, guild.id)}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 flex-1 items-center gap-2">
                               {guild.icon && (
                                 <Image
                                   alt=""
-                                  className="h-4 w-4 rounded"
+                                  className="h-4 w-4 shrink-0 rounded"
                                   height={16}
                                   src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`}
                                   width={16}
@@ -443,7 +443,7 @@ function DiscordMappingRow({
         control={form.control}
         name={`discordRoleMapping.${index}.discordRoleId`}
         render={() => (
-          <FormItem className="w-full">
+          <FormItem className="min-w-0 flex-1">
             <FormLabel>
               {t('dashboard.products.discord_role')} {index + 1}
             </FormLabel>
@@ -464,15 +464,15 @@ function DiscordMappingRow({
               >
                 <PopoverTrigger asChild>
                   <Button
-                    className="w-full justify-between"
+                    className="w-full min-w-0 justify-between"
                     disabled={!selectedGuildId || !isConnectionValid}
                     role="combobox"
                     variant="outline"
                   >
                     {selectedRole ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div
-                          className="h-3 w-3 rounded-full"
+                          className="h-3 w-3 shrink-0 rounded-full"
                           style={{
                             backgroundColor: selectedRole.color
                               ? `#${selectedRole.color.toString(16).padStart(6, '0')}`
@@ -482,9 +482,9 @@ function DiscordMappingRow({
                         <span className="truncate">{selectedRole.name}</span>
                       </div>
                     ) : existingRole ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
                         <div
-                          className="h-3 w-3 rounded-full"
+                          className="h-3 w-3 shrink-0 rounded-full"
                           style={{
                             backgroundColor: existingRole.roleColor
                               ? `#${existingRole.roleColor.toString(16).padStart(6, '0')}`
@@ -511,7 +511,7 @@ function DiscordMappingRow({
                     ) : null}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0">
+                <PopoverContent className="md:popover-content-width-full w-[300px] p-0">
                   <Command>
                     <CommandInput
                       placeholder={t('dashboard.products.search_roles')}
@@ -532,9 +532,9 @@ function DiscordMappingRow({
                             key={role.id}
                             onSelect={() => onRoleSelect(index, role.id)}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex min-w-0 flex-1 items-center gap-2">
                               <div
-                                className="h-3 w-3 rounded-full"
+                                className="h-3 w-3 shrink-0 rounded-full"
                                 style={{
                                   backgroundColor: role.color
                                     ? `#${role.color.toString(16).padStart(6, '0')}`
