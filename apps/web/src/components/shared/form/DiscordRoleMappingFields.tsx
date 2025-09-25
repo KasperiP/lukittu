@@ -34,6 +34,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { TeamContext } from '@/providers/TeamProvider';
+import { ProductDiscordRole } from '@lukittu/shared';
 import { AlertCircle, Check, ChevronDown, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -78,12 +79,7 @@ const fetchDiscordHealth = async (url: string) => {
 
 interface DiscordRoleMappingFieldsProps {
   form: UseFormReturn<any>;
-  existingDiscordRoles?: Array<{
-    roleId: string;
-    roleName: string;
-    guildId: string;
-    guildName: string;
-  }>;
+  existingDiscordRoles: ProductDiscordRole[];
 }
 
 export default function DiscordRoleMappingFields({
@@ -271,12 +267,7 @@ interface DiscordMappingRowProps {
   discordHealth: IDiscordHealthSuccessResponse | undefined;
   discordHealthError: any;
   guildsError: any;
-  existingDiscordRoles?: Array<{
-    roleId: string;
-    roleName: string;
-    guildId: string;
-    guildName: string;
-  }>;
+  existingDiscordRoles: ProductDiscordRole[];
   isConnectionValid: boolean;
   onRemove: () => void;
   onGuildSelect: (index: number, guildId: string) => void;
@@ -376,6 +367,15 @@ function DiscordMappingRow({
                       </div>
                     ) : existingGuild ? (
                       <div className="flex items-center gap-2">
+                        {existingGuild.guildIcon && (
+                          <Image
+                            alt=""
+                            className="h-4 w-4 rounded"
+                            height={16}
+                            src={`https://cdn.discordapp.com/icons/${existingGuild.guildId}/${existingGuild.guildIcon}.png`}
+                            width={16}
+                          />
+                        )}
                         <span className="truncate">
                           {existingGuild.guildName}
                         </span>
@@ -483,7 +483,14 @@ function DiscordMappingRow({
                       </div>
                     ) : existingRole ? (
                       <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-gray-400" />
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{
+                            backgroundColor: existingRole.roleColor
+                              ? `#${existingRole.roleColor.toString(16).padStart(6, '0')}`
+                              : '#99aab5',
+                          }}
+                        />
                         <span className="truncate">
                           {existingRole.roleName}
                         </span>

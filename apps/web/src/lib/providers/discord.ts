@@ -129,19 +129,6 @@ async function makeDiscordApiRequest(
       const response = await fetch(url, options);
       const rateLimitInfo = parseRateLimitHeaders(response);
 
-      // Log rate limit information for monitoring
-      if (
-        rateLimitInfo.remaining !== undefined &&
-        rateLimitInfo.remaining < 5
-      ) {
-        logger.warn('Discord API rate limit approaching', {
-          context,
-          remaining: rateLimitInfo.remaining,
-          limit: rateLimitInfo.limit,
-          resetAfter: rateLimitInfo.resetAfter,
-        });
-      }
-
       // Handle rate limiting (429 status)
       if (response.status === 429) {
         const retryAfter =
@@ -1156,6 +1143,8 @@ export interface ValidatedDiscordRoleMapping {
   discordRoleId: string;
   discordGuildId: string;
   roleName: string;
+  roleColor: number;
+  guildIcon: string | null;
   guildName: string;
 }
 
@@ -1430,6 +1419,8 @@ export async function validateDiscordRoleMappingsForUser({
             discordGuildId: mapping.discordGuildId,
             roleName: role.name,
             guildName: userGuild.name,
+            guildIcon: userGuild.icon,
+            roleColor: role.color,
           });
         }
       } catch (error) {

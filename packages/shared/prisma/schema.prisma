@@ -391,7 +391,9 @@ model ProductDiscordRole {
     product         Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
     roleId          String
     roleName        String
+    roleColor       Int?
     guildId         String
+    guildIcon       String?
     guildName       String
     teamId          String
     team            Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)

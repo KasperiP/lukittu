@@ -253,7 +253,7 @@ export default function SetProductModal() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4 pt-4">
                   <DiscordRoleMappingFields
-                    existingDiscordRoles={ctx.productToEdit?.discordRoles}
+                    existingDiscordRoles={ctx.productToEdit?.discordRoles ?? []}
                     form={form}
                   />
                 </CollapsibleContent>

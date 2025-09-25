@@ -522,6 +522,8 @@ export async function PUT(
                     roleName: mapping.roleName,
                     guildId: mapping.discordGuildId,
                     guildName: mapping.guildName,
+                    guildIcon: mapping.guildIcon,
+                    roleColor: mapping.roleColor,
                     teamId: selectedTeam,
                     createdByUserId: session.user.id,
                   })),
