@@ -168,7 +168,15 @@
     "invalid_discord_id": "ID de Discord no válido.",
     "discord_user_not_found": "Usuario de Discord no encontrado.",
     "discord_api_error": "Se produjo un error al obtener el usuario de Discord.",
-    "discord_account_already_linked": "¡Esta cuenta de Discord ya está vinculada a otro cliente!"
+    "discord_account_already_linked": "¡Esta cuenta de Discord ya está vinculada a otro cliente!",
+    "discord_role_id_invalid": "",
+    "discord_guild_id_invalid": "",
+    "discord_role_mapping_already_exists": "",
+    "discord_account_not_connected": "",
+    "discord_token_invalid": "",
+    "discord_insufficient_permissions": "",
+    "discord_bot_not_in_guild": "",
+    "discord_guild_or_role_not_found": ""
   },
   "general": {
     "select_key": "Seleccionar clave",
@@ -388,7 +396,8 @@
     "upcoming": "Próximo",
     "original_parameters": "Parámetros originales",
     "reconnect": "Reconectar",
-    "token_expired": "Token expirado"
+    "token_expired": "Token expirado",
+    "roles": ""
   },
   "auth": {
     "oauth": {
@@ -608,7 +617,26 @@
       "product_deleted": "Producto eliminado",
       "product_created": "Producto creado",
       "no_licenses_assigned": "No hay licencias asignadas",
-      "editing_products_of_license": "Estás editando productos de la licencia <strong>{license}</strong>."
+      "editing_products_of_license": "Estás editando productos de la licencia <strong>{license}</strong>.",
+      "discord_integration": "",
+      "discord_server": "",
+      "discord_role": "",
+      "select_discord_server": "",
+      "select_discord_role": "",
+      "select_server_first": "",
+      "search_servers": "",
+      "search_roles": "",
+      "no_servers_found": "",
+      "no_roles_found": "",
+      "discord_not_connected": "",
+      "discord_token_expired": "",
+      "discord_reconnect_description": "",
+      "reconnect_discord": "",
+      "discord_connection_error": "",
+      "discord_connection_error_description": "",
+      "no_discord_mappings": "",
+      "add_another_discord_mapping": "",
+      "add_discord_role_mapping": ""
     },
     "licenses": {
       "no_ip_addresses": "No hay direcciones IP",
@@ -685,7 +713,6 @@
       "delete_customer_confirm_title": "Eliminar cliente",
       "delete_customer_confirm_description": "Estás a punto de eliminar al cliente <strong>{name}</strong>! Esto <strong>eliminará permanentemente</strong> a este cliente. Esta acción no se puede deshacer.",
       "editing_customers_of_license": "Estás editando clientes de la licencia <strong>{license}</strong>.",
-      "connections": "Conexiones",
       "discord_id": "ID de Discord",
       "address_details": "Detalles de la dirección",
       "address_added": "Dirección añadida",

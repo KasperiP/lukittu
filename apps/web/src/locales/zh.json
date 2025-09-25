@@ -168,7 +168,15 @@
     "invalid_discord_id": "无效的 Discord ID。",
     "discord_user_not_found": "未找到 Discord 用户。",
     "discord_api_error": "获取 Discord 用户时发生错误。",
-    "discord_account_already_linked": "此 Discord 帐号已绑定到另一位客户！"
+    "discord_account_already_linked": "此 Discord 帐号已绑定到另一位客户！",
+    "discord_role_id_invalid": "",
+    "discord_guild_id_invalid": "",
+    "discord_role_mapping_already_exists": "",
+    "discord_account_not_connected": "",
+    "discord_token_invalid": "",
+    "discord_insufficient_permissions": "",
+    "discord_bot_not_in_guild": "",
+    "discord_guild_or_role_not_found": ""
   },
   "general": {
     "select_source": "选择来源",
@@ -388,7 +396,8 @@
     "upcoming": "即将到来",
     "original_parameters": "原始参数",
     "reconnect": "重新连接",
-    "token_expired": "令牌已过期"
+    "token_expired": "令牌已过期",
+    "roles": ""
   },
   "auth": {
     "oauth": {
@@ -608,7 +617,26 @@
       "product_deleted": "产品已删除",
       "product_created": "产品已创建",
       "no_licenses_assigned": "未分配许可证",
-      "editing_products_of_license": "您正在编辑许可证 <strong>{license}</strong> 的产品。"
+      "editing_products_of_license": "您正在编辑许可证 <strong>{license}</strong> 的产品。",
+      "discord_integration": "",
+      "discord_server": "",
+      "discord_role": "",
+      "select_discord_server": "",
+      "select_discord_role": "",
+      "select_server_first": "",
+      "search_servers": "",
+      "search_roles": "",
+      "no_servers_found": "",
+      "no_roles_found": "",
+      "discord_not_connected": "",
+      "discord_token_expired": "",
+      "discord_reconnect_description": "",
+      "reconnect_discord": "",
+      "discord_connection_error": "",
+      "discord_connection_error_description": "",
+      "no_discord_mappings": "",
+      "add_another_discord_mapping": "",
+      "add_discord_role_mapping": ""
     },
     "licenses": {
       "no_ip_addresses": "无IP地址",
@@ -685,7 +713,6 @@
       "delete_customer_confirm_title": "删除客户",
       "delete_customer_confirm_description": "您即将删除客户 <strong>{name}</strong>！这将<strong>永久删除</strong>此客户。此操作无法撤销。",
       "editing_customers_of_license": "您正在编辑许可证 <strong>{license}</strong> 的客户。",
-      "connections": "连接",
       "discord_id": "Discord账号",
       "address_details": "地址详情",
       "address_added": "地址已添加",

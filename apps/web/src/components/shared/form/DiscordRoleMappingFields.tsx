@@ -139,8 +139,8 @@ export default function DiscordRoleMappingFields({
     });
   };
 
-  // Show error state if Discord health check failed
-  if (discordHealthError) {
+  // Show error state if Discord health check or guilds loading failed
+  if (discordHealthError || guildsError) {
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
@@ -162,29 +162,10 @@ export default function DiscordRoleMappingFields({
     discordHealth?.connected && discordHealth?.tokenValid,
   );
 
-  // Show error state if guilds loading failed
-  if (guildsError) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              {t('dashboard.products.discord_connection_error')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t('dashboard.products.discord_connection_error_description')}
-            </p>
-          </div>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <>
       {/* Show connection warning if Discord is not properly connected and we have roles selected */}
-      {discordHealth && !isDiscordConnectionValid && fields.length > 0 && (
+      {discordHealth && !isDiscordConnectionValid && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -195,14 +176,17 @@ export default function DiscordRoleMappingFields({
                   : t('dashboard.products.discord_token_expired')}
               </p>
               <p className="text-sm text-muted-foreground">
-                {t('dashboard.products.discord_reconnect_description')}
+                {t.rich('dashboard.products.discord_reconnect_description', {
+                  link: (child) => (
+                    <Link
+                      className="font-medium text-primary underline hover:text-primary/80"
+                      href="/dashboard/profile"
+                    >
+                      {child}
+                    </Link>
+                  ),
+                })}
               </p>
-              <Link
-                className="font-medium text-primary underline hover:text-primary/80"
-                href="/dashboard/profile"
-              >
-                {t('dashboard.products.reconnect_discord')}
-              </Link>
             </div>
           </AlertDescription>
         </Alert>

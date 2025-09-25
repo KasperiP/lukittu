@@ -347,7 +347,6 @@ export async function POST(
         return NextResponse.json(
           {
             message: t('validation.discord_account_not_connected'),
-            field: 'discordRoleMapping',
           },
           { status: HttpStatus.BAD_REQUEST },
         );

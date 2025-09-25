@@ -168,7 +168,15 @@
     "invalid_discord_id": "Virheellinen Discord-tunnus.",
     "discord_user_not_found": "Discord-käyttäjää ei löytynyt.",
     "discord_api_error": "Virhe haettaessa Discord-käyttäjää.",
-    "discord_account_already_linked": "Tämä Discord-tili on jo yhdistetty toiseen asiakkaaseen!"
+    "discord_account_already_linked": "Tämä Discord-tili on jo yhdistetty toiseen asiakkaaseen!",
+    "discord_role_id_invalid": "",
+    "discord_guild_id_invalid": "",
+    "discord_role_mapping_already_exists": "",
+    "discord_account_not_connected": "",
+    "discord_token_invalid": "",
+    "discord_insufficient_permissions": "",
+    "discord_bot_not_in_guild": "",
+    "discord_guild_or_role_not_found": ""
   },
   "general": {
     "select_key": "Valitse avain",
@@ -388,7 +396,8 @@
     "upcoming": "Tuleva",
     "original_parameters": "Alkuperäiset parametrit",
     "reconnect": "Yhdistä uudelleen",
-    "token_expired": "Istunto vanhentunut"
+    "token_expired": "Istunto vanhentunut",
+    "roles": ""
   },
   "auth": {
     "oauth": {
@@ -608,7 +617,26 @@
       "product_deleted": "Tuote poistettu",
       "product_created": "Tuote luotu",
       "no_licenses_assigned": "Ei lisensoituja tuotteita",
-      "editing_products_of_license": "Muokkaat lisenssin <strong>{license}</strong> tuotteita."
+      "editing_products_of_license": "Muokkaat lisenssin <strong>{license}</strong> tuotteita.",
+      "discord_integration": "",
+      "discord_server": "",
+      "discord_role": "",
+      "select_discord_server": "",
+      "select_discord_role": "",
+      "select_server_first": "",
+      "search_servers": "",
+      "search_roles": "",
+      "no_servers_found": "",
+      "no_roles_found": "",
+      "discord_not_connected": "",
+      "discord_token_expired": "",
+      "discord_reconnect_description": "",
+      "reconnect_discord": "",
+      "discord_connection_error": "",
+      "discord_connection_error_description": "",
+      "no_discord_mappings": "",
+      "add_another_discord_mapping": "",
+      "add_discord_role_mapping": ""
     },
     "licenses": {
       "no_ip_addresses": "Ei IP-osoitteita",
@@ -685,7 +713,6 @@
       "delete_customer_confirm_title": "Poista asiakas",
       "delete_customer_confirm_description": "Olet poistamassa asiakasta <strong>{name}</strong>! Tämä poistaa asiakkaan <strong>lopullisesti</strong>. Tätä toimintoa ei voi peruuttaa.",
       "editing_customers_of_license": "Olet muokkaamassa lisenssin <strong>{license}</strong> asiakkaita.",
-      "connections": "Yhteydet",
       "discord_id": "Discord ID",
       "address_details": "Osoitetiedot",
       "address_added": "Osoite lisätty",
