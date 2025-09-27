@@ -1,4 +1,4 @@
-import { logger, Prisma, prisma } from '@lukittu/shared';
+import { logger, Prisma, prisma, subscribeDiscordSync } from '@lukittu/shared';
 import {
   ActivityType,
   Client,
@@ -12,7 +12,10 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 import { initializeDiscordClient } from './services/discord-client';
-import { startScheduledRoleSync } from './services/discord-role-service';
+import {
+  startScheduledRoleSync,
+  syncUserById,
+} from './services/discord-role-service';
 import { Command, LinkedDiscordAccount } from './structures/command';
 
 const client = new Client({
@@ -63,7 +66,6 @@ async function loadEvents() {
   } catch {
     // Events directory doesn't exist or is inaccessible
     logger.info('Events directory not found', {
-      action: 'skipping event loading',
       path: eventsPath,
     });
   }
@@ -118,7 +120,6 @@ async function loadCommands() {
     }
   } catch {
     logger.info('Commands directory not found', {
-      action: 'skipping command loading',
       path: commandsPath,
     });
   }
@@ -216,7 +217,6 @@ async function checkLinkedAccountAndPermission(
 
           logger.info('Updated user team selection', {
             userId,
-            action: 'cleared selectedTeamId',
             reason: 'user no longer member of selected team',
           });
 
@@ -392,6 +392,33 @@ async function updateBotStatus() {
   }
 }
 
+async function initializeDiscordSyncSubscriber() {
+  try {
+    await subscribeDiscordSync(async (message) => {
+      logger.info('Received Discord sync notification', {
+        discordId: message.discordId,
+        teamId: message.teamId,
+      });
+
+      try {
+        await syncUserById(message.discordId, message.teamId);
+      } catch (error) {
+        logger.error('Failed to sync Discord user roles', {
+          discordId: message.discordId,
+          teamId: message.teamId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+    logger.info('Discord sync subscriber initialized successfully');
+  } catch (error) {
+    logger.error('Failed to initialize Discord sync subscriber', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
 client.once(Events.ClientReady, () => {
   logger.info('Discord bot ready', {
     clientId: client.user?.id,
@@ -411,6 +438,9 @@ client.once(Events.ClientReady, () => {
   });
 
   updateBotStatus();
+
+  // Initialize Discord sync subscriber
+  initializeDiscordSyncSubscriber();
 
   // Update status every 30 minutes (1800000 ms)
   setInterval(

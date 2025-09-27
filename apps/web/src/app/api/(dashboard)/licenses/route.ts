@@ -16,6 +16,7 @@ import {
   createLicensePayload,
   createWebhookEvents,
   Customer,
+  CustomerDiscordAccount,
   decryptString,
   encryptString,
   generateHMAC,
@@ -29,11 +30,12 @@ import {
   prisma,
   Prisma,
   Product,
+  publishDiscordSync,
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type ILicensesGetSuccessResponse = {
   licenses: (Omit<License, 'licenseKeyLookup'> & {
@@ -438,7 +440,9 @@ export type ILicensesCreateResponse =
 export type ILicensesCreateSuccessResponse = {
   license: Omit<License, 'licenseKeyLookup'> & {
     products: Product[];
-    customers: Customer[];
+    customers: (Customer & {
+      discordAccount: CustomerDiscordAccount | null;
+    })[];
     metadata: Metadata[];
   };
 };
@@ -652,7 +656,9 @@ export async function POST(
         },
         include: {
           products: true,
-          customers: true,
+          customers: {
+            include: { discordAccount: true },
+          },
           metadata: true,
         },
       });
@@ -689,7 +695,20 @@ export async function POST(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+
+      const promises = response.license.customers.map(async (customer) => {
+        if (!customer.discordAccount) return;
+
+        await publishDiscordSync({
+          discordId: customer.discordAccount.discordId,
+          teamId: team.id,
+        });
+      });
+
+      await Promise.all(promises);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

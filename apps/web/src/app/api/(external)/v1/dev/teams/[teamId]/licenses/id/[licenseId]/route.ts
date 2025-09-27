@@ -22,13 +22,14 @@ import {
   LicenseExpirationType,
   logger,
   prisma,
+  publishDiscordSync,
   regex,
   updateLicensePayload,
   WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   _request: NextRequest,
@@ -609,13 +610,17 @@ export async function PUT(
           },
         },
         include: {
-          customers: true,
+          customers: {
+            include: {
+              discordAccount: true,
+            },
+          },
           products: true,
           metadata: true,
         },
       });
 
-      const response: IExternalDevResponse = {
+      const response = {
         data: {
           ...updatedLicense,
           licenseKey,
@@ -650,7 +655,20 @@ export async function PUT(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+
+      const promises = response.data.customers.map(async (customer) => {
+        if (!customer.discordAccount) return;
+
+        await publishDiscordSync({
+          discordId: customer.discordAccount.discordId,
+          teamId: team.id,
+        });
+      });
+
+      await Promise.all(promises);
+    });
 
     const responseTime = Date.now() - requestTime.getTime();
 

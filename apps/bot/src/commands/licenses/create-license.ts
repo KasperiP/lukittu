@@ -13,6 +13,7 @@ import {
   logger,
   Prisma,
   prisma,
+  publishDiscordSync,
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
@@ -1985,7 +1986,11 @@ async function finalizeLicenseCreation(
         },
         include: {
           products: true,
-          customers: true,
+          customers: {
+            include: {
+              discordAccount: true,
+            },
+          },
           metadata: true,
         },
       });
@@ -2023,6 +2028,17 @@ async function finalizeLicenseCreation(
     });
 
     void attemptWebhookDelivery(webhookEventIds);
+
+    const promises = license.customers.map(async (customer) => {
+      if (!customer.discordAccount) return;
+
+      await publishDiscordSync({
+        discordId: customer.discordAccount.discordId,
+        teamId: state.teamId,
+      });
+    });
+
+    await Promise.all(promises);
 
     const successEmbed = new EmbedBuilder()
       .setTitle('License Created Successfully')

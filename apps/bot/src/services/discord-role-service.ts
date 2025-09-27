@@ -1,7 +1,5 @@
 import {
   Customer,
-  CustomerDiscordAccount,
-  DiscordIntegration,
   getLicenseStatus,
   License,
   LicenseStatus,
@@ -10,7 +8,6 @@ import {
   Product,
   ProductDiscordRole,
   redisClient,
-  Team,
 } from '@lukittu/shared';
 import { GuildMember } from 'discord.js';
 import { getDiscordClient, isClientReady } from './discord-client';
@@ -29,22 +26,181 @@ type CustomerWithLicenses = Customer & {
   })[];
 };
 
-type CustomerDiscordAccountWithData = CustomerDiscordAccount & {
-  customer: CustomerWithLicenses;
-  team: Team & {
-    discordIntegration: DiscordIntegration | null;
-    productDiscordRoles?: ProductDiscordRole[];
-  };
-};
-
-type ProductDiscordRoleWithProduct = ProductDiscordRole & {
-  product: Product;
-  team: Team & {
-    discordIntegration: DiscordIntegration | null;
-  };
-};
-
 const RATE_LIMIT_WINDOW = 60; // 1 minute in seconds (for Redis TTL)
+
+/**
+ * Sync roles for a specific Discord user in a specific team
+ */
+export async function syncUserById(
+  discordId: string,
+  teamId: string,
+): Promise<void> {
+  const startTime = Date.now();
+
+  try {
+    logger.info('Starting Discord role sync for user in team', {
+      discordId,
+      teamId,
+    });
+
+    const client = getDiscordClient();
+    if (!isClientReady()) {
+      logger.error('Cannot sync user roles', {
+        reason: 'Discord client not ready',
+        discordId,
+        teamId,
+      });
+      return;
+    }
+
+    // Find the specific customer Discord account for this user and team
+    const customerDiscordAccount =
+      await prisma.customerDiscordAccount.findUnique({
+        where: {
+          teamId_discordId: {
+            teamId,
+            discordId,
+          },
+          team: {
+            deletedAt: null,
+            discordIntegration: {
+              active: true,
+            },
+          },
+        },
+        include: {
+          customer: {
+            include: {
+              licenses: {
+                include: {
+                  products: true,
+                },
+              },
+            },
+          },
+          team: {
+            include: {
+              discordIntegration: true,
+              productDiscordRoles: {
+                include: {
+                  product: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+    if (!customerDiscordAccount) {
+      logger.info('No customer account found for Discord user in team', {
+        discordId,
+        teamId,
+      });
+      return;
+    }
+
+    logger.info('Found customer account for Discord user in team', {
+      discordId,
+      teamId,
+      customerId: customerDiscordAccount.customerId,
+    });
+
+    // Group role mappings by guild for this specific team
+    const guildRoleMappings = new Map<
+      string,
+      (ProductDiscordRole & {
+        product: Product;
+      })[]
+    >();
+
+    for (const roleMapping of customerDiscordAccount.team.productDiscordRoles ||
+      []) {
+      if (!guildRoleMappings.has(roleMapping.guildId)) {
+        guildRoleMappings.set(roleMapping.guildId, []);
+      }
+      const guildMappings = guildRoleMappings.get(roleMapping.guildId);
+      if (guildMappings) {
+        guildMappings.push(roleMapping);
+      }
+    }
+
+    // Process each guild for this team
+    for (const [guildId, roleMappings] of guildRoleMappings) {
+      try {
+        const guild = await client.guilds.fetch(guildId).catch(() => null);
+        if (!guild) {
+          logger.warn('Could not fetch guild for role sync', {
+            guildId,
+            discordId,
+            teamId,
+          });
+          continue;
+        }
+
+        const member = await guild.members.fetch(discordId).catch(() => null);
+        if (!member) {
+          logger.info('User not found in guild', {
+            guildId,
+            discordId,
+            teamId,
+          });
+          continue;
+        }
+
+        // Determine role assignments for this guild
+        const roleAssignments: RoleAssignmentData[] = roleMappings.map(
+          (mapping) => {
+            const hasActiveLicense = checkActiveLicenseForProduct(
+              customerDiscordAccount.customer,
+              mapping.productId,
+            );
+
+            return {
+              roleId: mapping.roleId,
+              productId: mapping.productId,
+              productName: mapping.product.name,
+              teamId: mapping.teamId,
+              hasActiveLicense,
+            };
+          },
+        );
+
+        await executeRoleChanges(member, roleAssignments);
+
+        logger.info('Role sync completed for user in guild', {
+          discordId,
+          teamId,
+          guildId,
+          roleAssignments: roleAssignments.length,
+        });
+      } catch (error) {
+        logger.error('Error syncing roles for user in guild', {
+          discordId,
+          teamId,
+          guildId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    const processingTime = Date.now() - startTime;
+    logger.info('Discord role sync completed for user in team', {
+      discordId,
+      teamId,
+      processingTimeMs: processingTime,
+      guildsProcessed: guildRoleMappings.size,
+    });
+  } catch (error) {
+    const processingTime = Date.now() - startTime;
+    logger.error('Failed to sync roles for Discord user in team', {
+      discordId,
+      teamId,
+      processingTimeMs: processingTime,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+}
 
 /**
  * Start the scheduled role sync task
@@ -78,7 +234,6 @@ export async function processUserJoin(member: GuildMember): Promise<void> {
   if (!(await checkRateLimit(userId))) {
     logger.warn('Rate limit exceeded for user', {
       userId,
-      action: 'skipping role assignment',
       rateLimitWindow: `${RATE_LIMIT_WINDOW}s`,
     });
     return;
@@ -193,7 +348,6 @@ async function scheduledRoleSync(): Promise<void> {
           if (!guild) {
             logger.warn('Could not fetch guild', {
               guildId,
-              action: 'skipping',
             });
             continue;
           }
@@ -281,145 +435,72 @@ async function syncUserRolesInGuild(member: GuildMember): Promise<void> {
   const userId = member.user.id;
   const guildId = member.guild.id;
 
-  // Get all ProductDiscordRole mappings for this guild
-  const rolesMappings = await prisma.productDiscordRole.findMany({
-    where: {
-      guildId: guildId,
-      team: {
+  try {
+    // Get all teams that have role mappings in this guild
+    const teamsWithRoleMappings = await prisma.team.findMany({
+      where: {
         deletedAt: null,
-      },
-    },
-    include: {
-      product: true,
-      team: {
-        include: {
-          discordIntegration: true,
+        discordIntegration: {
+          active: true,
         },
-      },
-    },
-  });
-
-  if (rolesMappings.length === 0) {
-    logger.info('No role mappings found for guild', {
-      guildId,
-    });
-    return;
-  }
-
-  // Check if any of the teams have Discord integration enabled
-  const activeRoleMappings = rolesMappings.filter(
-    (mapping) => mapping.team.discordIntegration?.active === true,
-  );
-
-  if (activeRoleMappings.length === 0) {
-    logger.info('No active Discord integrations found for guild', {
-      guildId,
-    });
-    return;
-  }
-
-  // Find ALL customer Discord accounts for this user across relevant teams
-  const teamIds = activeRoleMappings.map((mapping) => mapping.teamId);
-  const customerDiscordAccounts = await prisma.customerDiscordAccount.findMany({
-    where: {
-      discordId: userId,
-      teamId: {
-        in: teamIds,
-      },
-      team: {
-        deletedAt: null,
-      },
-    },
-    include: {
-      customer: {
-        include: {
-          licenses: {
-            include: {
-              products: true,
-            },
+        productDiscordRoles: {
+          some: {
+            guildId,
+          },
+        },
+        customerDiscordAccount: {
+          some: {
+            discordId: userId,
           },
         },
       },
-      team: {
-        include: {
-          discordIntegration: true,
-        },
+      select: {
+        id: true,
+        name: true,
       },
-    },
-  });
-
-  if (customerDiscordAccounts.length === 0) {
-    logger.info('No customer Discord accounts found for user', {
-      userId,
-      context: 'relevant teams',
     });
-    return;
-  }
 
-  logger.info('Found customer accounts for user', {
-    userId,
-    accountCount: customerDiscordAccounts.length,
-    teamIds: customerDiscordAccounts.map((acc) => acc.teamId),
-  });
-
-  // Process each team separately to maintain team boundaries
-  const allRoleAssignments: RoleAssignmentData[] = [];
-
-  for (const customerAccount of customerDiscordAccounts) {
-    // Get only the role mappings for THIS specific team
-    const teamRoleMappings = activeRoleMappings.filter(
-      (mapping) => mapping.teamId === customerAccount.teamId,
-    );
-
-    if (teamRoleMappings.length === 0) {
-      continue;
+    if (teamsWithRoleMappings.length === 0) {
+      logger.info('No teams with role mappings found for user in guild', {
+        userId,
+        guildId,
+      });
+      return;
     }
 
-    logger.info('Processing role mappings for team', {
-      teamId: customerAccount.teamId,
-      roleMappingCount: teamRoleMappings.length,
+    logger.info('Found teams with role mappings for user in guild', {
+      userId,
+      guildId,
+      teamCount: teamsWithRoleMappings.length,
+      teamIds: teamsWithRoleMappings.map((t) => t.id),
     });
 
-    // Determine role assignments for this specific team only
-    const teamRoleAssignments = await determineRoleAssignments(
-      customerAccount,
-      teamRoleMappings,
-    );
-
-    // Add team assignments to the overall list
-    allRoleAssignments.push(...teamRoleAssignments);
-  }
-
-  // Execute all role assignments/removals
-  await executeRoleChanges(member, allRoleAssignments);
-}
-
-/**
- * Determine which roles should be assigned or removed
- */
-async function determineRoleAssignments(
-  customerDiscordAccount: CustomerDiscordAccountWithData,
-  activeRoleMappings: ProductDiscordRoleWithProduct[],
-): Promise<RoleAssignmentData[]> {
-  const roleAssignments: RoleAssignmentData[] = [];
-
-  for (const roleMapping of activeRoleMappings) {
-    // Check if customer has active license for this product
-    const hasActiveLicense = checkActiveLicenseForProduct(
-      customerDiscordAccount.customer,
-      roleMapping.productId,
-    );
-
-    roleAssignments.push({
-      roleId: roleMapping.roleId,
-      productId: roleMapping.productId,
-      productName: roleMapping.product.name,
-      teamId: roleMapping.teamId,
-      hasActiveLicense,
+    // Sync roles for each team individually using the optimized function
+    for (const team of teamsWithRoleMappings) {
+      try {
+        await syncUserById(userId, team.id);
+      } catch (error) {
+        logger.error(
+          'Failed to sync roles for user in team during guild join',
+          {
+            userId,
+            guildId,
+            teamId: team.id,
+            teamName: team.name,
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
+        // Continue with other teams even if one fails
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to sync user roles in guild', {
+      userId,
+      guildId,
+      error: error instanceof Error ? error.message : String(error),
     });
+    throw error;
   }
-
-  return roleAssignments;
 }
 
 /**
