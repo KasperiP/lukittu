@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
-    "build": "tsc",
-    "start": "node --env-file=.env dist/index.js",
+    "build": "tsc && pnpm sentry:sourcemaps",
+    "start": "node --env-file=.env --import ./dist/instrument.js dist/index.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org lukittu --project lukittu-bot ./dist && sentry-cli sourcemaps upload --org lukittu --project lukittu-bot ./dist"
   },
   "dependencies": {
     "@lukittu/shared": "workspace:*",
+    "@sentry/cli": "^2.55.0",
+    "@sentry/node": "^10.15.0",
+    "@sentry/profiling-node": "^10.15.0",
     "discord.js": "^14.19.1"
   },
   "devDependencies": {
