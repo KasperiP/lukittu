@@ -64,7 +64,7 @@
     "nodemailer": "^6.10.1",
     "nuqs": "^2.6.0",
     "react": "19.1.1",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "9.11.0",
     "react-dom": "19.1.1",
     "react-hook-form": "^7.63.0",
     "react-leaflet": "^4.2.1",
