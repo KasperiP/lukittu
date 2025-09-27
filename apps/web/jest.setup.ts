@@ -22,6 +22,11 @@ jest.mock('@lukittu/shared', () => ({
   createCustomerPayload: jest.fn(),
   updateCustomerPayload: jest.fn(),
   attemptWebhookDelivery: jest.fn(),
+  redisClient: {
+    get: jest.fn(),
+    set: jest.fn(),
+    ttl: jest.fn(),
+  },
 }));
 
 beforeEach(() => {

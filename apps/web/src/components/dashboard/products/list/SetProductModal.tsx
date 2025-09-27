@@ -1,7 +1,14 @@
 'use client';
 import { IProductsCreateResponse } from '@/app/api/(dashboard)/products/route';
+import DiscordRoleMappingFields from '@/components/shared/form/DiscordRoleMappingFields';
 import MetadataFields from '@/components/shared/form/MetadataFields';
+import { DiscordIcon } from '@/components/shared/Icons';
 import LoadingButton from '@/components/shared/LoadingButton';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Form,
   FormControl,
@@ -19,12 +26,14 @@ import {
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
 } from '@/components/ui/responsive-dialog';
+import { Separator } from '@/components/ui/separator';
 import {
   SetProductSchema,
   setProductSchema,
 } from '@/lib/validation/products/set-product-schema';
 import { ProductModalContext } from '@/providers/ProductModalProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronDown } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -35,6 +44,7 @@ export default function SetProductModal() {
   const t = useTranslations();
   const ctx = useContext(ProductModalContext);
   const [loading, setLoading] = useState(false);
+  const [discordMappingOpen, setDiscordMappingOpen] = useState(false);
   const { mutate } = useSWRConfig();
 
   const form = useForm<SetProductSchema>({
@@ -43,6 +53,7 @@ export default function SetProductModal() {
       name: '',
       url: '',
       metadata: [],
+      discordRoleMapping: [],
     },
   });
 
@@ -66,6 +77,16 @@ export default function SetProductModal() {
           locked: m.locked,
         })),
       );
+
+      const discordMappings = ctx.productToEdit.discordRoles.map((role) => ({
+        discordGuildId: role.guildId,
+        discordRoleId: role.roleId,
+      }));
+
+      setValue('discordRoleMapping', discordMappings);
+
+      // Expand Discord section if there are existing mappings
+      setDiscordMappingOpen(discordMappings.length > 0);
     }
   }, [ctx.productToEdit, setValue]);
 
@@ -135,6 +156,7 @@ export default function SetProductModal() {
     reset();
     if (!open) {
       ctx.setProductToEdit(null);
+      setDiscordMappingOpen(false);
     }
   };
 
@@ -191,6 +213,53 @@ export default function SetProductModal() {
                 )}
               />
               <MetadataFields form={form} />
+
+              <Separator />
+
+              <Collapsible
+                open={discordMappingOpen}
+                onOpenChange={setDiscordMappingOpen}
+              >
+                <CollapsibleTrigger className="group flex w-full cursor-pointer items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/50 transition-colors group-hover:bg-muted">
+                      <DiscordIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-semibold">
+                          {t('dashboard.products.discord_integration')}
+                        </span>
+                        {(() => {
+                          const mappings = form.watch('discordRoleMapping');
+                          return (
+                            Boolean(mappings?.length) && (
+                              <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-green-500" />
+                                <span className="text-sm font-medium text-muted-foreground">
+                                  {mappings?.length} {t('general.roles')}
+                                </span>
+                              </div>
+                            )
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronDown
+                    className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${
+                      discordMappingOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4 pt-4">
+                  <DiscordRoleMappingFields
+                    existingDiscordRoles={ctx.productToEdit?.discordRoles ?? []}
+                    form={form}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+
               <button className="hidden" type="submit" />
             </form>
           </Form>

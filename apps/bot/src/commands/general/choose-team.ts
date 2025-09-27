@@ -33,7 +33,10 @@ export default Command({
         })),
       );
     } catch (error) {
-      logger.error('Error in choose-team autocomplete:', error);
+      logger.error('Choose team autocomplete failed', {
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.respond([]);
     }
   },
@@ -87,7 +90,10 @@ export default Command({
         content: `You have selected the team: ${team.name}`,
       });
     } catch (error) {
-      logger.error('Error in choose-team command:', error);
+      logger.error('Choose team command failed', {
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.editReply({
         content: 'An error occurred while selecting the team.',
       });

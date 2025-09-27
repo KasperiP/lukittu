@@ -168,7 +168,18 @@
     "invalid_discord_id": "Nieprawidłowe ID Discord.",
     "discord_user_not_found": "Nie znaleziono użytkownika Discord.",
     "discord_api_error": "Wystąpił błąd podczas pobierania użytkownika Discord.",
-    "discord_account_already_linked": "To konto Discord jest już połączone z innym klientem!"
+    "discord_account_already_linked": "To konto Discord jest już połączone z innym klientem!",
+    "discord_role_id_invalid": "Nieprawidłowy identyfikator roli Discord!",
+    "discord_guild_id_invalid": "Nieprawidłowy identyfikator serwera Discord!",
+    "discord_role_duplicate": "Każda rola Discord może być wybrana tylko raz!",
+    "discord_role_max_limit": "Maksymalnie {max} ról Discord dozwolonych na produkt!",
+    "metadata_max_limit": "Maksymalnie {max} wpisów metadanych dozwolonych!",
+    "discord_role_mapping_already_exists": "Mapowanie roli Discord już istnieje!",
+    "discord_account_not_connected": "Konto Discord nie jest połączone!",
+    "discord_token_invalid": "Token Discord jest nieprawidłowy lub wygasł!",
+    "discord_insufficient_permissions": "Niewystarczające uprawnienia Discord do zarządzania tą rolą!",
+    "discord_bot_not_in_guild": "Bot nie jest członkiem określonego serwera Discord!",
+    "discord_guild_or_role_not_found": "Nie znaleziono serwera ani roli Discord!"
   },
   "general": {
     "add": "Dodaj",
@@ -388,7 +399,8 @@
     "upcoming": "Nadchodzący",
     "original_parameters": "Oryginalne parametry",
     "reconnect": "Połącz ponownie",
-    "token_expired": "Token wygasł"
+    "token_expired": "Token wygasł",
+    "roles": "Role"
   },
   "auth": {
     "oauth": {
@@ -608,7 +620,26 @@
       "product_deleted": "Produkt usunięty",
       "product_created": "Produkt utworzony",
       "no_licenses_assigned": "Brak przypisanych licencji",
-      "editing_products_of_license": "Edytujesz produkty licencji <strong>{license}</strong>."
+      "editing_products_of_license": "Edytujesz produkty licencji <strong>{license}</strong>.",
+      "discord_integration": "Integracja z Discordem",
+      "discord_server": "Serwer Discord",
+      "discord_role": "Rola Discord",
+      "select_discord_server": "Wybierz serwer Discord",
+      "select_discord_role": "Wybierz rolę Discord",
+      "select_server_first": "Najpierw wybierz serwer",
+      "search_servers": "Szukaj serwerów...",
+      "search_roles": "Szukaj ról...",
+      "no_servers_found": "Nie znaleziono serwerów",
+      "no_roles_found": "Nie znaleziono ról",
+      "discord_not_connected": "Konto Discord nie jest połączone",
+      "discord_token_expired": "Połączenie z Discordem wygasło",
+      "discord_reconnect_description": "Proszę <link>połącz ponownie</link> swoje konto Discord w ustawieniach profilu.",
+      "reconnect_discord": "Połącz ponownie Discord",
+      "discord_connection_error": "Nie udało się połączyć z Discordem",
+      "discord_connection_error_description": "Sprawdź swoje połączenie z Discordem i spróbuj ponownie.",
+      "no_discord_mappings": "Brak przypisanych ról",
+      "add_another_discord_mapping": "Dodaj kolejne przypisanie",
+      "add_discord_role_mapping": "Dodaj przypisanie roli Discord"
     },
     "licenses": {
       "no_ip_addresses": "Brak adresów IP",
@@ -685,7 +716,6 @@
       "delete_customer_confirm_title": "Usuń klienta",
       "delete_customer_confirm_description": "Zamierzasz usunąć klienta <strong>{name}</strong>! Spowoduje to <strong>trwałe usunięcie</strong> tego klienta. Tej akcji nie można cofnąć.",
       "editing_customers_of_license": "Edytujesz klientów licencji <strong>{license}</strong>.",
-      "connections": "Połączenia",
       "discord_id": "ID Discord",
       "address_details": "Szczegóły adresu",
       "address_added": "Adres dodany",

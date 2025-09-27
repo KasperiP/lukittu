@@ -260,6 +260,14 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
 
+      - name: Configure environment
+        run: |
+          cat << EOF > apps/bot/.env
+          SENTRY_DSN_BOT=${{ secrets.SENTRY_DSN_BOT }}
+          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+          EOF
+
       - name: Login to Docker Registry
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v3

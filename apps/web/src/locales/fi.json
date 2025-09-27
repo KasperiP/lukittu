@@ -168,7 +168,18 @@
     "invalid_discord_id": "Virheellinen Discord-tunnus.",
     "discord_user_not_found": "Discord-käyttäjää ei löytynyt.",
     "discord_api_error": "Virhe haettaessa Discord-käyttäjää.",
-    "discord_account_already_linked": "Tämä Discord-tili on jo yhdistetty toiseen asiakkaaseen!"
+    "discord_account_already_linked": "Tämä Discord-tili on jo yhdistetty toiseen asiakkaaseen!",
+    "discord_role_id_invalid": "Discord-roolitunnus on virheellinen!",
+    "discord_guild_id_invalid": "Discord-palvelintunnus on virheellinen!",
+    "discord_role_duplicate": "Jokainen Discord-rooli voidaan valita vain kerran!",
+    "discord_role_max_limit": "Enintään {max} Discord-roolia sallittu per tuote!",
+    "metadata_max_limit": "Enintään {max} metadata-merkintää sallittu!",
+    "discord_role_mapping_already_exists": "Discord-roolikartoitus on jo olemassa!",
+    "discord_account_not_connected": "Discord-tiliä ei ole yhdistetty!",
+    "discord_token_invalid": "Discord-tunnus on virheellinen tai vanhentunut!",
+    "discord_insufficient_permissions": "Riittämättömät Discord-oikeudet tämän roolin hallintaan!",
+    "discord_bot_not_in_guild": "Botti ei ole määritetyn Discord-palvelimen jäsen!",
+    "discord_guild_or_role_not_found": "Discord-palvelinta tai roolia ei löytynyt!"
   },
   "general": {
     "select_key": "Valitse avain",
@@ -388,7 +399,8 @@
     "upcoming": "Tuleva",
     "original_parameters": "Alkuperäiset parametrit",
     "reconnect": "Yhdistä uudelleen",
-    "token_expired": "Istunto vanhentunut"
+    "token_expired": "Istunto vanhentunut",
+    "roles": "Roolit"
   },
   "auth": {
     "oauth": {
@@ -608,7 +620,26 @@
       "product_deleted": "Tuote poistettu",
       "product_created": "Tuote luotu",
       "no_licenses_assigned": "Ei lisensoituja tuotteita",
-      "editing_products_of_license": "Muokkaat lisenssin <strong>{license}</strong> tuotteita."
+      "editing_products_of_license": "Muokkaat lisenssin <strong>{license}</strong> tuotteita.",
+      "discord_integration": "Discord-integraatio",
+      "discord_server": "Discord-palvelin",
+      "discord_role": "Discord-rooli",
+      "select_discord_server": "Valitse Discord-palvelin",
+      "select_discord_role": "Valitse Discord-rooli",
+      "select_server_first": "Valitse ensin palvelin",
+      "search_servers": "Etsi palvelimia...",
+      "search_roles": "Etsi rooleja...",
+      "no_servers_found": "Palvelimia ei löytynyt",
+      "no_roles_found": "Roolia ei löytynyt",
+      "discord_not_connected": "Discord-tiliä ei ole yhdistetty",
+      "discord_token_expired": "Discord-yhteys on vanhentunut",
+      "discord_reconnect_description": "Ole hyvä ja <link>yhdistä</link> Discord-tilisi uudelleen profiiliasetuksissa.",
+      "reconnect_discord": "Yhdistä Discord uudelleen",
+      "discord_connection_error": "Discordiin yhdistäminen epäonnistui",
+      "discord_connection_error_description": "Tarkista Discord-yhteytesi ja yritä uudelleen.",
+      "no_discord_mappings": "Roolikytkentöjä ei vielä ole",
+      "add_another_discord_mapping": "Lisää toinen kytkentä",
+      "add_discord_role_mapping": "Lisää Discord-roolikytkentä"
     },
     "licenses": {
       "no_ip_addresses": "Ei IP-osoitteita",
@@ -685,7 +716,6 @@
       "delete_customer_confirm_title": "Poista asiakas",
       "delete_customer_confirm_description": "Olet poistamassa asiakasta <strong>{name}</strong>! Tämä poistaa asiakkaan <strong>lopullisesti</strong>. Tätä toimintoa ei voi peruuttaa.",
       "editing_customers_of_license": "Olet muokkaamassa lisenssin <strong>{license}</strong> asiakkaita.",
-      "connections": "Yhteydet",
       "discord_id": "Discord ID",
       "address_details": "Osoitetiedot",
       "address_added": "Osoite lisätty",

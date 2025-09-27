@@ -64,7 +64,7 @@ export default function ThirdPartyConnectionsCard() {
     const redirectUri = encodeURIComponent(
       process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
     );
-    const scopes = encodeURIComponent('identify guilds');
+    const scopes = encodeURIComponent('identify guilds guilds.members.read');
     const state = Math.random().toString(36).substring(2, 15);
 
     const expirationDate = new Date();

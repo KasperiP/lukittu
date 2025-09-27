@@ -507,7 +507,10 @@ export default Command({
             components: newActionRows,
           });
         } catch (error) {
-          logger.error('Error handling pagination:', error);
+          logger.error('Browse customers pagination failed', {
+            userId: i.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
           await i.editReply({
             content:
               'An error occurred while fetching customers. Please try again later.',
@@ -534,11 +537,18 @@ export default Command({
             components: [finalActionRow],
           });
         } catch (error) {
-          logger.error('Error removing buttons:', error);
+          logger.error('Failed to remove buttons', {
+            userId: interaction.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       });
     } catch (error) {
-      logger.error('Error in browse-customers command:', error);
+      logger.error('Browse customers command failed', {
+        userId: interaction.user.id,
+        teamId: discordAccount?.selectedTeam?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.editReply({
         content:
           'An error occurred while fetching customers. Please try again later.',

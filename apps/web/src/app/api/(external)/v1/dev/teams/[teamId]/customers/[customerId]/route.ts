@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, fetchDiscordUserById } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -452,7 +452,7 @@ export async function PUT(
 
       try {
         const discordApiStartTime = Date.now();
-        discordUser = await getDiscordUser(discordId);
+        discordUser = await fetchDiscordUserById(discordId);
         const discordApiTime = Date.now() - discordApiStartTime;
 
         if (!discordUser) {

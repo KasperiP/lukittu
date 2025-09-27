@@ -1,39 +1,32 @@
-import { fetchDiscordUserById } from '@/lib/providers/discord';
+import {
+  DiscordGuild,
+  fetchBotGuilds,
+  fetchDiscordUserGuilds,
+  findCommonGuildsWithPermissions,
+  getDiscordTokens,
+} from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { logger, prisma, regex } from '@lukittu/shared';
+import { logger } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-export interface IDiscordUserGetSuccessResponse {
-  user: {
-    id: string;
-    username: string;
-    discriminator: string;
-    avatar: string | null;
-    global_name: string | null;
-  };
-  existingCustomer?: {
-    id: string;
-    fullName: string | null;
-    username: string | null;
-    email: string | null;
-  };
+export interface IDiscordGuildsGetSuccessResponse {
+  guilds: DiscordGuild[];
 }
 
-export type IDiscordUserGetResponse =
-  | IDiscordUserGetSuccessResponse
+export type IDiscordGuildsGetResponse =
+  | IDiscordGuildsGetSuccessResponse
   | ErrorResponse;
 
 export async function GET(
-  request: NextRequest,
-): Promise<NextResponse<IDiscordUserGetResponse>> {
+  _request: NextRequest,
+): Promise<NextResponse<IDiscordGuildsGetResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });
 
   try {
-    const searchParams = request.nextUrl.searchParams;
     const selectedTeam = await getSelectedTeam();
 
     if (!selectedTeam) {
@@ -45,17 +38,6 @@ export async function GET(
       );
     }
 
-    const discordId = searchParams.get('discordId');
-
-    if (!discordId || !regex.discordId.test(discordId)) {
-      return NextResponse.json(
-        {
-          message: t('validation.invalid_discord_id'),
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
-
     const session = await getSession({
       user: {
         include: {
@@ -63,6 +45,11 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
+            },
+          },
+          discordAccount: {
+            omit: {
+              refreshToken: false,
             },
           },
         },
@@ -87,50 +74,63 @@ export async function GET(
       );
     }
 
-    // Check if Discord account is already linked to another customer in this team
-    const existingDiscordAccount =
-      await prisma.customerDiscordAccount.findUnique({
-        where: {
-          teamId_discordId: {
-            teamId: selectedTeam,
-            discordId,
-          },
+    if (!session.user.discordAccount) {
+      return NextResponse.json(
+        {
+          message: t('validation.no_discord_account'),
         },
-        include: {
-          customer: {
-            select: {
-              id: true,
-              fullName: true,
-              username: true,
-              email: true,
-            },
-          },
-        },
-      });
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
 
-    // Fetch Discord user information
+    if (!session.user.discordAccount.refreshToken) {
+      return NextResponse.json(
+        {
+          message: t('validation.discord_api_error'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
     try {
-      const user = await fetchDiscordUserById(discordId);
+      const tokenResult = await getDiscordTokens(
+        session.user.discordAccount.refreshToken,
+        session.user.id,
+      );
 
-      if (!user) {
+      if (!tokenResult) {
         return NextResponse.json(
           {
-            message: t('validation.discord_user_not_found'),
+            message: t('validation.discord_api_error'),
           },
-          { status: HttpStatus.NOT_FOUND },
+          { status: HttpStatus.BAD_REQUEST },
         );
       }
 
+      // Fetch user's guilds and bot's guilds concurrently
+      const [userGuilds, botGuilds] = await Promise.all([
+        fetchDiscordUserGuilds(
+          tokenResult.accessToken,
+          session.user.discordAccount.discordId,
+        ),
+        fetchBotGuilds(),
+      ]);
+
+      // Find common guilds where both user and bot have manage roles permissions
+      const commonGuilds = findCommonGuildsWithPermissions(
+        userGuilds,
+        botGuilds,
+      );
+
       return NextResponse.json(
         {
-          user,
-          existingCustomer: existingDiscordAccount?.customer,
+          guilds: commonGuilds,
         },
         { status: HttpStatus.OK },
       );
     } catch (error) {
-      logger.warn('Failed to fetch Discord user data for user', {
-        discordId,
+      logger.warn('Failed to fetch Discord guilds data for user', {
+        userId: session.user.id,
         error: error instanceof Error ? error.message : String(error),
       });
 
@@ -142,7 +142,7 @@ export async function GET(
       );
     }
   } catch (error) {
-    logger.error("Error occurred in 'customers/discord-search' route", error);
+    logger.error("Error occurred in 'discord/guilds' route", error);
     return NextResponse.json(
       {
         message: t('general.server_error'),

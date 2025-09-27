@@ -438,7 +438,10 @@ export default Command({
         );
       }
     } catch (error) {
-      logger.error('Error in browse-licenses autocomplete:', error);
+      logger.error('Browse licenses autocomplete failed', {
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.respond([]);
     }
   },
@@ -630,7 +633,10 @@ export default Command({
             components: newActionRows,
           });
         } catch (error) {
-          logger.error('Error handling pagination:', error);
+          logger.error('Browse licenses pagination failed', {
+            userId: i.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
           await i.editReply({
             content:
               'An error occurred while fetching licenses. Please try again later.',
@@ -657,11 +663,18 @@ export default Command({
             components: [finalActionRow],
           });
         } catch (error) {
-          logger.error('Error removing buttons:', error);
+          logger.error('Failed to remove buttons', {
+            userId: interaction.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       });
     } catch (error) {
-      logger.error('Error in browse-licenses command:', error);
+      logger.error('Browse licenses command failed', {
+        userId: interaction.user.id,
+        teamId: discordAccount?.selectedTeam?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.editReply({
         content:
           'An error occurred while fetching licenses. Please try again later.',
