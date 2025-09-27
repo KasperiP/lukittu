@@ -11,10 +11,8 @@ import {
 } from 'discord.js';
 import * as fs from 'fs';
 import * as path from 'path';
-import {
-  setClient,
-  startScheduledRoleSync,
-} from './services/discord-role-service';
+import { initializeDiscordClient } from './services/discord-client';
+import { startScheduledRoleSync } from './services/discord-role-service';
 import { Command, LinkedDiscordAccount } from './structures/command';
 
 const client = new Client({
@@ -400,8 +398,8 @@ client.once(Events.ClientReady, () => {
     guildCount: client.guilds.cache.size,
   });
 
-  // Initialize the role service with the client
-  setClient(client);
+  // Initialize the Discord client for services
+  initializeDiscordClient(client);
 
   // Start the scheduled role sync task
   startScheduledRoleSync();

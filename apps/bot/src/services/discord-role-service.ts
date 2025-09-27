@@ -12,7 +12,8 @@ import {
   redisClient,
   Team,
 } from '@lukittu/shared';
-import { Client, GuildMember } from 'discord.js';
+import { GuildMember } from 'discord.js';
+import { getDiscordClient, isClientReady } from './discord-client';
 
 interface RoleAssignmentData {
   roleId: string;
@@ -43,20 +44,15 @@ type ProductDiscordRoleWithProduct = ProductDiscordRole & {
   };
 };
 
-let discordClient: Client | null = null;
 const RATE_LIMIT_WINDOW = 60; // 1 minute in seconds (for Redis TTL)
-
-export function setClient(client: Client): void {
-  discordClient = client;
-}
 
 /**
  * Start the scheduled role sync task
  */
 export function startScheduledRoleSync(): void {
-  if (!discordClient) {
+  if (!isClientReady()) {
     logger.error('Cannot start scheduled sync', {
-      reason: 'Discord client not initialized',
+      reason: 'Discord client not ready',
     });
     return;
   }
@@ -192,9 +188,8 @@ async function scheduledRoleSync(): Promise<void> {
       // Process each guild
       for (const [guildId, mappings] of Object.entries(guildMappings)) {
         try {
-          const guild = await discordClient?.guilds
-            .fetch(guildId)
-            .catch(() => null);
+          const client = getDiscordClient();
+          const guild = await client.guilds.fetch(guildId).catch(() => null);
           if (!guild) {
             logger.warn('Could not fetch guild', {
               guildId,
