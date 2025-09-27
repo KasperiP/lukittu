@@ -3,7 +3,11 @@ CREATE TABLE "public"."ProductDiscordRole" (
     "id" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
     "roleId" TEXT NOT NULL,
+    "roleName" TEXT NOT NULL,
+    "roleColor" INTEGER,
     "guildId" TEXT NOT NULL,
+    "guildIcon" TEXT,
+    "guildName" TEXT NOT NULL,
     "teamId" TEXT NOT NULL,
     "createdByUserId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -11,6 +15,9 @@ CREATE TABLE "public"."ProductDiscordRole" (
 
     CONSTRAINT "ProductDiscordRole_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE INDEX "ProductDiscordRole_guildId_idx" ON "public"."ProductDiscordRole"("guildId");
 
 -- CreateIndex
 CREATE INDEX "ProductDiscordRole_teamId_idx" ON "public"."ProductDiscordRole"("teamId");
