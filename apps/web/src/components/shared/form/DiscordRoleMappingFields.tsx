@@ -296,10 +296,11 @@ function DiscordMappingRow({
     `discordRoleMapping.${index}.discordRoleId`,
   ]);
 
-  const { data: rolesData } = useSWR<IDiscordRolesGetSuccessResponse>(
-    selectedGuildId ? `/api/discord/roles?guildId=${selectedGuildId}` : null,
-    fetchRoles,
-  );
+  const { data: rolesData, error: rolesError } =
+    useSWR<IDiscordRolesGetSuccessResponse>(
+      selectedGuildId ? `/api/discord/roles?guildId=${selectedGuildId}` : null,
+      fetchRoles,
+    );
 
   const selectedGuild = guildsData?.guilds.find(
     (guild) => guild.id === selectedGuildId,
@@ -460,7 +461,9 @@ function DiscordMappingRow({
                 <PopoverTrigger asChild>
                   <Button
                     className="w-full min-w-0 justify-between"
-                    disabled={!selectedGuildId || !isConnectionValid}
+                    disabled={
+                      !selectedGuildId || !isConnectionValid || rolesError
+                    }
                     role="combobox"
                     variant="outline"
                   >
@@ -490,6 +493,10 @@ function DiscordMappingRow({
                           {existingRole.roleName}
                         </span>
                       </div>
+                    ) : rolesError ? (
+                      <span className="text-destructive">
+                        {t('dashboard.products.discord_connection_error')}
+                      </span>
                     ) : selectedGuildId ? (
                       <span className="text-muted-foreground">
                         {t('dashboard.products.select_discord_role')}
@@ -499,9 +506,12 @@ function DiscordMappingRow({
                         {t('dashboard.products.select_server_first')}
                       </span>
                     )}
-                    {selectedGuildId && !rolesData && isConnectionValid ? (
+                    {selectedGuildId &&
+                    !rolesData &&
+                    !rolesError &&
+                    isConnectionValid ? (
                       <LoadingSpinner className="ml-2 h-4 w-4" />
-                    ) : selectedGuildId && isConnectionValid ? (
+                    ) : selectedGuildId && isConnectionValid && !rolesError ? (
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     ) : null}
                   </Button>
@@ -513,7 +523,12 @@ function DiscordMappingRow({
                     />
                     <CommandList>
                       <CommandEmpty>
-                        {!rolesData ? (
+                        {rolesError ? (
+                          <div className="flex w-full items-center justify-center p-4 text-destructive">
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            {t('dashboard.products.discord_connection_error')}
+                          </div>
+                        ) : !rolesData ? (
                           <div className="flex w-full items-center justify-center p-4">
                             <LoadingSpinner />
                           </div>
