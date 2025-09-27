@@ -183,13 +183,16 @@ export default Command({
         }
       }
     } catch (error) {
-      logger.error('Error in create-license autocomplete:', error);
+      logger.error('Create license autocomplete failed', {
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.respond([]);
     }
   },
   execute: async (interaction, discordAccount) => {
+    const selectedTeam = discordAccount?.selectedTeam;
     try {
-      const selectedTeam = discordAccount?.selectedTeam;
       if (!selectedTeam) {
         await interaction.editReply({
           content: 'Please select a team first using `/choose-team`.',
@@ -267,12 +270,17 @@ export default Command({
         interaction,
         state,
         discordAccount.userId,
+        selectedTeam.id,
         selectedTeam.name || 'Unknown Team',
         selectedTeam.imageUrl,
         discordAccount.user.imageUrl,
       );
     } catch (error) {
-      logger.error('Error executing create-license command:', error);
+      logger.error('Create license command failed', {
+        userId: interaction.user.id,
+        teamId: selectedTeam?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.editReply({
         content:
           'An error occurred while processing your request. Please try again later.',
@@ -288,6 +296,7 @@ async function startLicenseWizard(
   interaction: ChatInputCommandInteraction,
   state: LicenseCreationState,
   userId: string,
+  teamId: string,
   teamName: string,
   teamImageUrl: string | null,
   userImageUrl: string | null,
@@ -383,9 +392,10 @@ async function startLicenseWizard(
         if (handler) {
           await handler(i, state, teamName, teamImageUrl, userImageUrl);
         } else {
-          logger.info(
-            `Unknown action ID: ${i.customId}. This should not happen.`,
-          );
+          logger.info('Unknown action ID in license wizard', {
+            customId: i.customId,
+            userId: i.user.id,
+          });
           await i.reply({
             content: 'Unknown action. Please try again.',
             flags: MessageFlags.Ephemeral,
@@ -406,12 +416,19 @@ async function startLicenseWizard(
             components: [],
           });
         } catch (error) {
-          logger.error('Error handling wizard timeout:', error);
+          logger.error('License wizard timeout error', {
+            userId: interaction.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
     });
   } catch (error) {
-    logger.error('Error starting license wizard:', error);
+    logger.error('Failed to start license wizard', {
+      userId: interaction.user.id,
+      teamId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     await interaction.editReply({
       content:
         'An error occurred while starting the license creation wizard. Please try again later.',
@@ -1208,7 +1225,10 @@ async function handleExpirationStartSelection(
       components: components,
     });
   } catch (error) {
-    logger.error('Error handling expiration start selection:', error);
+    logger.error('License expiration start selection failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
     try {
       if (!interaction.replied && !interaction.deferred) {
         await interaction.reply({
@@ -1224,7 +1244,13 @@ async function handleExpirationStartSelection(
         });
       }
     } catch (secondError) {
-      logger.error('Error handling error response:', secondError);
+      logger.error('Failed to handle error response', {
+        userId: interaction.user.id,
+        error:
+          secondError instanceof Error
+            ? secondError.message
+            : String(secondError),
+      });
     }
   }
 }
@@ -1431,7 +1457,10 @@ async function handleExpirationDateModal(
       components: [typeRow, dateRow, navRow],
     });
   } catch (error) {
-    logger.error('Error handling expiration date modal:', error);
+    logger.error('License expiration date modal failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -1583,7 +1612,10 @@ async function handleExpirationDaysModal(
       components: [typeRow, startRow, daysRow, navRow],
     });
   } catch (error) {
-    logger.error('Error handling expiration days modal:', error);
+    logger.error('License expiration days modal failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -1724,7 +1756,10 @@ async function handleLimitsModal(
       components: [limitsRow, navRow],
     });
   } catch (error) {
-    logger.error('Error handling limits modal:', error);
+    logger.error('License limits modal failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -1856,7 +1891,10 @@ async function handleAddMetadataModal(
       components: components,
     });
   } catch (error) {
-    logger.error('Error handling metadata modal submit:', error);
+    logger.error('License metadata modal submit failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -2026,7 +2064,10 @@ async function finalizeLicenseCreation(
       components: [finalRow],
     });
   } catch (error) {
-    logger.error('Error creating license:', error);
+    logger.error('License creation failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     try {
       await interaction.editReply({
@@ -2036,7 +2077,13 @@ async function finalizeLicenseCreation(
         components: [],
       });
     } catch (secondError) {
-      logger.error('Failed to send error response:', secondError);
+      logger.error('Failed to send license creation error response', {
+        userId: interaction.user.id,
+        error:
+          secondError instanceof Error
+            ? secondError.message
+            : String(secondError),
+      });
     }
   }
 }
@@ -2049,7 +2096,11 @@ async function handleWizardError(
   error: unknown,
   context: string,
 ) {
-  logger.error(`Error ${context}:`, error);
+  logger.error('License wizard error', {
+    context,
+    userId: interaction.user.id,
+    error: error instanceof Error ? error.message : String(error),
+  });
 
   try {
     const errorMessage = `An error occurred while ${context}. Please try again.`;
@@ -2066,7 +2117,13 @@ async function handleWizardError(
       });
     }
   } catch (followupError) {
-    logger.error('Failed to send error response:', followupError);
+    logger.error('Failed to send license wizard error response', {
+      userId: interaction.user.id,
+      error:
+        followupError instanceof Error
+          ? followupError.message
+          : String(followupError),
+    });
   }
 }
 

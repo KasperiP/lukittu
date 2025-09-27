@@ -9,10 +9,11 @@ export const event = {
     try {
       await processUserJoin(member);
     } catch (error) {
-      logger.error(
-        `Error processing guild member join for user ${member.user.id} in guild ${member.guild.id}:`,
-        error,
-      );
+      logger.error('Failed to process guild member join', {
+        userId: member.user.id,
+        guildId: member.guild.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   },
 };

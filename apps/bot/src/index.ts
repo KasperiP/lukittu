@@ -45,54 +45,84 @@ async function loadEvents() {
           } else {
             client.on(event.name, event.execute);
           }
-          logger.info(`Loaded event: ${event.name}`);
+          logger.info('Event loaded successfully', {
+            eventName: event.name,
+            filePath,
+          });
         } else {
-          logger.warn(
-            `Event at ${filePath} is missing required "name" or "execute" property.`,
-          );
+          logger.warn('Event missing required properties', {
+            filePath,
+            missingProperties: 'name or execute',
+          });
         }
       } catch (error) {
-        logger.error(`Error loading event from ${filePath}:`, error);
+        logger.error('Failed to load event', {
+          filePath,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
   } catch {
     // Events directory doesn't exist or is inaccessible
-    logger.info(
-      'No events directory found or accessible. Skipping event loading.',
-    );
+    logger.info('Events directory not found', {
+      action: 'skipping event loading',
+      path: eventsPath,
+    });
   }
 }
 
 // Function to load all commands
 async function loadCommands() {
   const commandsPath = path.join(__dirname, 'commands');
-  const commandFolders = fs.readdirSync(commandsPath);
+  try {
+    const commandFolders = fs
+      .readdirSync(commandsPath, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
 
-  for (const folder of commandFolders) {
-    const folderPath = path.join(commandsPath, folder);
-    const commandFiles = fs
-      .readdirSync(folderPath)
-      .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+    for (const folder of commandFolders) {
+      const folderPath = path.join(commandsPath, folder);
 
-    for (const file of commandFiles) {
-      const filePath = path.join(folderPath, file);
       try {
-        const importedCommand = await import(filePath);
-        const command = importedCommand.default || importedCommand;
+        const commandFiles = fs
+          .readdirSync(folderPath)
+          .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
 
-        // Check if the command has the required properties
-        if (command && 'data' in command && 'execute' in command) {
-          client.commands.set(command.data.name, command);
-          commands.push(command.data);
-        } else {
-          logger.info(
-            `The command at ${filePath} is missing a required "data" or "execute" property.`,
-          );
+        for (const file of commandFiles) {
+          const filePath = path.join(folderPath, file);
+          try {
+            const importedCommand = await import(filePath);
+            const command = importedCommand.default || importedCommand;
+
+            // Check if the command has the required properties
+            if (command && 'data' in command && 'execute' in command) {
+              client.commands.set(command.data.name, command);
+              commands.push(command.data);
+            } else {
+              logger.info('Command missing required properties', {
+                filePath,
+                missingProperties: 'data or execute',
+              });
+            }
+          } catch (error) {
+            logger.error('Failed to load command', {
+              filePath,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
         }
       } catch (error) {
-        logger.error(`Error loading command from ${filePath}:`, error);
+        logger.error('Failed to read command folder', {
+          folderPath,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
+  } catch {
+    logger.info('Commands directory not found', {
+      action: 'skipping command loading',
+      path: commandsPath,
+    });
   }
 }
 
@@ -102,28 +132,36 @@ async function registerCommands() {
   const token = process.env.DISCORD_BOT_TOKEN;
 
   if (!clientId) {
-    logger.error('Missing DISCORD_CLIENT_ID in environment variables');
+    logger.error('Missing required environment variable', {
+      variable: 'DISCORD_CLIENT_ID',
+    });
     return;
   }
 
   if (!token) {
-    logger.error('Missing DISCORD_BOT_TOKEN in environment variables');
+    logger.error('Missing required environment variable', {
+      variable: 'DISCORD_BOT_TOKEN',
+    });
     return;
   }
 
   const rest = new REST().setToken(token);
 
   try {
-    logger.info(
-      `Started refreshing ${commands.length} application (/) commands.`,
-    );
+    logger.info('Started refreshing slash commands', {
+      commandCount: commands.length,
+    });
 
     // The route depends on whether you want to register commands globally or for a specific guild
     await rest.put(Routes.applicationCommands(clientId), { body: commands });
 
-    logger.info(`Successfully reloaded application (/) commands.`);
+    logger.info('Successfully refreshed slash commands', {
+      commandCount: commands.length,
+    });
   } catch (error) {
-    logger.error(error);
+    logger.error('Failed to refresh slash commands', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -178,9 +216,11 @@ async function checkLinkedAccountAndPermission(
             include: includeData,
           });
 
-          logger.info(
-            `User ${userId} is no longer a member of the selected team. Updated selectedTeamId to null.`,
-          );
+          logger.info('Updated user team selection', {
+            userId,
+            action: 'cleared selectedTeamId',
+            reason: 'user no longer member of selected team',
+          });
 
           return updatedAccount;
         }
@@ -189,7 +229,10 @@ async function checkLinkedAccountAndPermission(
 
     return discordAccount;
   } catch (error) {
-    logger.error(`Error checking linked account for user ${userId}:`, error);
+    logger.error('Failed to check linked account', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw new Error('Failed to verify linked account due to a database error');
   }
 }
@@ -202,7 +245,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const command = client.commands.get(interaction.commandName);
 
     if (!command) {
-      logger.error(`No command matching ${interaction.commandName} was found.`);
+      logger.error('Command not found', {
+        commandName: interaction.commandName,
+        userId: interaction.user.id,
+      });
       return;
     }
 
@@ -214,7 +260,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
           interaction.user.id,
         );
       } catch (accountError) {
-        logger.error('Account verification error:', accountError);
+        logger.error('Account verification failed', {
+          userId: interaction.user.id,
+          commandName: interaction.commandName,
+          error:
+            accountError instanceof Error
+              ? accountError.message
+              : String(accountError),
+        });
         return interaction.reply({
           content: 'Unable to verify your account. Please try again later.',
           flags: MessageFlags.Ephemeral,
@@ -249,8 +302,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       await command.execute(interaction, linkedDiscordAccount);
     } catch (error) {
-      logger.error(`Error executing ${interaction.commandName}`);
-      logger.error(error);
+      logger.error('Command execution failed', {
+        commandName: interaction.commandName,
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp({
           content: 'There was an error executing this command!',
@@ -267,9 +323,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const command = client.commands.get(interaction.commandName);
 
     if (!command || !command.autocomplete) {
-      logger.error(
-        `No autocomplete handler for ${interaction.commandName} was found.`,
-      );
+      logger.error('Autocomplete handler not found', {
+        commandName: interaction.commandName,
+        userId: interaction.user.id,
+      });
       return;
     }
 
@@ -281,10 +338,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
           interaction.user.id,
         );
       } catch (accountError) {
-        logger.error(
-          'Account verification error during autocomplete:',
-          accountError,
-        );
+        logger.error('Account verification failed during autocomplete', {
+          userId: interaction.user.id,
+          commandName: interaction.commandName,
+          error:
+            accountError instanceof Error
+              ? accountError.message
+              : String(accountError),
+        });
         return interaction.respond([]);
       }
 
@@ -304,10 +365,11 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       await command.autocomplete(interaction, linkedDiscordAccount);
     } catch (error) {
-      logger.error(
-        `Error handling autocomplete for ${interaction.commandName}`,
-      );
-      logger.error(error);
+      logger.error('Autocomplete handling failed', {
+        commandName: interaction.commandName,
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 });
@@ -321,14 +383,22 @@ async function updateBotStatus() {
       type: ActivityType.Watching,
     });
 
-    logger.info(`Updated status: Watching ${licenseCount} licenses`);
+    logger.info('Bot status updated', {
+      activity: 'watching licenses',
+      licenseCount,
+    });
   } catch (error) {
-    logger.error('Failed to update bot status:', error);
+    logger.error('Failed to update bot status', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
 client.once(Events.ClientReady, () => {
-  logger.info('Ready!');
+  logger.info('Discord bot ready', {
+    clientId: client.user?.id,
+    guildCount: client.guilds.cache.size,
+  });
 
   // Initialize the role service with the client
   setClient(client);
@@ -336,7 +406,11 @@ client.once(Events.ClientReady, () => {
   // Start the scheduled role sync task
   startScheduledRoleSync();
 
-  registerCommands().catch(logger.error);
+  registerCommands().catch((error) => {
+    logger.error('Failed to register commands on startup', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
 
   updateBotStatus();
 
@@ -356,6 +430,8 @@ client.once(Events.ClientReady, () => {
     await loadCommands();
     await client.login(process.env.DISCORD_BOT_TOKEN);
   } catch (error) {
-    logger.error('Failed to initialize:', error);
+    logger.error('Bot initialization failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 })();

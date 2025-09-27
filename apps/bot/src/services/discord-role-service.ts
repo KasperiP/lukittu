@@ -55,13 +55,15 @@ export function setClient(client: Client): void {
  */
 export function startScheduledRoleSync(): void {
   if (!discordClient) {
-    logger.error(
-      'Discord client not initialized - cannot start scheduled sync',
-    );
+    logger.error('Cannot start scheduled sync', {
+      reason: 'Discord client not initialized',
+    });
     return;
   }
 
-  logger.info('Starting scheduled Discord role sync task');
+  logger.info('Starting scheduled Discord role sync task', {
+    interval: '30 minutes',
+  });
 
   // Run immediately on startup, then every 30 minutes
   scheduledRoleSync();
@@ -78,27 +80,36 @@ export async function processUserJoin(member: GuildMember): Promise<void> {
 
   // Rate limiting check
   if (!checkRateLimit(userId)) {
-    logger.warn(
-      `Rate limit exceeded for user ${userId}. Skipping role assignment.`,
-    );
+    logger.warn('Rate limit exceeded for user', {
+      userId,
+      action: 'skipping role assignment',
+      rateLimitWindow: `${RATE_LIMIT_WINDOW}ms`,
+    });
     return;
   }
 
   try {
-    logger.info(`Processing guild member join: ${userId} in guild ${guildId}`);
+    logger.info('Processing guild member join', {
+      userId,
+      guildId,
+    });
 
     await syncUserRolesInGuild(member);
 
     const processingTime = Date.now() - startTime;
-    logger.info(
-      `Role processing completed for user ${userId} in guild ${guildId}. Processing time: ${processingTime}ms`,
-    );
+    logger.info('Role processing completed', {
+      userId,
+      guildId,
+      processingTimeMs: processingTime,
+    });
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    logger.error(
-      `Failed to process roles for user ${userId} in guild ${guildId} after ${processingTime}ms:`,
-      error,
-    );
+    logger.error('Failed to process roles for user', {
+      userId,
+      guildId,
+      processingTimeMs: processingTime,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 }
@@ -113,7 +124,9 @@ async function scheduledRoleSync(): Promise<void> {
   let errors = 0;
 
   try {
-    logger.info('Starting scheduled Discord role sync');
+    logger.info('Starting scheduled Discord role sync', {
+      startTime: new Date(startTime).toISOString(),
+    });
 
     // Get all teams with active Discord integrations and role mappings
     const teamsWithRoleMappings = await prisma.team.findMany({
@@ -148,9 +161,9 @@ async function scheduledRoleSync(): Promise<void> {
       },
     });
 
-    logger.info(
-      `Found ${teamsWithRoleMappings.length} teams with active Discord integrations`,
-    );
+    logger.info('Found teams with Discord integrations', {
+      teamCount: teamsWithRoleMappings.length,
+    });
 
     // Process each team's customers
     for (const team of teamsWithRoleMappings) {
@@ -158,9 +171,11 @@ async function scheduledRoleSync(): Promise<void> {
         continue;
       }
 
-      logger.info(
-        `Processing ${team.customerDiscordAccount.length} customers for team ${team.name} (${team.id})`,
-      );
+      logger.info('Processing customers for team', {
+        teamId: team.id,
+        teamName: team.name,
+        customerCount: team.customerDiscordAccount.length,
+      });
 
       // Group role mappings by guild for efficient processing
       const guildMappings = team.productDiscordRoles.reduce(
@@ -181,7 +196,10 @@ async function scheduledRoleSync(): Promise<void> {
             .fetch(guildId)
             .catch(() => null);
           if (!guild) {
-            logger.warn(`Could not fetch guild ${guildId}, skipping`);
+            logger.warn('Could not fetch guild', {
+              guildId,
+              action: 'skipping',
+            });
             continue;
           }
 
@@ -215,10 +233,12 @@ async function scheduledRoleSync(): Promise<void> {
                   await executeRoleChanges(member, roleAssignments);
                   processed++;
                 } catch (error) {
-                  logger.error(
-                    `Error processing customer ${customerAccount.discordId} in guild ${guildId}:`,
-                    error,
-                  );
+                  logger.error('Error processing customer', {
+                    discordId: customerAccount.discordId,
+                    guildId,
+                    error:
+                      error instanceof Error ? error.message : String(error),
+                  });
                   errors++;
                 }
               }),
@@ -230,10 +250,11 @@ async function scheduledRoleSync(): Promise<void> {
             }
           }
         } catch (error) {
-          logger.error(
-            `Error processing guild ${guildId} for team ${team.id}:`,
-            error,
-          );
+          logger.error('Error processing guild for team', {
+            guildId,
+            teamId: team.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
           errors++;
         }
       }
@@ -243,12 +264,18 @@ async function scheduledRoleSync(): Promise<void> {
     }
 
     const duration = Date.now() - startTime;
-    logger.info(
-      `Scheduled role sync completed in ${duration}ms. Processed: ${processed}, Skipped: ${skipped}, Errors: ${errors}`,
-    );
+    logger.info('Scheduled role sync completed', {
+      durationMs: duration,
+      processed,
+      skipped,
+      errors,
+    });
   } catch (error) {
     const duration = Date.now() - startTime;
-    logger.error(`Scheduled role sync failed after ${duration}ms:`, error);
+    logger.error('Scheduled role sync failed', {
+      durationMs: duration,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -278,7 +305,9 @@ async function syncUserRolesInGuild(member: GuildMember): Promise<void> {
   });
 
   if (rolesMappings.length === 0) {
-    logger.info(`No role mappings found for guild ${guildId}`);
+    logger.info('No role mappings found for guild', {
+      guildId,
+    });
     return;
   }
 
@@ -288,7 +317,9 @@ async function syncUserRolesInGuild(member: GuildMember): Promise<void> {
   );
 
   if (activeRoleMappings.length === 0) {
-    logger.info(`No active Discord integrations found for guild ${guildId}`);
+    logger.info('No active Discord integrations found for guild', {
+      guildId,
+    });
     return;
   }
 
@@ -323,15 +354,18 @@ async function syncUserRolesInGuild(member: GuildMember): Promise<void> {
   });
 
   if (customerDiscordAccounts.length === 0) {
-    logger.info(
-      `No customer Discord accounts found for user ${userId} in relevant teams`,
-    );
+    logger.info('No customer Discord accounts found for user', {
+      userId,
+      context: 'relevant teams',
+    });
     return;
   }
 
-  logger.info(
-    `Found ${customerDiscordAccounts.length} customer accounts for user ${userId} across teams: ${customerDiscordAccounts.map((acc) => acc.teamId).join(', ')}`,
-  );
+  logger.info('Found customer accounts for user', {
+    userId,
+    accountCount: customerDiscordAccounts.length,
+    teamIds: customerDiscordAccounts.map((acc) => acc.teamId),
+  });
 
   // Process each team separately to maintain team boundaries
   const allRoleAssignments: RoleAssignmentData[] = [];
@@ -346,9 +380,10 @@ async function syncUserRolesInGuild(member: GuildMember): Promise<void> {
       continue;
     }
 
-    logger.info(
-      `Processing ${teamRoleMappings.length} role mappings for team ${customerAccount.teamId}`,
-    );
+    logger.info('Processing role mappings for team', {
+      teamId: customerAccount.teamId,
+      roleMappingCount: teamRoleMappings.length,
+    });
 
     // Determine role assignments for this specific team only
     const teamRoleAssignments = await determineRoleAssignments(
@@ -440,14 +475,18 @@ async function executeRoleChanges(
     try {
       await member.roles.add(roleId);
       const assignment = roleAssignmentData.find((a) => a.roleId === roleId);
-      logger.info(
-        `Added role ${roleId} (${assignment?.productName}) to user ${member.user.id} in guild ${member.guild.id}`,
-      );
+      logger.info('Added role to user', {
+        roleId,
+        productName: assignment?.productName,
+        userId: member.user.id,
+        guildId: member.guild.id,
+      });
     } catch (error) {
-      logger.error(
-        `Failed to add role ${roleId} to user ${member.user.id}:`,
-        error,
-      );
+      logger.error('Failed to add role to user', {
+        roleId,
+        userId: member.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -456,14 +495,18 @@ async function executeRoleChanges(
     try {
       await member.roles.remove(roleId);
       const assignment = roleAssignmentData.find((a) => a.roleId === roleId);
-      logger.info(
-        `Removed role ${roleId} (${assignment?.productName}) from user ${member.user.id} in guild ${member.guild.id}`,
-      );
+      logger.info('Removed role from user', {
+        roleId,
+        productName: assignment?.productName,
+        userId: member.user.id,
+        guildId: member.guild.id,
+      });
     } catch (error) {
-      logger.error(
-        `Failed to remove role ${roleId} from user ${member.user.id}:`,
-        error,
-      );
+      logger.error('Failed to remove role from user', {
+        roleId,
+        userId: member.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

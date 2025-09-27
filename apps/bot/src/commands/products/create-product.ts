@@ -74,7 +74,10 @@ function validateProductUrl(url: string | null): {
     new URL(url);
     return { isValid: true };
   } catch (e) {
-    logger.error('Invalid URL:', e);
+    logger.error('URL validation failed', {
+      url,
+      error: e instanceof Error ? e.message : String(e),
+    });
     return { isValid: false, message: 'Invalid URL format' };
   }
 }
@@ -108,8 +111,8 @@ export default Command({
     ephemeral: true,
   },
   execute: async (interaction, discordAccount) => {
+    const selectedTeam = discordAccount?.selectedTeam;
     try {
-      const selectedTeam = discordAccount?.selectedTeam;
       if (!selectedTeam) {
         await interaction.editReply({
           content: 'Please select a team first using `/choose-team`.',
@@ -152,7 +155,11 @@ export default Command({
         discordAccount.user.imageUrl,
       );
     } catch (error) {
-      logger.error('Error executing create-product command:', error);
+      logger.error('Create product command failed', {
+        userId: interaction.user.id,
+        teamId: selectedTeam?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await interaction.editReply({
         content:
           'An error occurred while processing your request. Please try again later.',
@@ -241,9 +248,10 @@ async function startProductWizard(
         if (handler) {
           await handler(i, state, teamId, teamName, teamImageUrl, userImageUrl);
         } else {
-          logger.info(
-            `Unknown action ID: ${i.customId}. This should not happen.`,
-          );
+          logger.info('Unknown action ID in product wizard', {
+            customId: i.customId,
+            userId: i.user.id,
+          });
           await i.reply({
             content: 'Unknown action. Please try again.',
             flags: MessageFlags.Ephemeral,
@@ -264,12 +272,19 @@ async function startProductWizard(
             components: [],
           });
         } catch (error) {
-          logger.error('Error handling wizard timeout:', error);
+          logger.error('Product wizard timeout error', {
+            userId: interaction.user.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         }
       }
     });
   } catch (error) {
-    logger.error('Error starting product wizard:', error);
+    logger.error('Failed to start product wizard', {
+      userId: interaction.user.id,
+      teamId,
+      error: error instanceof Error ? error.message : String(error),
+    });
     await interaction.editReply({
       content:
         'An error occurred while starting the product creation wizard. Please try again later.',
@@ -731,7 +746,10 @@ async function handleBasicInfoModal(
         components: [basicInfoRow, buttonRow],
       });
     } catch (error) {
-      logger.error('Error checking for existing product:', error);
+      logger.error('Failed to check for existing product', {
+        userId: interaction.user.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       await modalResponse.followUp({
         content:
           'An error occurred while checking for existing products. Please try again.',
@@ -739,7 +757,10 @@ async function handleBasicInfoModal(
       });
     }
   } catch (error) {
-    logger.error('Error handling basic info modal:', error);
+    logger.error('Product basic info modal failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -883,7 +904,10 @@ async function handleAddMetadataModal(
       components: components,
     });
   } catch (error) {
-    logger.error('Error handling metadata modal submit:', error);
+    logger.error('Product metadata modal submit failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
@@ -1025,7 +1049,10 @@ async function finalizeProductCreation(
       components: [finalRow],
     });
   } catch (error) {
-    logger.error('Error creating product:', error);
+    logger.error('Product creation failed', {
+      userId: interaction.user.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     try {
       await interaction.editReply({
@@ -1035,7 +1062,13 @@ async function finalizeProductCreation(
         components: [],
       });
     } catch (secondError) {
-      logger.error('Failed to send error response:', secondError);
+      logger.error('Failed to send product creation error response', {
+        userId: interaction.user.id,
+        error:
+          secondError instanceof Error
+            ? secondError.message
+            : String(secondError),
+      });
     }
   }
 }
@@ -1048,7 +1081,11 @@ async function handleWizardError(
   error: unknown,
   context: string,
 ) {
-  logger.error(`Error ${context}:`, error);
+  logger.error('Product wizard error', {
+    context,
+    userId: interaction.user.id,
+    error: error instanceof Error ? error.message : String(error),
+  });
 
   try {
     const errorMessage = `An error occurred while ${context}. Please try again.`;
@@ -1065,6 +1102,12 @@ async function handleWizardError(
       });
     }
   } catch (followupError) {
-    logger.error('Failed to send error response:', followupError);
+    logger.error('Failed to send product wizard error response', {
+      userId: interaction.user.id,
+      error:
+        followupError instanceof Error
+          ? followupError.message
+          : String(followupError),
+    });
   }
 }
