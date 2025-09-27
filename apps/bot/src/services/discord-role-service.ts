@@ -9,6 +9,7 @@ import {
   prisma,
   Product,
   ProductDiscordRole,
+  redisClient,
   Team,
 } from '@lukittu/shared';
 import { Client, GuildMember } from 'discord.js';
@@ -43,8 +44,7 @@ type ProductDiscordRoleWithProduct = ProductDiscordRole & {
 };
 
 let discordClient: Client | null = null;
-const rateLimitCache = new Map<string, number>();
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_WINDOW = 60; // 1 minute in seconds (for Redis TTL)
 
 export function setClient(client: Client): void {
   discordClient = client;
@@ -79,11 +79,11 @@ export async function processUserJoin(member: GuildMember): Promise<void> {
   const guildId = member.guild.id;
 
   // Rate limiting check
-  if (!checkRateLimit(userId)) {
+  if (!(await checkRateLimit(userId))) {
     logger.warn('Rate limit exceeded for user', {
       userId,
       action: 'skipping role assignment',
-      rateLimitWindow: `${RATE_LIMIT_WINDOW}ms`,
+      rateLimitWindow: `${RATE_LIMIT_WINDOW}s`,
     });
     return;
   }
@@ -512,39 +512,31 @@ async function executeRoleChanges(
 }
 
 /**
- * Rate limiting check
+ * Rate limiting check using Redis
  */
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
+async function checkRateLimit(userId: string): Promise<boolean> {
   const userKey = `role_ops:${userId}`;
 
-  const lastOperation = rateLimitCache.get(userKey);
+  try {
+    // Use Redis SET with NX (only set if not exists) and EX (expire) options
+    // This atomically checks if key exists and sets it with TTL if it doesn't
+    const result = await redisClient.set(
+      userKey,
+      Date.now().toString(),
+      'EX',
+      RATE_LIMIT_WINDOW,
+      'NX',
+    );
 
-  if (!lastOperation || now - lastOperation >= RATE_LIMIT_WINDOW) {
-    rateLimitCache.set(userKey, now);
+    // If result is 'OK', the key didn't exist and was set (rate limit passed)
+    // If result is null, the key already existed (rate limited)
+    return result === 'OK';
+  } catch (error) {
+    logger.error('Rate limit check failed, allowing operation', {
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    // On Redis error, allow the operation to proceed
     return true;
   }
-
-  return false;
 }
-
-/**
- * Clean up expired rate limit entries
- */
-export function cleanupRateLimit(): void {
-  const now = Date.now();
-
-  for (const [key, timestamp] of rateLimitCache.entries()) {
-    if (now - timestamp >= RATE_LIMIT_WINDOW) {
-      rateLimitCache.delete(key);
-    }
-  }
-}
-
-// Clean up rate limit cache every 5 minutes
-setInterval(
-  () => {
-    cleanupRateLimit();
-  },
-  5 * 60 * 1000,
-);

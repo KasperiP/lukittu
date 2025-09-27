@@ -3,6 +3,7 @@ export * from './licenses/get-license-status-filter';
 export * from './licenses/license-expiration';
 export * from './logging/logger';
 export * from './prisma/prisma';
+export * from './redis/redis';
 export * from './security/crypto';
 export * from './types/prisma-types';
 export * from './webhooks/discord-webhooks';

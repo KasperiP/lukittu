@@ -1,6 +1,5 @@
-import { logger, regex } from '@lukittu/shared';
+import { logger, redisClient, regex } from '@lukittu/shared';
 import 'server-only';
-import { redisClient } from '../database/redis';
 
 export async function isRateLimited(
   key: string,

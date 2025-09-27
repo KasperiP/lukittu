@@ -1,14 +1,5 @@
-import { logger } from '@lukittu/shared';
-import { redisClient } from '../database/redis';
+import { logger, redisClient } from '@lukittu/shared';
 import { isRateLimited } from './rate-limiter';
-
-jest.mock('../database/redis', () => ({
-  redisClient: {
-    get: jest.fn(),
-    set: jest.fn(),
-    ttl: jest.fn(),
-  },
-}));
 
 describe('Rate Limiting', () => {
   const testKey = 'test-key';

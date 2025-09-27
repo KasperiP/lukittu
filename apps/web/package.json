@@ -52,7 +52,6 @@
     "cmdk": "^1.1.1",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
-    "ioredis": "^5.8.0",
     "jsonwebtoken": "^9.0.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.438.0",

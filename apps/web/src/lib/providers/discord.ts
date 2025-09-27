@@ -1,6 +1,11 @@
-import { decryptString, encryptString, logger, prisma } from '@lukittu/shared';
+import {
+  decryptString,
+  encryptString,
+  logger,
+  prisma,
+  redisClient,
+} from '@lukittu/shared';
 import 'server-only';
-import { redisClient } from '../database/redis';
 
 export interface DiscordUser {
   id: string;
