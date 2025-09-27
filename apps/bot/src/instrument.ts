@@ -6,6 +6,7 @@ Sentry.init({
   integrations: [
     nodeProfilingIntegration(),
     Sentry.consoleLoggingIntegration({ levels: ['log', 'warn', 'error'] }),
+    Sentry.prismaIntegration(),
   ],
 
   // Send structured logs to Sentry
