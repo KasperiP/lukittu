@@ -971,6 +971,7 @@ async function finalizeProductCreation(
         },
         include: {
           metadata: true,
+          discordRoles: true,
         },
       });
 

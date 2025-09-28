@@ -522,7 +522,9 @@ export async function DELETE(
       },
       include: {
         products: true,
-        customers: true,
+        customers: {
+          include: { discordAccount: true },
+        },
         metadata: true,
       },
     });
@@ -576,6 +578,17 @@ export async function DELETE(
 
     after(async () => {
       await attemptWebhookDelivery(webhookEventIds);
+
+      const promises = license.customers.map(async (customer) => {
+        if (!customer.discordAccount) return;
+
+        await publishDiscordSync({
+          discordId: customer.discordAccount.discordId,
+          teamId: selectedTeam,
+        });
+      });
+
+      await Promise.all(promises);
     });
 
     return NextResponse.json(response);
