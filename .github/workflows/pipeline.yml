@@ -213,6 +213,8 @@ jobs:
           NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
           SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+          SENTRY_ORG=lukittu
+          SENTRY_PROJECT=lukittu-next
           EOF
 
       - name: Login to Docker Registry
@@ -266,6 +268,8 @@ jobs:
           SENTRY_DSN_BOT=${{ secrets.SENTRY_DSN_BOT }}
           SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+          SENTRY_ORG=lukittu
+          SENTRY_PROJECT=lukittu-bot
           EOF
 
       - name: Login to Docker Registry
