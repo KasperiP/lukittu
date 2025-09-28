@@ -1,11 +1,12 @@
 'use client';
 import { DeleteProductConfirmModal } from '@/components/dashboard/products/ProductDeleteConfirmModal';
 import SetProductModal from '@/components/dashboard/products/list/SetProductModal';
-import { Metadata, Product } from '@lukittu/shared';
+import { Metadata, Product, ProductDiscordRole } from '@lukittu/shared';
 import { createContext, useState } from 'react';
 
 type ProductExtended = Product & {
   metadata: Metadata[];
+  discordRoles: ProductDiscordRole[];
 };
 
 export const ProductModalContext = createContext({

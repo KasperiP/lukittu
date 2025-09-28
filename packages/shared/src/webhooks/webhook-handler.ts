@@ -2,12 +2,15 @@ import crypto from 'crypto';
 import {
   AuditLogSource,
   Prisma,
+  Team,
+  User,
+  Webhook,
+  WebhookEvent,
   WebhookEventStatus,
   WebhookEventType,
 } from '../../prisma/generated/client';
 import { logger } from '../logging/logger';
 import { prisma } from '../prisma/prisma';
-import { PrismaTransaction } from '../types/prisma-types';
 import {
   formatDiscordPayload,
   isDiscordWebhook,
@@ -20,7 +23,7 @@ interface CreateWebhookEventParams {
   source: AuditLogSource;
   userId?: string;
   payload: PayloadType;
-  tx: PrismaTransaction;
+  tx: Prisma.TransactionClient;
 }
 
 /**
@@ -150,7 +153,22 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
 
   return await prisma.$transaction(
     async (prisma) => {
-      let webhookEvent;
+      // Lock the webhook event row to prevent concurrent processing
+      const lockResult = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM "WebhookEvent" WHERE id = ${webhookEventId} FOR UPDATE
+      `;
+
+      if (lockResult.length === 0) {
+        logger.info('Webhook event not found for locking', { webhookEventId });
+        return false;
+      }
+
+      let webhookEvent: WebhookEvent & {
+        webhook: Webhook & {
+          team: Team;
+        };
+        user: User | null;
+      };
       try {
         webhookEvent = await prisma.webhookEvent.update({
           where: {
@@ -226,7 +244,11 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
           error: error instanceof Error ? error.message : String(error),
         });
 
-        await markWebhookAsFailed(webhookEvent.id, 'Invalid webhook URL');
+        await markWebhookAsFailed(
+          prisma,
+          webhookEvent.id,
+          'Invalid webhook URL',
+        );
         return false;
       }
 
@@ -365,7 +387,7 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
             maxRetries,
           });
 
-          await markWebhookAsFailed(webhookEvent.id, errorMessage);
+          await markWebhookAsFailed(prisma, webhookEvent.id, errorMessage);
           return false;
         }
 
@@ -407,90 +429,79 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
  * Only deactivates the webhook if it has multiple consecutive failed events
  */
 async function markWebhookAsFailed(
+  tx: Prisma.TransactionClient,
   webhookEventId: string,
   errorMessage: string,
 ): Promise<void> {
-  await prisma.$transaction(
-    async (prisma) => {
-      let webhookId: string;
-      try {
-        const webhookEvent = await prisma.webhookEvent.update({
-          where: { id: webhookEventId },
-          data: {
-            status: WebhookEventStatus.FAILED,
-            errorMessage: errorMessage.substring(0, 255),
-            nextRetryAt: null,
-          },
-          select: { webhookId: true },
-        });
-        webhookId = webhookEvent.webhookId;
-      } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2025'
-        ) {
-          logger.info('Webhook event not found, cannot mark as failed', {
-            webhookEventId,
-          });
-          return; // The event doesn't exist, so we can't proceed.
-        }
-        // Re-throw other errors to ensure transaction rollback
-        throw error;
-      }
-
-      // Count recent failures for this webhook (last 48 hours)
-      const recentFailureCount = await prisma.webhookEvent.count({
-        where: {
-          webhookId: webhookId,
-          status: WebhookEventStatus.FAILED,
-          updatedAt: {
-            gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
-          },
-        },
+  let webhookId: string;
+  try {
+    const webhookEvent = await tx.webhookEvent.update({
+      where: { id: webhookEventId },
+      data: {
+        status: WebhookEventStatus.FAILED,
+        errorMessage: errorMessage.substring(0, 255),
+        nextRetryAt: null,
+      },
+      select: { webhookId: true },
+    });
+    webhookId = webhookEvent.webhookId;
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2025'
+    ) {
+      logger.info('Webhook event not found, cannot mark as failed', {
+        webhookEventId,
       });
+      return; // The event doesn't exist, so we can't proceed.
+    }
+    // Re-throw other errors to ensure transaction rollback
+    throw error;
+  }
 
-      // Check if there's been any successful delivery in the last 48 hours
-      const recentSuccessCount = await prisma.webhookEvent.count({
-        where: {
-          webhookId: webhookId,
-          status: WebhookEventStatus.DELIVERED,
-          updatedAt: {
-            gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
-          },
-        },
-      });
-
-      const failureThreshold = 3; // Only deactivate after 3+ failures
-
-      if (recentFailureCount >= failureThreshold && recentSuccessCount === 0) {
-        logger.info(
-          'Deactivating webhook due to multiple consecutive failures',
-          {
-            webhookId: webhookId,
-            recentFailureCount,
-            failureThreshold,
-          },
-        );
-
-        await prisma.webhook.update({
-          where: { id: webhookId },
-          data: { active: false },
-        });
-      } else {
-        logger.info('Webhook failure recorded but not deactivating', {
-          webhookId: webhookId,
-          recentFailureCount,
-          recentSuccessCount,
-          failureThreshold,
-        });
-      }
+  // Count recent failures for this webhook (last 48 hours)
+  const recentFailureCount = await tx.webhookEvent.count({
+    where: {
+      webhookId: webhookId,
+      status: WebhookEventStatus.FAILED,
+      updatedAt: {
+        gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+      },
     },
-    {
-      isolationLevel: 'Serializable',
-      maxWait: 15000,
-      timeout: 30000,
+  });
+
+  // Check if there's been any successful delivery in the last 48 hours
+  const recentSuccessCount = await tx.webhookEvent.count({
+    where: {
+      webhookId: webhookId,
+      status: WebhookEventStatus.DELIVERED,
+      updatedAt: {
+        gte: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+      },
     },
-  );
+  });
+
+  const failureThreshold = 3; // Only deactivate after 3+ failures
+
+  if (recentFailureCount >= failureThreshold && recentSuccessCount === 0) {
+    logger.info('Deactivating webhook due to multiple consecutive failures', {
+      webhookId: webhookId,
+      recentFailureCount,
+      failureThreshold,
+    });
+
+    await tx.webhook.update({
+      where: { id: webhookId },
+      data: { active: false },
+    });
+  } else {
+    logger.info('Webhook failure recorded but not deactivating', {
+      webhookId: webhookId,
+      recentFailureCount,
+      recentSuccessCount,
+      failureThreshold,
+    });
+  }
 }
 
 /**

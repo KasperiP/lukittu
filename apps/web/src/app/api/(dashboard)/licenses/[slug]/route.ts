@@ -26,13 +26,14 @@ import {
   Metadata,
   prisma,
   Product,
+  publishDiscordSync,
   regex,
   updateLicensePayload,
   User,
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type ILicenseGetSuccessResponse = {
   license: Omit<License, 'licenseKeyLookup'> & {
@@ -378,7 +379,11 @@ export async function PUT(
         include: {
           metadata: true,
           products: true,
-          customers: true,
+          customers: {
+            include: {
+              discordAccount: true,
+            },
+          },
         },
       });
 
@@ -414,7 +419,20 @@ export async function PUT(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+
+      const promises = response.license.customers.map(async (customer) => {
+        if (!customer.discordAccount) return;
+
+        await publishDiscordSync({
+          discordId: customer.discordAccount.discordId,
+          teamId: team.id,
+        });
+      });
+
+      await Promise.all(promises);
+    });
 
     return NextResponse.json(response);
   } catch (error) {
@@ -504,7 +522,9 @@ export async function DELETE(
       },
       include: {
         products: true,
-        customers: true,
+        customers: {
+          include: { discordAccount: true },
+        },
         metadata: true,
       },
     });
@@ -556,7 +576,20 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+
+      const promises = license.customers.map(async (customer) => {
+        if (!customer.discordAccount) return;
+
+        await publishDiscordSync({
+          discordId: customer.discordAccount.discordId,
+          teamId: selectedTeam,
+        });
+      });
+
+      await Promise.all(promises);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

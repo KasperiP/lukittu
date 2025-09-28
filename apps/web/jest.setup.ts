@@ -22,6 +22,20 @@ jest.mock('@lukittu/shared', () => ({
   createCustomerPayload: jest.fn(),
   updateCustomerPayload: jest.fn(),
   attemptWebhookDelivery: jest.fn(),
+  redisClient: {
+    get: jest.fn(),
+    set: jest.fn(),
+    ttl: jest.fn(),
+  },
+}));
+
+jest.mock('next/server', () => ({
+  after: jest.fn(),
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: jest.fn(),
+    redirect: jest.fn(),
+  },
 }));
 
 beforeEach(() => {

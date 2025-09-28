@@ -19,6 +19,7 @@ import {
   updateCustomerPayload,
   WebhookEventType,
 } from '@lukittu/shared';
+import { after } from 'next/server';
 import 'server-only';
 import Stripe from 'stripe';
 import { StripeMetadataKeys } from '../constants/metadata';
@@ -409,7 +410,9 @@ export const handleInvoicePaid = async (
         return license;
       });
 
-      void attemptWebhookDelivery(webhookEventIds);
+      after(async () => {
+        await attemptWebhookDelivery(webhookEventIds);
+      });
 
       logger.info('handleInvoicePaid: License created for subscription', {
         subscriptionId: subscription.id,
@@ -1074,7 +1077,9 @@ export const handleCheckoutSessionCompleted = async (
       return license;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const handlerTime = Date.now() - handlerStartTime;
 

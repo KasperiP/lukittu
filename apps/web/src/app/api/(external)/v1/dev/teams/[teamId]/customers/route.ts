@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, fetchDiscordUserById } from '@/lib/providers/discord';
 import { verifyApiAuthorization } from '@/lib/security/api-key-auth';
 import { getIp } from '@/lib/utils/header-helpers';
 import {
@@ -23,7 +23,7 @@ import {
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
@@ -618,7 +618,7 @@ export async function POST(
           discordId,
         });
 
-        discordUser = await getDiscordUser(discordId);
+        discordUser = await fetchDiscordUserById(discordId);
 
         if (!discordUser) {
           const responseTime = Date.now() - requestTime.getTime();
@@ -757,7 +757,9 @@ export async function POST(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const responseTime = Date.now() - requestTime.getTime();
 

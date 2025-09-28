@@ -1,8 +1,8 @@
 import {
   DiscordOAuthTokenResponse,
   DiscordUser,
-  exchangeDiscordCode,
-  getDiscordUserProfile,
+  exchangeDiscordAuthCode,
+  fetchDiscordUserProfile,
   revokeDiscordToken,
 } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
@@ -53,10 +53,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     let tokenData: DiscordOAuthTokenResponse;
     try {
-      tokenData = await exchangeDiscordCode(
-        code,
-        process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || '',
-      );
+      tokenData = await exchangeDiscordAuthCode(code, session.user.id);
     } catch (error) {
       logger.error('Failed to exchange Discord code for token:', error);
       return NextResponse.redirect(
@@ -66,9 +63,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const accessToken = tokenData.access_token;
 
-    let userData: DiscordUser | null = null;
+    let userData: DiscordUser;
     try {
-      userData = await getDiscordUserProfile(accessToken);
+      userData = await fetchDiscordUserProfile(accessToken);
     } catch (error) {
       logger.error('Failed to get Discord user data:', error);
       return NextResponse.redirect(
@@ -157,7 +154,7 @@ export async function DELETE(): Promise<NextResponse> {
         const decryptedRefreshToken = decryptString(
           discordAccount.refreshToken,
         );
-        await revokeDiscordToken(decryptedRefreshToken);
+        await revokeDiscordToken(decryptedRefreshToken, session.user.id);
         logger.info('Discord refresh token revoked successfully', {
           userId: session.user.id,
         });

@@ -32,12 +32,13 @@ import {
   logger,
   prisma,
   Prisma,
+  publishDiscordSync,
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
@@ -368,7 +369,11 @@ export async function POST(
               : undefined,
           },
           include: {
-            customers: true,
+            customers: {
+              include: {
+                discordAccount: true,
+              },
+            },
             products: true,
             metadata: true,
           },
@@ -433,7 +438,7 @@ export async function POST(
           }
         }
 
-        const response: IExternalDevResponse = {
+        const response = {
           data: {
             ...license,
 
@@ -471,7 +476,20 @@ export async function POST(
         return response;
       });
 
-      void attemptWebhookDelivery(webhookEventIds);
+      after(async () => {
+        await attemptWebhookDelivery(webhookEventIds);
+
+        const promises = response.data.customers.map(async (customer) => {
+          if (!customer.discordAccount) return;
+
+          await publishDiscordSync({
+            discordId: customer.discordAccount.discordId,
+            teamId: team.id,
+          });
+        });
+
+        await Promise.all(promises);
+      });
 
       const responseTime = Date.now() - requestTime.getTime();
 

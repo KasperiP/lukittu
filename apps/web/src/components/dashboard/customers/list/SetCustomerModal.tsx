@@ -3,6 +3,7 @@ import { ICustomersUpdateResponse } from '@/app/api/(dashboard)/customers/[slug]
 import { ICustomersCreateResponse } from '@/app/api/(dashboard)/customers/route';
 import DiscordUserSelector from '@/components/dashboard/customers/DiscordUserSelector';
 import MetadataFields from '@/components/shared/form/MetadataFields';
+import { DiscordIcon } from '@/components/shared/Icons';
 import LoadingButton from '@/components/shared/LoadingButton';
 import {
   Collapsible,
@@ -34,7 +35,7 @@ import {
 import { CustomerModalContext } from '@/providers/CustomerModalProvider';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Address } from '@lukittu/shared';
-import { ChevronDown, Link2, MapPin } from 'lucide-react';
+import { ChevronDown, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -297,12 +298,12 @@ export default function SetCustomerModal() {
             >
               <CollapsibleTrigger className="group flex w-full cursor-pointer items-center justify-between rounded-lg border border-input bg-background px-4 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted/50 transition-colors group-hover:bg-muted">
-                    <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/50 transition-colors group-hover:bg-muted">
+                    <DiscordIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-base font-semibold">
-                      {t('dashboard.customers.connections')}
+                      {t('dashboard.products.discord_integration')}
                     </span>
                     {ctx.customerToEdit?.discordAccount && (
                       <div className="flex items-center gap-2">

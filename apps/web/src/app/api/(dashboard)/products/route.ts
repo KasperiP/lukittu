@@ -1,4 +1,8 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
+import {
+  ValidatedDiscordRoleMapping,
+  validateDiscordRoleMappingsForUser,
+} from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -19,16 +23,18 @@ import {
   prisma,
   Prisma,
   Product,
+  ProductDiscordRole,
   regex,
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type IProductsGetSuccessResponse = {
   products: (Product & {
     latestRelease: string | null;
     totalReleases: number;
+    discordRoles: ProductDiscordRole[];
     metadata: Metadata[];
   })[];
   totalResults: number;
@@ -181,6 +187,7 @@ export async function GET(
                 include: {
                   releases: true,
                   metadata: true,
+                  discordRoles: true,
                 },
                 skip,
                 take,
@@ -278,7 +285,7 @@ export async function POST(
       );
     }
 
-    const { name, url, metadata } = validated.data;
+    const { name, url, metadata, discordRoleMapping } = validated.data;
 
     const selectedTeam = await getSelectedTeam();
 
@@ -304,6 +311,11 @@ export async function POST(
               limits: true,
             },
           },
+          discordAccount: {
+            omit: {
+              refreshToken: false,
+            },
+          },
         },
       },
     });
@@ -327,6 +339,56 @@ export async function POST(
     }
 
     const team = session.user.teams[0];
+
+    // Validate Discord role mappings if provided
+    let validatedDiscordMappings: ValidatedDiscordRoleMapping[] | undefined;
+    if (discordRoleMapping && discordRoleMapping.length > 0) {
+      if (!session.user.discordAccount) {
+        return NextResponse.json(
+          {
+            message: t('validation.discord_account_not_connected'),
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
+      const discordValidation = await validateDiscordRoleMappingsForUser({
+        roleMappings: discordRoleMapping,
+        userId: session.user.id,
+        userDiscordAccount: {
+          discordId: session.user.discordAccount.discordId,
+          refreshToken: session.user.discordAccount.refreshToken!,
+        },
+      });
+
+      if (!discordValidation.success) {
+        const errorMessages = {
+          NO_DISCORD_ACCOUNT: t('validation.discord_account_not_connected'),
+          INVALID_TOKEN: t('validation.discord_token_invalid'),
+          INSUFFICIENT_PERMISSIONS: t(
+            'validation.discord_insufficient_permissions',
+          ),
+          ROLE_NOT_FOUND: t('validation.discord_guild_or_role_not_found'),
+          GUILD_NOT_FOUND: t('validation.discord_guild_or_role_not_found'),
+          BOT_NOT_IN_GUILD: t('validation.discord_bot_not_in_guild'),
+          DUPLICATE_MAPPING: t(
+            'validation.discord_role_mapping_already_exists',
+          ),
+        };
+
+        return NextResponse.json(
+          {
+            message:
+              errorMessages[discordValidation.errorCode!] ||
+              discordValidation.error ||
+              'Discord validation failed',
+          },
+          { status: HttpStatus.BAD_REQUEST },
+        );
+      }
+
+      validatedDiscordMappings = discordValidation.validatedMappings;
+    }
 
     if (!team.limits) {
       // Should never happen
@@ -372,6 +434,22 @@ export async function POST(
               })),
             },
           },
+          discordRoles: validatedDiscordMappings
+            ? {
+                createMany: {
+                  data: validatedDiscordMappings.map((mapping) => ({
+                    roleId: mapping.discordRoleId,
+                    roleName: mapping.roleName,
+                    guildId: mapping.discordGuildId,
+                    guildName: mapping.guildName,
+                    guildIcon: mapping.guildIcon,
+                    roleColor: mapping.roleColor,
+                    teamId: selectedTeam,
+                    createdByUserId: session.user.id,
+                  })),
+                },
+              }
+            : undefined,
           createdBy: {
             connect: {
               id: session.user.id,
@@ -385,6 +463,7 @@ export async function POST(
         },
         include: {
           metadata: true,
+          discordRoles: true,
         },
       });
 
@@ -416,7 +495,9 @@ export async function POST(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

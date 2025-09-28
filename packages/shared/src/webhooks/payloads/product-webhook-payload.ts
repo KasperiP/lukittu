@@ -1,10 +1,15 @@
-import { Metadata, Product } from '../../../prisma/generated/client';
+import {
+  Metadata,
+  Product,
+  ProductDiscordRole,
+} from '../../../prisma/generated/client';
 import { WebhookDiscordPayload } from '../discord-webhooks';
 import { formatDiscordAuthor } from './shared/format-author';
 import { formatDiscordFooter } from './shared/format-footer';
 
 export type ProductWebhookPayload = Product & {
   metadata: Metadata[];
+  discordRoles: ProductDiscordRole[];
 };
 
 export type CreateProductWebhookPayload = ProductWebhookPayload;
@@ -41,6 +46,49 @@ const buildProductFields = (payload: ProductWebhookPayload) => {
       inline: false,
     },
   ];
+
+  // Add Discord roles section
+  if (payload.discordRoles && payload.discordRoles.length > 0) {
+    const rolesByGuild = payload.discordRoles.reduce(
+      (acc, role) => {
+        if (!acc[role.guildId]) {
+          acc[role.guildId] = {
+            guildName: role.guildName,
+            roles: [],
+          };
+        }
+        acc[role.guildId].roles.push(role);
+        return acc;
+      },
+      {} as Record<
+        string,
+        { guildName: string; roles: typeof payload.discordRoles }
+      >,
+    );
+
+    fields.push({
+      name: '\u200B',
+      value: `**Discord Roles (${payload.discordRoles.length} total)**`,
+      inline: false,
+    });
+
+    Object.values(rolesByGuild).forEach((guild) => {
+      const roleList = guild.roles
+        .map((role) => `<@&${role.roleId}>`)
+        .join(' ');
+
+      fields.push({
+        name: guild.guildName,
+        value: roleList,
+        inline: false,
+      });
+    });
+  } else {
+    fields.push(
+      { name: '\u200B', value: '**Discord Roles**', inline: false },
+      { name: 'Connected Roles', value: 'None', inline: false },
+    );
+  }
 
   if (payload.metadata && payload.metadata.length > 0) {
     fields.push(

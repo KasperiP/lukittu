@@ -1,5 +1,5 @@
 import { createAuditLog } from '@/lib/logging/audit-log';
-import { DiscordUser, getDiscordUser } from '@/lib/providers/discord';
+import { DiscordUser, fetchDiscordUserById } from '@/lib/providers/discord';
 import { getSession } from '@/lib/security/session';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import {
@@ -26,7 +26,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type ICustomersGetSuccessResponse = {
   customers: (Customer & {
@@ -459,7 +459,7 @@ export async function POST(
       }
 
       try {
-        discordUser = await getDiscordUser(discordId);
+        discordUser = await fetchDiscordUserById(discordId);
 
         if (!discordUser) {
           return NextResponse.json(
@@ -475,6 +475,7 @@ export async function POST(
           discordId,
           error: error instanceof Error ? error.message : String(error),
         });
+
         return NextResponse.json(
           {
             field: 'discordId',
@@ -564,7 +565,9 @@ export async function POST(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {

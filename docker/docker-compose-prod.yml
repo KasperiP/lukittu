@@ -7,7 +7,7 @@ services:
     environment:
       - REDIS_HOST=lukittuRedis
     ports:
-      - '127.0.0.1:3069:3000'
+      - "127.0.0.1:3069:3000"
     networks:
       - lukittu-network
 
@@ -16,6 +16,8 @@ services:
     image: kassq/lukittu-bot:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
+    environment:
+      - REDIS_HOST=lukittuRedis
     networks:
       - lukittu-network
 
@@ -32,16 +34,18 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data/
     ports:
-      - '127.0.0.1:5434:5432'
+      - "127.0.0.1:5434:5432"
     networks:
       - lukittu-network
 
   lukittuRedis:
     container_name: lukittuRedis
-    image: redis/redis-stack-server:latest
+    image: redis:8-alpine
     restart: unless-stopped
+    env_file: .env
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - '127.0.0.1:6382:6379'
+      - "127.0.0.1:6382:6379"
     networks:
       - lukittu-network
 

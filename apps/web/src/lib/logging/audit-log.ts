@@ -3,8 +3,8 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   logger,
+  Prisma,
   prisma,
-  PrismaTransaction,
 } from '@lukittu/shared';
 import 'server-only';
 import { getCloudflareVisitorData } from '../providers/cloudflare';
@@ -18,7 +18,7 @@ interface BaseAuditLogProps {
   targetType: AuditLogTargetType;
   requestBody?: any;
   responseBody?: any;
-  tx?: PrismaTransaction;
+  tx?: Prisma.TransactionClient;
 }
 
 type SystemAuditLogProps = BaseAuditLogProps & {

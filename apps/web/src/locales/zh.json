@@ -168,7 +168,18 @@
     "invalid_discord_id": "无效的 Discord ID。",
     "discord_user_not_found": "未找到 Discord 用户。",
     "discord_api_error": "获取 Discord 用户时发生错误。",
-    "discord_account_already_linked": "此 Discord 帐号已绑定到另一位客户！"
+    "discord_account_already_linked": "此 Discord 帐号已绑定到另一位客户！",
+    "discord_role_id_invalid": "Discord 角色 ID 无效！",
+    "discord_guild_id_invalid": "Discord 服务器 ID 无效！",
+    "discord_role_duplicate": "每个 Discord 角色只能选择一次！",
+    "discord_role_max_limit": "每个产品最多允许 {max} 个 Discord 角色！",
+    "metadata_max_limit": "最多允许 {max} 个元数据条目！",
+    "discord_role_mapping_already_exists": "Discord 角色映射已存在！",
+    "discord_account_not_connected": "Discord 账号未连接！",
+    "discord_token_invalid": "Discord 令牌无效或已过期！",
+    "discord_insufficient_permissions": "Discord 权限不足，无法管理此角色！",
+    "discord_bot_not_in_guild": "机器人不是指定 Discord 服务器的成员！",
+    "discord_guild_or_role_not_found": "未找到 Discord 服务器或角色！"
   },
   "general": {
     "select_source": "选择来源",
@@ -388,7 +399,8 @@
     "upcoming": "即将到来",
     "original_parameters": "原始参数",
     "reconnect": "重新连接",
-    "token_expired": "令牌已过期"
+    "token_expired": "令牌已过期",
+    "roles": "角色"
   },
   "auth": {
     "oauth": {
@@ -608,7 +620,26 @@
       "product_deleted": "产品已删除",
       "product_created": "产品已创建",
       "no_licenses_assigned": "未分配许可证",
-      "editing_products_of_license": "您正在编辑许可证 <strong>{license}</strong> 的产品。"
+      "editing_products_of_license": "您正在编辑许可证 <strong>{license}</strong> 的产品。",
+      "discord_integration": "Discord 集成",
+      "discord_server": "Discord 服务器",
+      "discord_role": "Discord 身份组",
+      "select_discord_server": "选择 Discord 服务器",
+      "select_discord_role": "选择 Discord 身份组",
+      "select_server_first": "请先选择服务器",
+      "search_servers": "搜索服务器...",
+      "search_roles": "搜索身份组...",
+      "no_servers_found": "未找到服务器",
+      "no_roles_found": "未找到身份组",
+      "discord_not_connected": "Discord 账号未连接",
+      "discord_token_expired": "Discord 连接已过期",
+      "discord_reconnect_description": "请在个人资料设置中 <link>重新连接</link> 你的 Discord 账号。",
+      "reconnect_discord": "重新连接 Discord",
+      "discord_connection_error": "连接 Discord 失败",
+      "discord_connection_error_description": "请检查你的 Discord 连接并重试。",
+      "no_discord_mappings": "尚未设置角色映射",
+      "add_another_discord_mapping": "添加另一项映射",
+      "add_discord_role_mapping": "添加 Discord 角色映射"
     },
     "licenses": {
       "no_ip_addresses": "无IP地址",
@@ -685,7 +716,6 @@
       "delete_customer_confirm_title": "删除客户",
       "delete_customer_confirm_description": "您即将删除客户 <strong>{name}</strong>！这将<strong>永久删除</strong>此客户。此操作无法撤销。",
       "editing_customers_of_license": "您正在编辑许可证 <strong>{license}</strong> 的客户。",
-      "connections": "连接",
       "discord_id": "Discord账号",
       "address_details": "地址详情",
       "address_added": "地址已添加",

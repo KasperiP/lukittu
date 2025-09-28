@@ -21,6 +21,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
+import { after } from 'next/server';
 import { PolymartMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';
 import { PlaceholderPolymartSchema } from '../validation/integrations/placeholder-polymart-schema';
@@ -519,7 +520,9 @@ export const handlePolymartPurchase = async (
       };
     }
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const handlerTime = Date.now() - handlerStartTime;
 
