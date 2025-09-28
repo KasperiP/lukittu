@@ -29,6 +29,15 @@ jest.mock('@lukittu/shared', () => ({
   },
 }));
 
+jest.mock('next/server', () => ({
+  after: jest.fn(),
+  NextRequest: jest.fn(),
+  NextResponse: {
+    json: jest.fn(),
+    redirect: jest.fn(),
+  },
+}));
+
 beforeEach(() => {
   mockReset(prismaMock);
 });
