@@ -28,7 +28,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type IProductsGetSuccessResponse = {
   products: (Product & {
@@ -463,6 +463,7 @@ export async function POST(
         },
         include: {
           metadata: true,
+          discordRoles: true,
         },
       });
 
@@ -494,7 +495,9 @@ export async function POST(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

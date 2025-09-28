@@ -18,7 +18,7 @@ import {
 } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   _request: NextRequest,
@@ -450,7 +450,9 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const responseTime = Date.now() - requestTime.getTime();
 

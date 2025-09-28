@@ -30,7 +30,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type IProductGetSuccessResponse = {
   product: Product & {
@@ -234,6 +234,7 @@ export async function DELETE(
           },
         },
         metadata: true,
+        discordRoles: true,
       },
     });
 
@@ -312,7 +313,9 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response);
   } catch (error) {
@@ -532,6 +535,7 @@ export async function PUT(
         },
         include: {
           metadata: true,
+          discordRoles: true,
         },
       });
 
@@ -563,7 +567,9 @@ export async function PUT(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

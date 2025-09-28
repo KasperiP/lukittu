@@ -37,7 +37,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
@@ -456,7 +456,9 @@ export async function POST(request: NextRequest) {
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response, { status: HttpStatus.CREATED });
   } catch (error) {

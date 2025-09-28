@@ -27,7 +27,7 @@ import {
   WebhookEventType,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 
 export type ICustomerGetSuccessResponse = {
   customer: Customer & {
@@ -404,7 +404,9 @@ export async function PUT(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {
@@ -549,7 +551,9 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response, { status: HttpStatus.OK });
   } catch (error) {

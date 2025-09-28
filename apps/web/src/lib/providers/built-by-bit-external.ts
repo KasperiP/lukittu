@@ -20,6 +20,7 @@ import {
   updateCustomerPayload,
   WebhookEventType,
 } from '@lukittu/shared';
+import { after } from 'next/server';
 import 'server-only';
 import { BuiltByBitMetadataKeys } from '../constants/metadata';
 import { createAuditLog } from '../logging/audit-log';
@@ -384,7 +385,9 @@ export const handleBuiltByBitPurchase = async (
       };
     }
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const handlerTime = Date.now() - handlerStartTime;
 

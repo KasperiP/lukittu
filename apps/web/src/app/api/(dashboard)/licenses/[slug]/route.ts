@@ -574,7 +574,9 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     return NextResponse.json(response);
   } catch (error) {

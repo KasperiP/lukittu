@@ -879,7 +879,9 @@ export async function DELETE(
       return response;
     });
 
-    void attemptWebhookDelivery(webhookEventIds);
+    after(async () => {
+      await attemptWebhookDelivery(webhookEventIds);
+    });
 
     const responseTime = Date.now() - requestTime.getTime();
 
