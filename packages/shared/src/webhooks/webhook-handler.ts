@@ -11,7 +11,6 @@ import {
 } from '../../prisma/generated/client';
 import { logger } from '../logging/logger';
 import { prisma } from '../prisma/prisma';
-import { PrismaTransaction } from '../types/prisma-types';
 import {
   formatDiscordPayload,
   isDiscordWebhook,
@@ -24,7 +23,7 @@ interface CreateWebhookEventParams {
   source: AuditLogSource;
   userId?: string;
   payload: PayloadType;
-  tx: PrismaTransaction;
+  tx: Prisma.TransactionClient;
 }
 
 /**

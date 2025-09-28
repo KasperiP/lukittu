@@ -6,7 +6,6 @@ export * from './prisma/prisma';
 export * from './pubsub';
 export * from './redis/redis';
 export * from './security/crypto';
-export * from './types/prisma-types';
 export * from './webhooks/discord-webhooks';
 export * from './webhooks/payloads/customer-webhook-payload';
 export * from './webhooks/payloads/license-webhook-payload';
