@@ -68,4 +68,4 @@ COPY --from=builder /app/package.json ./
 USER botuser
 WORKDIR /app/apps/bot
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "--import", "./dist/instrument.js", "dist/index.js"]
