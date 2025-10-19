@@ -535,7 +535,9 @@ export default function SetCustomerModal() {
               type="submit"
               onClick={() => handleSubmit(onSubmit)()}
             >
-              {t('dashboard.customers.add_customer')}
+              {ctx.customerToEdit
+                ? t('dashboard.customers.edit_customer')
+                : t('dashboard.customers.add_customer')}
             </LoadingButton>
           </div>
         </ResponsiveDialogFooter>
