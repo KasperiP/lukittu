@@ -246,6 +246,30 @@ function genYears(yearRange = 50) {
   }));
 }
 
+/**
+ * Safely converts a value to a Date object.
+ * Handles cases where the value might be a string, number, null, undefined, or already a Date.
+ */
+function ensureDate(value: Date | string | number | null | undefined, fallback: Date): Date {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+  
+  if (value instanceof Date) {
+    return value;
+  }
+  
+  // Handle string or number values (e.g., from JSON serialization)
+  const parsed = new Date(value);
+  
+  // Check if the parsed date is valid
+  if (isNaN(parsed.getTime())) {
+    return fallback;
+  }
+  
+  return parsed;
+}
+
 // ---------- utils end ----------
 
 function Calendar({
@@ -749,10 +773,12 @@ const DateTimePicker = React.forwardRef<
   ) => {
     const popOverRef = useRef<HTMLButtonElement | null>(null);
 
-    const [month, setMonth] = React.useState<Date>(value ?? defaultPopupValue);
+    const [month, setMonth] = React.useState<Date>(
+      ensureDate(value, defaultPopupValue)
+    );
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [displayDate, setDisplayDate] = React.useState<Date | undefined>(
-      value ?? undefined,
+      value ? ensureDate(value, defaultPopupValue) : undefined,
     );
     onMonthChange ||= onChange;
 
@@ -761,8 +787,14 @@ const DateTimePicker = React.forwardRef<
      * parent component
      */
     React.useEffect(() => {
-      setDisplayDate(value);
-    }, [value]);
+      if (value) {
+        const dateValue = ensureDate(value, defaultPopupValue);
+        setDisplayDate(dateValue);
+        setMonth(dateValue);
+      } else {
+        setDisplayDate(undefined);
+      }
+    }, [value, defaultPopupValue]);
 
     /**
      * carry over the current time when a user clicks a new day
