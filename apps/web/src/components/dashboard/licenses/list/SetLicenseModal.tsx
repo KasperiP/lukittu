@@ -478,7 +478,9 @@ export default function SetLicenseModal() {
                             placeholder={t(
                               'dashboard.licenses.expiration_date',
                             )}
-                            value={field.value ?? undefined}
+                            value={
+                              field.value ? new Date(field.value) : undefined
+                            }
                             onChange={(date) => {
                               if (!date) {
                                 return setValue('expirationDate', null);
@@ -559,7 +561,11 @@ export default function SetLicenseModal() {
                                 placeholder={t(
                                   'dashboard.licenses.expiration_date',
                                 )}
-                                value={field.value ?? undefined}
+                                value={
+                                  field.value
+                                    ? new Date(field.value)
+                                    : undefined
+                                }
                                 onChange={(date) => {
                                   if (!date) {
                                     return setValue(
