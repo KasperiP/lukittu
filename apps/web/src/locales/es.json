@@ -179,7 +179,8 @@
     "discord_token_invalid": "El token de Discord no es válido o ha expirado!",
     "discord_insufficient_permissions": "Permisos insuficientes en Discord para gestionar este rol!",
     "discord_bot_not_in_guild": "El bot no es miembro del servidor de Discord especificado!",
-    "discord_guild_or_role_not_found": "Servidor o rol de Discord no encontrado!"
+    "discord_guild_or_role_not_found": "Servidor o rol de Discord no encontrado!",
+    "discord_account_already_linked_to_user": "¡Esta cuenta de Discord ya está vinculada a otra cuenta de usuario!"
   },
   "general": {
     "select_key": "Seleccionar clave",

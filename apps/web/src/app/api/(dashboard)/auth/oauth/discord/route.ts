@@ -75,6 +75,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const encryptedRefreshToken = encryptString(tokenData.refresh_token);
 
+    // Check if this Discord account is already linked to another user
+    const existingDiscordAccount = await prisma.userDiscordAccount.findUnique({
+      where: { discordId: userData.id },
+      select: { userId: true },
+    });
+
+    if (
+      existingDiscordAccount &&
+      existingDiscordAccount.userId !== session.user.id
+    ) {
+      logger.warn('Discord account already linked to another user', {
+        discordId: userData.id,
+        currentUserId: session.user.id,
+        linkedUserId: existingDiscordAccount.userId,
+      });
+      return NextResponse.redirect(
+        new URL('/dashboard/profile?error=discord_already_linked', baseUrl),
+      );
+    }
+
     await prisma.user.update({
       where: { id: session.user.id },
       data: {

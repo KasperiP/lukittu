@@ -46,7 +46,11 @@ export default function ThirdPartyConnectionsCard() {
 
   useEffect(() => {
     if (error) {
-      toast.error(t('dashboard.profile.discord_connection_failed'));
+      if (error === 'discord_already_linked') {
+        toast.error(t('validation.discord_account_already_linked_to_user'));
+      } else {
+        toast.error(t('dashboard.profile.discord_connection_failed'));
+      }
       router.replace('/dashboard/profile');
     }
   }, [error, t, router]);

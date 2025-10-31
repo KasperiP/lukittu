@@ -179,7 +179,8 @@
     "discord_token_invalid": "Discord-tunnus on virheellinen tai vanhentunut!",
     "discord_insufficient_permissions": "Riittämättömät Discord-oikeudet tämän roolin hallintaan!",
     "discord_bot_not_in_guild": "Botti ei ole määritetyn Discord-palvelimen jäsen!",
-    "discord_guild_or_role_not_found": "Discord-palvelinta tai roolia ei löytynyt!"
+    "discord_guild_or_role_not_found": "Discord-palvelinta tai roolia ei löytynyt!",
+    "discord_account_already_linked_to_user": "Tämä Discord-tili on jo yhdistetty toiseen käyttäjätiliin!"
   },
   "general": {
     "select_key": "Valitse avain",

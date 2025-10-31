@@ -179,7 +179,8 @@
     "discord_token_invalid": "Token Discord jest nieprawidłowy lub wygasł!",
     "discord_insufficient_permissions": "Niewystarczające uprawnienia Discord do zarządzania tą rolą!",
     "discord_bot_not_in_guild": "Bot nie jest członkiem określonego serwera Discord!",
-    "discord_guild_or_role_not_found": "Nie znaleziono serwera ani roli Discord!"
+    "discord_guild_or_role_not_found": "Nie znaleziono serwera ani roli Discord!",
+    "discord_account_already_linked_to_user": "To konto Discord jest już połączone z innym kontem użytkownika!"
   },
   "general": {
     "add": "Dodaj",

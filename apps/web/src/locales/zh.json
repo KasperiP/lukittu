@@ -179,7 +179,8 @@
     "discord_token_invalid": "Discord 令牌无效或已过期！",
     "discord_insufficient_permissions": "Discord 权限不足，无法管理此角色！",
     "discord_bot_not_in_guild": "机器人不是指定 Discord 服务器的成员！",
-    "discord_guild_or_role_not_found": "未找到 Discord 服务器或角色！"
+    "discord_guild_or_role_not_found": "未找到 Discord 服务器或角色！",
+    "discord_account_already_linked_to_user": "此 Discord 帐号已与另一用户帐号关联！"
   },
   "general": {
     "select_source": "选择来源",

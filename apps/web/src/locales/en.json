@@ -179,7 +179,8 @@
     "hwid_limit_max": "HWID limit must not exceed {max}!",
     "ip_limit_min": "IP limit must be at least {min}!",
     "ip_limit_max": "IP limit must not exceed {max}!",
-    "discord_account_already_linked": "This Discord account is already linked to another customer!"
+    "discord_account_already_linked": "This Discord account is already linked to another customer!",
+    "discord_account_already_linked_to_user": "This Discord account is already linked to another user account!"
   },
   "general": {
     "response_status": "Response status",
