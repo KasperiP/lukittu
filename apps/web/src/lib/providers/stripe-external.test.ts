@@ -158,10 +158,12 @@ describe('Stripe Integration', () => {
       products: [{ name: 'Test Product' }],
     } as any);
 
-    prismaMock.product.findUnique.mockResolvedValue({
-      id: 'prod_123',
-      name: 'Test Product',
-    } as any);
+    prismaMock.product.findMany.mockResolvedValue([
+      {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        name: 'Test Product',
+      },
+    ] as any);
 
     (mockStripe.checkout.sessions.retrieve as jest.Mock).mockResolvedValue({
       id: mockSession.id,
@@ -298,7 +300,7 @@ describe('Stripe Integration', () => {
     });
 
     it('should skip if product not found from database', async () => {
-      prismaMock.product.findUnique.mockResolvedValue(null);
+      prismaMock.product.findMany.mockResolvedValue([]);
 
       await handleCheckoutSessionCompleted(
         'test-request-id',
@@ -308,12 +310,14 @@ describe('Stripe Integration', () => {
       );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'handleCheckoutSessionCompleted: Stripe checkout skipped - product not found',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - product(s) not found',
         {
           requestId: 'test-request-id',
           teamId: 'team-123',
           sessionId: 'cs_test_123',
-          productId: '123e4567-e89b-12d3-a456-426614174000',
+          productIdString: '123e4567-e89b-12d3-a456-426614174000',
+          notFoundIds: ['123e4567-e89b-12d3-a456-426614174000'],
+          validIds: [],
         },
       );
       expect(prismaMock.license.update).not.toHaveBeenCalled();
@@ -359,12 +363,13 @@ describe('Stripe Integration', () => {
       );
 
       expect(logger.info).toHaveBeenCalledWith(
-        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID',
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID format',
         {
           requestId: 'test-request-id',
           teamId: 'team-123',
           sessionId: 'cs_test_123',
-          productId: 'invalid-uuid',
+          productIdString: 'invalid-uuid',
+          invalidIds: ['invalid-uuid'],
         },
       );
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
@@ -442,6 +447,216 @@ describe('Stripe Integration', () => {
         },
       );
     });
+
+    test('successfully processes checkout with comma-separated product IDs', async () => {
+      const productId1 = '123e4567-e89b-12d3-a456-426614174000';
+      const productId2 = '223e4567-e89b-12d3-a456-426614174001';
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${productId1},${productId2}`,
+          ip_limit: '5',
+          hwid_limit: '10',
+          expiration_days: '365',
+          expiration_start: 'CREATION',
+        },
+      });
+
+      prismaMock.product.findMany.mockResolvedValue([
+        { id: productId1, name: 'Product 1' },
+        { id: productId2, name: 'Product 2' },
+      ] as any);
+
+      const createdLicense = {
+        id: 'license_123',
+        licenseKey: 'encrypted-license-key',
+        teamId: mockTeam.id,
+        team: { name: 'Test Team' },
+        products: [{ name: 'Product 1' }, { name: 'Product 2' }],
+      };
+
+      prismaMock.license.create.mockResolvedValue(createdLicense as any);
+
+      const result = await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(result).toBeDefined();
+      expect(prismaMock.license.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            products: {
+              connect: [{ id: productId1 }, { id: productId2 }],
+            },
+          }),
+        }),
+      );
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleCheckoutSessionCompleted: Stripe checkout session processed successfully',
+        expect.objectContaining({
+          productIds: [productId1, productId2],
+          productCount: 2,
+        }),
+      );
+    });
+
+    test('handles comma-separated product IDs with whitespace', async () => {
+      const productId1 = '123e4567-e89b-12d3-a456-426614174000';
+      const productId2 = '223e4567-e89b-12d3-a456-426614174001';
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${productId1} , ${productId2} `,
+          ip_limit: '5',
+        },
+      });
+
+      prismaMock.product.findMany.mockResolvedValue([
+        { id: productId1, name: 'Product 1' },
+        { id: productId2, name: 'Product 2' },
+      ] as any);
+
+      const result = await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(result).toBeDefined();
+      expect(prismaMock.license.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            products: {
+              connect: [{ id: productId1 }, { id: productId2 }],
+            },
+          }),
+        }),
+      );
+    });
+
+    test('deduplicates product IDs in comma-separated list', async () => {
+      const productId = '123e4567-e89b-12d3-a456-426614174000';
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${productId},${productId}`,
+          ip_limit: '5',
+        },
+      });
+
+      prismaMock.product.findMany.mockResolvedValue([
+        { id: productId, name: 'Product 1' },
+      ] as any);
+
+      const result = await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(result).toBeDefined();
+      expect(prismaMock.license.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            products: {
+              connect: [{ id: productId }],
+            },
+          }),
+        }),
+      );
+    });
+
+    test('skips if one product ID in list is invalid', async () => {
+      const validId = '123e4567-e89b-12d3-a456-426614174000';
+      const invalidId = 'invalid-uuid';
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${validId},${invalidId}`,
+        },
+      });
+
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID format',
+        expect.objectContaining({
+          invalidIds: [invalidId],
+        }),
+      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+    });
+
+    test('skips if one product in list is not found', async () => {
+      const productId1 = '123e4567-e89b-12d3-a456-426614174000';
+      const productId2 = '223e4567-e89b-12d3-a456-426614174001';
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${productId1},${productId2}`,
+        },
+      });
+
+      // Only return one product, simulating that the second is not found
+      prismaMock.product.findMany.mockResolvedValue([
+        { id: productId1, name: 'Product 1' },
+      ] as any);
+
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - product(s) not found',
+        expect.objectContaining({
+          notFoundIds: [productId2],
+          validIds: [productId1],
+        }),
+      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+    });
+
+    test('skips if product_id is empty string', async () => {
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: '',
+        },
+      });
+
+      await handleCheckoutSessionCompleted(
+        'test-request-id',
+        mockSession,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleCheckoutSessionCompleted: Stripe checkout skipped - no product ID provided',
+        expect.objectContaining({
+          productIdString: '',
+        }),
+      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleInvoicePaid', () => {
@@ -477,10 +692,12 @@ describe('Stripe Integration', () => {
         },
       });
 
-      prismaMock.product.findUnique.mockResolvedValue({
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        name: 'Test Product',
-      } as any);
+      prismaMock.product.findMany.mockResolvedValue([
+        {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          name: 'Test Product',
+        },
+      ] as any);
 
       const createdLicense = {
         id: 'subscription_license_123',
@@ -664,6 +881,168 @@ describe('Stripe Integration', () => {
           handlerTimeMs: expect.any(Number),
         },
       );
+    });
+
+    test('successfully creates license with comma-separated product IDs', async () => {
+      const invoice = {
+        ...mockInvoice,
+        billing_reason: 'subscription_create' as Stripe.Invoice.BillingReason,
+      };
+
+      const productId1 = '123e4567-e89b-12d3-a456-426614174000';
+      const productId2 = '223e4567-e89b-12d3-a456-426614174001';
+
+      const subscriptionWithCustomer = {
+        ...mockSubscription,
+        customer: 'cus_123',
+        metadata: {},
+      };
+
+      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue(
+        subscriptionWithCustomer,
+      );
+
+      (mockStripe.customers.retrieve as jest.Mock).mockResolvedValue({
+        id: 'cus_123',
+        email: 'subscription@example.com',
+        name: 'Subscription Customer',
+        deleted: false,
+      });
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: `${productId1},${productId2}`,
+          ip_limit: '5',
+          hwid_limit: '10',
+        },
+      });
+
+      prismaMock.product.findMany.mockResolvedValue([
+        { id: productId1, name: 'Product 1' },
+        { id: productId2, name: 'Product 2' },
+      ] as any);
+
+      const createdLicense = {
+        id: 'subscription_license_123',
+        expirationDate: new Date(),
+      };
+
+      prismaMock.license.create.mockResolvedValue(createdLicense as any);
+
+      prismaMock.$transaction.mockImplementation(async (callback) => {
+        await callback(prismaMock);
+        return createdLicense;
+      });
+
+      const result = await handleInvoicePaid(
+        'test-request-id',
+        invoice,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(result).toBeDefined();
+      expect(prismaMock.license.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            products: {
+              connect: [{ id: productId1 }, { id: productId2 }],
+            },
+          }),
+        }),
+      );
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleInvoicePaid: License created for subscription',
+        expect.objectContaining({
+          productIds: [productId1, productId2],
+          productCount: 2,
+        }),
+      );
+    });
+
+    test('skips if product not found from database', async () => {
+      const invoice = {
+        ...mockInvoice,
+        billing_reason: 'subscription_create' as Stripe.Invoice.BillingReason,
+      };
+
+      const subscriptionWithCustomer = {
+        ...mockSubscription,
+        customer: 'cus_123',
+        metadata: {},
+      };
+
+      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue(
+        subscriptionWithCustomer,
+      );
+
+      (mockStripe.customers.retrieve as jest.Mock).mockResolvedValue({
+        id: 'cus_123',
+        email: 'subscription@example.com',
+        name: 'Subscription Customer',
+        deleted: false,
+      });
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: '123e4567-e89b-12d3-a456-426614174000',
+        },
+      });
+
+      prismaMock.product.findMany.mockResolvedValue([]);
+
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleInvoicePaid: Stripe invoice skipped - product(s) not found',
+        expect.objectContaining({
+          notFoundIds: ['123e4567-e89b-12d3-a456-426614174000'],
+        }),
+      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+    });
+
+    test('skips if product ID is invalid format', async () => {
+      const invoice = {
+        ...mockInvoice,
+        billing_reason: 'subscription_create' as Stripe.Invoice.BillingReason,
+      };
+
+      const subscriptionWithCustomer = {
+        ...mockSubscription,
+        customer: 'cus_123',
+        metadata: {},
+      };
+
+      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue(
+        subscriptionWithCustomer,
+      );
+
+      (mockStripe.customers.retrieve as jest.Mock).mockResolvedValue({
+        id: 'cus_123',
+        email: 'subscription@example.com',
+        name: 'Subscription Customer',
+        deleted: false,
+      });
+
+      (mockStripe.products.retrieve as jest.Mock).mockResolvedValue({
+        id: 'prod_123',
+        metadata: {
+          product_id: 'invalid-uuid',
+        },
+      });
+
+      await handleInvoicePaid('test-request-id', invoice, mockTeam, mockStripe);
+
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleInvoicePaid: Stripe invoice skipped - invalid product ID format',
+        expect.objectContaining({
+          invalidIds: ['invalid-uuid'],
+        }),
+      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
   });
 

@@ -36,6 +36,101 @@ type ExtendedTeam = Team & {
   };
 };
 
+/**
+ * Parses a product ID string that may contain a single ID or comma-separated IDs.
+ * Handles whitespace, empty strings, and deduplicates IDs.
+ *
+ * @param productIdString - The product ID(s) from Stripe metadata
+ * @returns Array of trimmed, unique product IDs
+ */
+function parseProductIds(productIdString: string | undefined): string[] {
+  if (!productIdString || productIdString.trim().length === 0) {
+    return [];
+  }
+
+  const ids = productIdString
+    .split(',')
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+
+  // Deduplicate IDs
+  return Array.from(new Set(ids));
+}
+
+/**
+ * Validates product IDs and checks if they exist in the database.
+ * Ensures all IDs are valid UUIDs and belong to the specified team.
+ *
+ * @param productIds - Array of product IDs to validate
+ * @param teamId - The team ID to check product ownership
+ * @returns Object containing validation result and valid product IDs
+ */
+async function validateProductIds(
+  productIds: string[],
+  teamId: string,
+): Promise<{
+  valid: boolean;
+  validIds: string[];
+  invalidIds: string[];
+  notFoundIds: string[];
+}> {
+  if (productIds.length === 0) {
+    return {
+      valid: false,
+      validIds: [],
+      invalidIds: [],
+      notFoundIds: [],
+    };
+  }
+
+  // Validate UUID format
+  const invalidIds = productIds.filter((id) => !regex.uuidV4.test(id));
+  const validFormatIds = productIds.filter((id) => regex.uuidV4.test(id));
+
+  if (invalidIds.length > 0) {
+    return {
+      valid: false,
+      validIds: [],
+      invalidIds,
+      notFoundIds: [],
+    };
+  }
+
+  // Check if all products exist and belong to the team
+  const existingProducts = await prisma.product.findMany({
+    where: {
+      id: {
+        in: validFormatIds,
+      },
+      teamId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const existingProductIds = new Set(existingProducts.map((p) => p.id));
+  const notFoundIds = validFormatIds.filter(
+    (id) => !existingProductIds.has(id),
+  );
+
+  if (notFoundIds.length > 0) {
+    return {
+      valid: false,
+      validIds: Array.from(existingProductIds),
+      invalidIds: [],
+      notFoundIds,
+    };
+  }
+
+  return {
+    valid: true,
+    validIds: validFormatIds,
+    invalidIds: [],
+    notFoundIds: [],
+  };
+}
+
 export const handleInvoicePaid = async (
   requestId: string,
   invoice: Stripe.Invoice,
@@ -113,7 +208,7 @@ export const handleInvoicePaid = async (
         item.price.product as string,
       );
 
-      const lukittuProductId = product.metadata.product_id;
+      const productIdString = product.metadata.product_id;
       const ipLimit = product.metadata.ip_limit as string | undefined;
 
       /**
@@ -123,34 +218,55 @@ export const handleInvoicePaid = async (
       const hwidLimit =
         product.metadata.hwid_limit || (legacySeats as string | undefined);
 
-      if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
-        logger.info(
-          'handleInvoicePaid: Stripe invoice skipped - invalid product ID',
-          {
-            requestId,
-            teamId: team.id,
-            subscriptionId: subscription.id,
-            productId: lukittuProductId,
-          },
-        );
-        return;
-      }
+      // Parse and validate product IDs
+      const lukittuProductIds = parseProductIds(productIdString);
+      const validation = await validateProductIds(lukittuProductIds, team.id);
 
-      const productExists = await prisma.product.findUnique({
-        where: {
-          id: lukittuProductId,
-        },
-      });
-
-      if (!productExists) {
-        logger.info(
-          'handleInvoicePaid: Stripe invoice skipped - product not found',
-          {
-            requestId,
-            teamId: team.id,
-            productId: lukittuProductId,
-          },
-        );
+      if (!validation.valid) {
+        if (lukittuProductIds.length === 0) {
+          logger.info(
+            'handleInvoicePaid: Stripe invoice skipped - no product ID provided',
+            {
+              requestId,
+              teamId: team.id,
+              subscriptionId: subscription.id,
+              productIdString,
+            },
+          );
+        } else if (validation.invalidIds.length > 0) {
+          logger.info(
+            'handleInvoicePaid: Stripe invoice skipped - invalid product ID format',
+            {
+              requestId,
+              teamId: team.id,
+              subscriptionId: subscription.id,
+              productIdString,
+              invalidIds: validation.invalidIds,
+            },
+          );
+        } else if (validation.notFoundIds.length > 0) {
+          logger.info(
+            'handleInvoicePaid: Stripe invoice skipped - product(s) not found',
+            {
+              requestId,
+              teamId: team.id,
+              subscriptionId: subscription.id,
+              productIdString,
+              notFoundIds: validation.notFoundIds,
+              validIds: validation.validIds,
+            },
+          );
+        } else {
+          logger.info(
+            'handleInvoicePaid: Stripe invoice skipped - unknown product ID validation error',
+            {
+              requestId,
+              teamId: team.id,
+              subscriptionId: subscription.id,
+              productIdString,
+            },
+          );
+        }
         return;
       }
 
@@ -326,9 +442,7 @@ export const handleInvoicePaid = async (
               },
             },
             products: {
-              connect: {
-                id: lukittuProductId,
-              },
+              connect: validation.validIds.map((id) => ({ id })),
             },
             ipLimit: ipLimit ? parsedIpLimit : null,
             hwidLimit: hwidLimit ? parsedHwidLimit : null,
@@ -351,7 +465,7 @@ export const handleInvoicePaid = async (
             licenseKey,
             teamId: team.id,
             customers: [lukittuCustomer.id],
-            products: [lukittuProductId],
+            products: validation.validIds,
             metadata: metadata.map((m) => ({
               key: m.key,
               value: m.value,
@@ -419,7 +533,8 @@ export const handleInvoicePaid = async (
         teamId: team.id,
         licenseId: license.id,
         customerId: stripeCustomerId,
-        productId: lukittuProductId,
+        productIds: validation.validIds,
+        productCount: validation.validIds.length,
       });
 
       return license;
@@ -722,7 +837,7 @@ export const handleCheckoutSessionCompleted = async (
     const product = await stripe.products.retrieve(
       item.price.product as string,
     );
-    const lukittuProductId = product.metadata.product_id;
+    const productIdString = product.metadata.product_id;
     const ipLimit = product.metadata.ip_limit as string | undefined;
 
     /**
@@ -739,36 +854,55 @@ export const handleCheckoutSessionCompleted = async (
       | string
       | undefined;
 
-    if (!lukittuProductId || !regex.uuidV4.test(lukittuProductId)) {
-      logger.info(
-        'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID',
-        {
-          requestId,
-          teamId: team.id,
-          sessionId: session.id,
-          productId: lukittuProductId,
-        },
-      );
-      return;
-    }
+    // Parse and validate product IDs
+    const lukittuProductIds = parseProductIds(productIdString);
+    const validation = await validateProductIds(lukittuProductIds, team.id);
 
-    const productExists = await prisma.product.findUnique({
-      where: {
-        id: lukittuProductId,
-        teamId: team.id,
-      },
-    });
-
-    if (!productExists) {
-      logger.info(
-        'handleCheckoutSessionCompleted: Stripe checkout skipped - product not found',
-        {
-          requestId,
-          teamId: team.id,
-          sessionId: session.id,
-          productId: lukittuProductId,
-        },
-      );
+    if (!validation.valid) {
+      if (lukittuProductIds.length === 0) {
+        logger.info(
+          'handleCheckoutSessionCompleted: Stripe checkout skipped - no product ID provided',
+          {
+            requestId,
+            teamId: team.id,
+            sessionId: session.id,
+            productIdString,
+          },
+        );
+      } else if (validation.invalidIds.length > 0) {
+        logger.info(
+          'handleCheckoutSessionCompleted: Stripe checkout skipped - invalid product ID format',
+          {
+            requestId,
+            teamId: team.id,
+            sessionId: session.id,
+            productIdString,
+            invalidIds: validation.invalidIds,
+          },
+        );
+      } else if (validation.notFoundIds.length > 0) {
+        logger.info(
+          'handleCheckoutSessionCompleted: Stripe checkout skipped - product(s) not found',
+          {
+            requestId,
+            teamId: team.id,
+            sessionId: session.id,
+            productIdString,
+            notFoundIds: validation.notFoundIds,
+            validIds: validation.validIds,
+          },
+        );
+      } else {
+        logger.info(
+          'handleCheckoutSessionCompleted: Stripe checkout skipped - unknown product ID validation error',
+          {
+            requestId,
+            teamId: team.id,
+            sessionId: session.id,
+            productIdString,
+          },
+        );
+      }
       return;
     }
 
@@ -990,9 +1124,7 @@ export const handleCheckoutSessionCompleted = async (
             },
           },
           products: {
-            connect: {
-              id: lukittuProductId,
-            },
+            connect: validation.validIds.map((id) => ({ id })),
           },
           ipLimit: ipLimit ? parsedIpLimit : null,
           hwidLimit: hwidLimit ? parsedHwidLimit : null,
@@ -1017,7 +1149,7 @@ export const handleCheckoutSessionCompleted = async (
           licenseKey,
           teamId: team.id,
           customers: [lukittuCustomer.id],
-          products: [lukittuProductId],
+          products: validation.validIds,
           metadata: metadata.map((m) => ({
             key: m.key,
             value: m.value,
@@ -1091,7 +1223,8 @@ export const handleCheckoutSessionCompleted = async (
         sessionId: session.id,
         licenseId: license.id,
         customerEmail: customer.email,
-        productId: lukittuProductId,
+        productIds: validation.validIds,
+        productCount: validation.validIds.length,
         paymentIntentId: session.payment_intent,
         handlerTimeMs: handlerTime,
       },
