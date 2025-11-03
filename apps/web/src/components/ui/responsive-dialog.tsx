@@ -48,7 +48,14 @@ const ResponsiveDialog = ({
   const isDesktop = useMediaQuery(desktop);
   const ResponsiveDialog = isDesktop ? Dialog : Drawer;
 
-  return <ResponsiveDialog {...props}>{children}</ResponsiveDialog>;
+  return (
+    <ResponsiveDialog
+      {...props}
+      {...(!isDesktop && { repositionInputs: false })}
+    >
+      {children}
+    </ResponsiveDialog>
+  );
 };
 
 const ResponsiveDialogTrigger = ({
