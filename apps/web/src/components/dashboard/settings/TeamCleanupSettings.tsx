@@ -172,6 +172,7 @@ export default function TeamCleanupSettings({
                       </FormLabel>
                       <FormControl>
                         <Input
+                          inputMode="numeric"
                           max="1825"
                           min="1"
                           placeholder="30"
@@ -226,6 +227,7 @@ export default function TeamCleanupSettings({
                       </FormLabel>
                       <FormControl>
                         <Input
+                          inputMode="numeric"
                           max="1825"
                           min="1"
                           placeholder="90"

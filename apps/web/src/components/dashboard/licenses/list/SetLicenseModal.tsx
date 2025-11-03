@@ -649,6 +649,7 @@ export default function SetLicenseModal() {
                             <FormControl>
                               <Input
                                 {...field}
+                                inputMode="numeric"
                                 min={1}
                                 placeholder={t(
                                   'dashboard.licenses.expiration_days',
@@ -715,6 +716,7 @@ export default function SetLicenseModal() {
                     <FormControl>
                       <Input
                         {...field}
+                        inputMode="numeric"
                         min={1}
                         placeholder={t('dashboard.licenses.ip_limit')}
                         type="number"
@@ -740,6 +742,7 @@ export default function SetLicenseModal() {
                     <FormControl>
                       <Input
                         {...field}
+                        inputMode="numeric"
                         min={1}
                         placeholder={t('dashboard.licenses.hwid_limit')}
                         type="number"

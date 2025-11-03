@@ -124,6 +124,7 @@ export function HwidCountFilterChip({
 
         <div className="flex gap-2">
           <Input
+            inputMode="numeric"
             max="1000"
             min="0"
             placeholder={
@@ -144,6 +145,7 @@ export function HwidCountFilterChip({
           />
           {tempComparisonMode === 'between' && (
             <Input
+              inputMode="numeric"
               max="1000"
               maxLength={4}
               min="0"

@@ -113,6 +113,7 @@ export function LicenseCountFilterChip({
 
         <div className="flex gap-2">
           <Input
+            inputMode="numeric"
             max="1000"
             min="0"
             placeholder={
@@ -133,6 +134,7 @@ export function LicenseCountFilterChip({
           />
           {tempComparisonMode === 'between' && (
             <Input
+              inputMode="numeric"
               max="1000"
               min="0"
               placeholder={t('general.max')}

@@ -326,6 +326,7 @@ export default function TeamValidationSettings({
                         <FormControl>
                           <Input
                             disabled={!team || loading}
+                            inputMode="numeric"
                             min={1}
                             placeholder={t('general.duration')}
                             type="number"
@@ -413,6 +414,7 @@ export default function TeamValidationSettings({
                         <FormControl>
                           <Input
                             disabled={!team || loading}
+                            inputMode="numeric"
                             min={1}
                             placeholder={t('general.duration')}
                             type="number"
