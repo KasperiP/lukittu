@@ -206,11 +206,11 @@ export const CustomersSearchFilter = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="truncate text-sm font-medium">
-                          {customer.fullName ?? 'N/A'}
+                          {customer.username ?? customer.fullName ?? 'N/A'}
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        {customer.fullName ?? 'N/A'}
+                        {customer.username ?? customer.fullName ?? 'N/A'}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
