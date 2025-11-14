@@ -12,11 +12,11 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data/
     ports:
-      - "127.0.0.1:5434:5432"
+      - '127.0.0.1:5434:5432'
     networks:
       - lukittu-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,11 +30,11 @@ services:
     volumes:
       - redis-data:/data
     ports:
-      - "127.0.0.1:6382:6379"
+      - '127.0.0.1:6382:6379'
     networks:
       - lukittu-network
     healthcheck:
-      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      test: ['CMD', 'redis-cli', '--pass', '${REDIS_PASSWORD}', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5

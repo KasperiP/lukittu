@@ -25,6 +25,18 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
+# Build arguments for Sentry configuration
+ARG SENTRY_DSN_BOT
+ARG SENTRY_RELEASE
+ARG SENTRY_ORG
+ARG SENTRY_PROJECT
+
+# Set environment variables for the build
+ENV SENTRY_DSN_BOT=$SENTRY_DSN_BOT \
+    SENTRY_RELEASE=$SENTRY_RELEASE \
+    SENTRY_ORG=$SENTRY_ORG \
+    SENTRY_PROJECT=$SENTRY_PROJECT
+
 # Copy all workspace files
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
@@ -42,8 +54,10 @@ WORKDIR /app/apps/bot
 # Generate Prisma client
 RUN cd ../../packages/shared && pnpm run build
 
-# Build the bot
-RUN pnpm run build
+# Build the bot with Sentry auth token from secret
+RUN --mount=type=secret,id=sentry_auth_token \
+    export SENTRY_AUTH_TOKEN=$(cat /run/secrets/sentry_auth_token 2>/dev/null || echo "") && \
+    pnpm run build
 
 # 3. Production image
 FROM base AS runner

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - "*.*.*"
+      - '*.*.*'
   pull_request:
     branches:
       - main
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: '24'
 
       - name: Run translation key check
         run: node apps/web/src/locales/checkTranslations.js
@@ -39,11 +39,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: "latest"
+          version: 'latest'
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "pnpm"
+          node-version: '24'
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Generate database client and build shared
@@ -58,11 +58,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: "latest"
+          version: 'latest'
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "pnpm"
+          node-version: '24'
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Lint web application
@@ -75,11 +75,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: "latest"
+          version: 'latest'
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "pnpm"
+          node-version: '24'
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Lint bot application
@@ -93,11 +93,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: "latest"
+          version: 'latest'
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "pnpm"
+          node-version: '24'
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Generate database client and build shared
@@ -113,11 +113,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: "latest"
+          version: 'latest'
       - uses: actions/setup-node@v4
         with:
-          node-version: "24"
-          cache: "pnpm"
+          node-version: '24'
+          cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Generate database client and build shared
@@ -144,24 +144,6 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
 
-      - name: Configure environment
-        run: |
-          cat << EOF > apps/web/.env
-          NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
-          NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
-          NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
-          NEXT_PUBLIC_GOOGLE_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GOOGLE_REDIRECT_URI }}
-          NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
-          NEXT_PUBLIC_GITHUB_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GITHUB_REDIRECT_URI }}
-          NEXT_PUBLIC_DISCORD_CLIENT_ID=${{ secrets.NEXT_PUBLIC_DISCORD_CLIENT_ID }}
-          NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
-          NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-          SENTRY_ORG=lukittu
-          SENTRY_PROJECT=lukittu-next
-          EOF
-
       - name: Login to Docker Registry
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v3
@@ -181,6 +163,21 @@ jobs:
           cache-to: type=inline
           platforms: linux/amd64
           provenance: false
+          secrets: |
+            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
+          build-args: |
+            NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_TURNSTILE_SITE_KEY=${{ secrets.NEXT_PUBLIC_TURNSTILE_SITE_KEY }}
+            NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+            NEXT_PUBLIC_GOOGLE_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GOOGLE_REDIRECT_URI }}
+            NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+            NEXT_PUBLIC_GITHUB_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_GITHUB_REDIRECT_URI }}
+            NEXT_PUBLIC_DISCORD_CLIENT_ID=${{ secrets.NEXT_PUBLIC_DISCORD_CLIENT_ID }}
+            NEXT_PUBLIC_DISCORD_REDIRECT_URI=${{ secrets.NEXT_PUBLIC_DISCORD_REDIRECT_URI }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+            SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+            SENTRY_ORG=lukittu
+            SENTRY_PROJECT=lukittu-next
 
   build-bot:
     needs: [lint-bot, test-shared, lint-shared]
@@ -201,16 +198,6 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=semver,pattern={{version}}
 
-      - name: Configure environment
-        run: |
-          cat << EOF > apps/bot/.env
-          SENTRY_DSN_BOT=${{ secrets.SENTRY_DSN_BOT }}
-          SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
-          SENTRY_ORG=lukittu
-          SENTRY_PROJECT=lukittu-bot
-          EOF
-
       - name: Login to Docker Registry
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v3
@@ -230,6 +217,13 @@ jobs:
           cache-to: type=inline
           platforms: linux/amd64
           provenance: false
+          secrets: |
+            sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}
+          build-args: |
+            SENTRY_DSN_BOT=${{ secrets.SENTRY_DSN_BOT }}
+            SENTRY_RELEASE=${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+            SENTRY_ORG=lukittu
+            SENTRY_PROJECT=lukittu-bot
 
   deploy:
     needs: [build-web, build-bot]
