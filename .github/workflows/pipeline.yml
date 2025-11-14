@@ -104,12 +104,6 @@ jobs:
         run: pnpm run build:shared
       - name: Run web tests
         run: pnpm run --filter lukittu-web test
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: web-test-results
-          path: apps/web/coverage/
-          retention-days: 7
 
   test-shared:
     name: Test Shared Package
@@ -130,12 +124,6 @@ jobs:
         run: pnpm run build:shared
       - name: Run shared package tests
         run: pnpm run --filter @lukittu/shared test
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: shared-test-results
-          path: packages/shared/coverage/
-          retention-days: 7
 
   build-web:
     needs: [lint-web, test-web, test-shared, lint-shared]
