@@ -1,0 +1,50 @@
+services:
+  lukittuPostgres:
+    image: postgres:16.0-alpine
+    container_name: lukittuPostgres
+    platform: linux/amd64
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+    ports:
+      - "127.0.0.1:5434:5432"
+    networks:
+      - lukittu-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lukittuRedis:
+    image: redis:8-alpine
+    container_name: lukittuRedis
+    restart: unless-stopped
+    env_file: .env
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "127.0.0.1:6382:6379"
+    networks:
+      - lukittu-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    name: lukittu_postgres-data
+  redis-data:
+    name: lukittu_redis-data
+
+networks:
+  lukittu-network:
+    external: true

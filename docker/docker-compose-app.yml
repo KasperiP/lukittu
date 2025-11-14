@@ -1,0 +1,43 @@
+services:
+  lukittu:
+    image: kassq/lukittu:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - '3000'
+    env_file: .env
+    environment:
+      - REDIS_HOST=lukittuRedis
+      - VIRTUAL_HOST=app.lukittu.com,www.app.lukittu.com
+      - VIRTUAL_PORT=3000
+    networks:
+      - lukittu-network
+    labels:
+      - 'com.docker.compose.service=lukittu'
+      # Container draining for zero-downtime deployments
+      # Sleep calculation: (interval × retries) + request processing buffer = (10s × 3) + 5s = 35s
+      - 'docker-rollout.pre-stop-hook=touch /tmp/drain && sleep 35'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1',
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+  lukittuBot:
+    image: kassq/lukittu-bot:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - REDIS_HOST=lukittuRedis
+    networks:
+      - lukittu-network
+    labels:
+      - 'com.docker.compose.service=lukittuBot'
+
+networks:
+  lukittu-network:
+    external: true
