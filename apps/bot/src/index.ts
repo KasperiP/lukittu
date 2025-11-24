@@ -251,52 +251,70 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
 
     try {
+      // Special handling for verify command, doesn't require UserDiscordAccount
+      const isVerifyCommand = command.data.name === 'verify';
+
       // Check if the user has linked their Discord account
       let linkedDiscordAccount: LinkedDiscordAccount | null = null;
-      try {
-        linkedDiscordAccount = await checkLinkedAccountAndPermission(
-          interaction.user.id,
-        );
-      } catch (accountError) {
-        logger.error('Account verification failed', {
-          userId: interaction.user.id,
-          commandName: interaction.commandName,
-          error:
-            accountError instanceof Error
-              ? accountError.message
-              : String(accountError),
-        });
-        return interaction.reply({
-          content: 'Unable to verify your account. Please try again later.',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
 
-      if (!linkedDiscordAccount) {
-        return interaction.reply({
-          content:
-            'You need to link your Discord account before using this command.',
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+      if (!isVerifyCommand) {
+        try {
+          linkedDiscordAccount = await checkLinkedAccountAndPermission(
+            interaction.user.id,
+          );
+        } catch (accountError) {
+          logger.error('Account verification failed', {
+            userId: interaction.user.id,
+            commandName: interaction.commandName,
+            error:
+              accountError instanceof Error
+                ? accountError.message
+                : String(accountError),
+          });
+          return interaction.reply({
+            content: 'Unable to verify your account. Please try again later.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
 
-      // Team has to have Discord integration enabled
-      if (
-        linkedDiscordAccount.selectedTeam &&
-        !linkedDiscordAccount.selectedTeam.discordIntegration?.active &&
-        command.data.name !== 'choose-team'
-      ) {
-        return interaction.reply({
-          content:
-            'Your team does not have the Discord integration enabled. Please contact your team administrator.',
-          flags: MessageFlags.Ephemeral,
-        });
+        if (!linkedDiscordAccount) {
+          return interaction.reply({
+            content:
+              'You need to link your Discord account before using this command.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+
+        // Team has to have Discord integration enabled
+        if (
+          linkedDiscordAccount.selectedTeam &&
+          !linkedDiscordAccount.selectedTeam.discordIntegration?.active &&
+          command.data.name !== 'choose-team'
+        ) {
+          return interaction.reply({
+            content:
+              'Your team does not have the Discord integration enabled. Please contact your team administrator.',
+            flags: MessageFlags.Ephemeral,
+          });
+        }
       }
 
       // Defer the reply to handle long-running commands
       await interaction.deferReply({
         flags: command.data.ephemeral ? MessageFlags.Ephemeral : undefined,
       });
+
+      // Backup validation - should not happen due to earlier checks
+      if (!isVerifyCommand && !linkedDiscordAccount) {
+        logger.error('Linked account not found after verification', {
+          userId: interaction.user.id,
+          commandName: interaction.commandName,
+        });
+        return interaction.editReply({
+          content:
+            'An unexpected error occurred. Please try again later or contact support.',
+        });
+      }
 
       await command.execute(interaction, linkedDiscordAccount);
     } catch (error) {

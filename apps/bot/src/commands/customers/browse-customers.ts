@@ -53,22 +53,50 @@ function createActionRows(
   const paginationRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId('first')
-      .setEmoji('1029435230668476476')
+      .setEmoji(
+        process.env.EMOJI_ARROW_FIRST_ID
+          ? {
+              id: process.env.EMOJI_ARROW_FIRST_ID,
+              name: process.env.EMOJI_ARROW_FIRST_NAME,
+            }
+          : '⏮️',
+      )
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(currentPage === 1),
     new ButtonBuilder()
       .setCustomId('prev')
-      .setEmoji('1029435199462834207')
+      .setEmoji(
+        process.env.EMOJI_ARROW_PREV_ID
+          ? {
+              id: process.env.EMOJI_ARROW_PREV_ID,
+              name: process.env.EMOJI_ARROW_PREV_NAME,
+            }
+          : '◀️',
+      )
       .setStyle(ButtonStyle.Primary)
       .setDisabled(currentPage === 1),
     new ButtonBuilder()
       .setCustomId('next')
-      .setEmoji('1029435213157240892')
+      .setEmoji(
+        process.env.EMOJI_ARROW_NEXT_ID
+          ? {
+              id: process.env.EMOJI_ARROW_NEXT_ID,
+              name: process.env.EMOJI_ARROW_NEXT_NAME,
+            }
+          : '▶️',
+      )
       .setStyle(ButtonStyle.Primary)
       .setDisabled(currentPage === totalPages),
     new ButtonBuilder()
       .setCustomId('last')
-      .setEmoji('1029435238948032582')
+      .setEmoji(
+        process.env.EMOJI_ARROW_LAST_ID
+          ? {
+              id: process.env.EMOJI_ARROW_LAST_ID,
+              name: process.env.EMOJI_ARROW_LAST_NAME,
+            }
+          : '⏭️',
+      )
       .setStyle(ButtonStyle.Secondary)
       .setDisabled(currentPage === totalPages),
   );
