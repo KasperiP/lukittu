@@ -35,7 +35,7 @@ export interface Command {
   ) => Promise<void>;
   execute: (
     interaction: ChatInputCommandInteraction,
-    discordAccount: LinkedDiscordAccount,
+    discordAccount: LinkedDiscordAccount | null,
   ) => Promise<void>;
 }
 
