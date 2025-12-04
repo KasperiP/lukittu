@@ -225,8 +225,47 @@ jobs:
             SENTRY_ORG=lukittu
             SENTRY_PROJECT=lukittu-bot
 
+  build-migrate:
+    needs: [test-shared, lint-shared]
+    name: Build Migration Docker Image
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta for migration
+        id: meta_migrate
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE_MIGRATE }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
+      - name: Login to Docker Registry
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push migration docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./packages/shared/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+          tags: ${{ steps.meta_migrate.outputs.tags }}
+          labels: ${{ steps.meta_migrate.outputs.labels }}
+          cache-from: type=registry,ref=${{ secrets.REGISTRY_USERNAME }}/${{ secrets.IMAGE_MIGRATE }}:latest
+          cache-to: type=inline
+          platforms: linux/amd64
+          provenance: false
+
   deploy:
-    needs: [build-web, build-bot]
+    needs: [build-web, build-bot, build-migrate]
     name: Deploy to VM
     timeout-minutes: 5
     runs-on: ubuntu-latest
@@ -257,6 +296,7 @@ jobs:
 
             echo "📦 Pulling all images from compose files..."
             IMAGE_TAG=$TAG docker compose -f docker/docker-compose-app.yml pull
+            IMAGE_TAG=$TAG docker compose -f docker/docker-compose-migrate.yml pull
 
             echo "📝 Starting migration step..."
             set +e

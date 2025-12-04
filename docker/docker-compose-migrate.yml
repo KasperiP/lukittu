@@ -1,23 +1,11 @@
 services:
   prisma:
-    image: node:latest
+    image: kassq/lukittu-migrate:${IMAGE_TAG:-latest}
     env_file: .env
-    working_dir: /app/packages/shared
     environment:
       DATABASE_URL: ${DATABASE_URL}
-    volumes:
-      - ..:/app
     networks:
       - lukittu-network
-    command: >
-      sh -c "
-      if ! command -v pnpm > /dev/null; then
-        npm install -g pnpm;
-      fi &&
-      pnpm install &&
-      pnpm exec prisma generate &&
-      pnpm exec prisma migrate deploy
-      "
 
 networks:
   lukittu-network:
