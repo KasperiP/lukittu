@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "target": "es5",
-    "module": "nodenext",
+    "module": "commonjs",
     "lib": ["es2015"],
     "sourceMap": true,
     "strict": true,
@@ -18,7 +18,7 @@
     "skipLibCheck": true,
     "declaration": true,
     "esModuleInterop": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "strictPropertyInitialization": false,
     "types": ["node", "jest"]
   },

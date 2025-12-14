@@ -1,4 +1,5 @@
-export * from '../prisma/generated/client';
+export type * from '../prisma/generated/client';
+export { Prisma, PrismaClient } from '../prisma/generated/client';
 export * from './licenses/generate-license';
 export * from './licenses/get-license-status-filter';
 export * from './licenses/license-expiration';

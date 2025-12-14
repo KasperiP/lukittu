@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc && pnpm sentry:sourcemaps",
-    "start": "node --env-file=.env --import ./dist/instrument.js dist/index.js",
+    "start": "node --env-file=.env --import ./dist/instrument.js ./dist/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org lukittu --project lukittu-bot ./dist && sentry-cli sourcemaps upload --org lukittu --project lukittu-bot ./dist"
