@@ -1,4 +1,7 @@
-import { LicenseExpirationStart, LicenseExpirationType } from '../client';
+import {
+  LicenseExpirationStart,
+  LicenseExpirationType,
+} from '../../prisma/generated/enums';
 import {
   calculateLicenseExpirationDate,
   calculateUpdatedLicenseExpirationDate,

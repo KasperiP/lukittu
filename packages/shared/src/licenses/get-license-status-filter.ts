@@ -1,4 +1,4 @@
-import { Prisma } from '../client';
+import { Prisma } from '../../prisma/generated/browser';
 import { LicenseStatus } from './get-license-status';
 
 export const getLicenseStatusFilter = (

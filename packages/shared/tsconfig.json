@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "target": "es5",
-    "module": "commonjs",
+    "module": "nodenext",
     "lib": ["es2015"],
     "sourceMap": true,
     "strict": true,
@@ -18,10 +18,10 @@
     "skipLibCheck": true,
     "declaration": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "strictPropertyInitialization": false,
     "types": ["node", "jest"]
   },
-  "include": ["src"],
+  "include": ["src", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

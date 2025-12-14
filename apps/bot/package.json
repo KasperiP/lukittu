@@ -11,18 +11,18 @@
   },
   "dependencies": {
     "@lukittu/shared": "workspace:*",
-    "@sentry/cli": "^2.55.0",
-    "@sentry/node": "^10.15.0",
-    "@sentry/profiling-node": "^10.15.0",
-    "discord.js": "^14.22.1"
+    "@sentry/cli": "^2.58.4",
+    "@sentry/node": "^10.30.0",
+    "@sentry/profiling-node": "^10.30.0",
+    "discord.js": "^14.25.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
-    "eslint": "^9.36.0",
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.1"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.49.0"
   }
 }
