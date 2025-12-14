@@ -1,3 +1,4 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '../../prisma/generated/client';
 
 const prismaOmitConfig: Prisma.GlobalOmitConfig = {
@@ -21,20 +22,19 @@ const prismaOmitConfig: Prisma.GlobalOmitConfig = {
   },
 } as const;
 
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+
+const options: Prisma.PrismaClientOptions = {
+  omit: prismaOmitConfig,
+  adapter,
+};
+
 declare global {
   // eslint-disable-next-line no-var
-  var prisma:
-    | PrismaClient<{
-        omit: typeof prismaOmitConfig;
-      }>
-    | undefined;
+  var prisma: PrismaClient | undefined;
 }
 
-const prisma =
-  global.prisma ||
-  new PrismaClient({
-    omit: prismaOmitConfig,
-  });
+const prisma = global.prisma || new PrismaClient(options);
 
 if (process.env.NODE_ENV === 'development') global.prisma = prisma;
 
