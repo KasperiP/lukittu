@@ -8,9 +8,12 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy workspace configuration
+
+# Copy workspace configuration and .npmrc
 COPY pnpm-workspace.yaml ./
 COPY package.json ./
+COPY .npmrc ./
+
 
 # Copy shared package configuration
 COPY packages/shared/package.json ./packages/shared/
@@ -23,11 +26,13 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 FROM base AS migration
 WORKDIR /app
 
-# Copy dependencies from deps stage
+
+# Copy dependencies from deps stage and .npmrc
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY --from=deps /app/package.json ./
+COPY --from=deps /app/.npmrc ./
 
 # Copy shared package source
 COPY packages/shared ./packages/shared

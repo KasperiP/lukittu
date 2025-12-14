@@ -9,9 +9,11 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy workspace configuration
+
+# Copy workspace configuration and .npmrc
 COPY pnpm-workspace.yaml ./
 COPY package.json ./
+COPY .npmrc ./
 
 # Copy all package.json files from workspace packages
 COPY apps/web/package.json ./apps/web/
@@ -53,12 +55,14 @@ ENV NEXT_PUBLIC_BASE_URL=$NEXT_PUBLIC_BASE_URL \
     SENTRY_ORG=$SENTRY_ORG \
     SENTRY_PROJECT=$SENTRY_PROJECT
 
-# Copy all workspace files
+
+# Copy all workspace files and .npmrc
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY --from=deps /app/package.json ./
+COPY --from=deps /app/.npmrc ./
 
 # Copy source code
 COPY packages ./packages
