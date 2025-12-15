@@ -8,6 +8,7 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   logger,
+  prisma,
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
@@ -67,18 +68,6 @@ export async function GET(
               id: selectedTeam,
               deletedAt: null,
             },
-            include: {
-              auditLogs: {
-                orderBy: {
-                  createdAt: 'desc',
-                },
-                include: {
-                  user: true,
-                },
-                skip,
-                take: 5,
-              },
-            },
           },
         },
       },
@@ -100,25 +89,37 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    const data: RecentAuditLogs[] = team.auditLogs
-      .slice(0, pageSize)
-      .map((log) => ({
-        id: log.id,
-        ipAddress: log.ipAddress,
-        targetType: log.targetType,
-        action: log.action,
-        country: iso3ToName(log.country),
-        alpha2: iso3toIso2(log.country),
-        source: log.source,
-        imageUrl: log.user?.imageUrl ?? null,
-        fullName: log.user?.fullName ?? null,
-        email: log.user?.email ?? null,
-        createdAt: log.createdAt,
-      }));
+    const auditLogs = await prisma.auditLog.findMany({
+      where: {
+        teamId: team.id,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        user: true,
+      },
+      skip,
+      take: 5,
+    });
+
+    const data: RecentAuditLogs[] = auditLogs.slice(0, pageSize).map((log) => ({
+      id: log.id,
+      ipAddress: log.ipAddress,
+      targetType: log.targetType,
+      action: log.action,
+      country: iso3ToName(log.country),
+      alpha2: iso3toIso2(log.country),
+      source: log.source,
+      imageUrl: log.user?.imageUrl ?? null,
+      fullName: log.user?.fullName ?? null,
+      email: log.user?.email ?? null,
+      createdAt: log.createdAt,
+    }));
 
     return NextResponse.json({
       data,
-      hasNextPage: team.auditLogs.length > pageSize,
+      hasNextPage: auditLogs.length > pageSize,
     });
   } catch (error) {
     logger.error("Error occurred in 'dashboard/recent-activity' route", error);

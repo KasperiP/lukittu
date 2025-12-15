@@ -3,7 +3,7 @@ import { iso3toIso2, iso3ToName } from '@/lib/utils/country-helpers';
 import { getLanguage, getSelectedTeam } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import { decryptString, logger, RequestStatus } from '@lukittu/shared';
+import { decryptString, logger, prisma, RequestStatus } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -44,14 +44,6 @@ export async function GET(
       );
     }
 
-    const pageSize = 5;
-    let page = parseInt(searchParams.get('page') as string) || 1;
-    if (page < 1) {
-      page = 1;
-    }
-
-    const skip = (page - 1) * pageSize;
-
     const session = await getSession({
       user: {
         include: {
@@ -59,23 +51,6 @@ export async function GET(
             where: {
               id: selectedTeam,
               deletedAt: null,
-            },
-            include: {
-              requestLogs: {
-                where: {
-                  licenseId: {
-                    not: null,
-                  },
-                },
-                include: {
-                  license: true,
-                },
-                orderBy: {
-                  createdAt: 'desc',
-                },
-                skip,
-                take: 6,
-              },
             },
           },
         },
@@ -98,23 +73,53 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    const data: RecentActivityData[] = team.requestLogs
-      .slice(0, 5)
-      .map((log) => ({
-        id: log.id,
-        license: decryptString(log.license!.licenseKey),
-        ipAddress: log.ipAddress || '',
-        path: log.path,
-        statusCode: log.statusCode,
-        status: log.status,
-        createdAt: log.createdAt,
-        alpha2: iso3toIso2(log.country),
-        country: iso3ToName(log.country),
-      }));
+    const pageSize = 5;
+    let page = parseInt(searchParams.get('page') as string) || 1;
+    if (page < 1) {
+      page = 1;
+    }
+
+    const skip = (page - 1) * pageSize;
+
+    const requestLogs = await prisma.requestLog.findMany({
+      where: {
+        teamId: team.id,
+        licenseId: {
+          not: null,
+        },
+      },
+      include: {
+        license: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: 6,
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { message: t('validation.unauthorized') },
+        { status: HttpStatus.UNAUTHORIZED },
+      );
+    }
+
+    const data: RecentActivityData[] = requestLogs.slice(0, 5).map((log) => ({
+      id: log.id,
+      license: decryptString(log.license!.licenseKey),
+      ipAddress: log.ipAddress || '',
+      path: log.path,
+      statusCode: log.statusCode,
+      status: log.status,
+      createdAt: log.createdAt,
+      alpha2: iso3toIso2(log.country),
+      country: iso3ToName(log.country),
+    }));
 
     return NextResponse.json({
       data,
-      hasNextPage: team.requestLogs.length > pageSize,
+      hasNextPage: requestLogs.length > pageSize,
     });
   } catch (error) {
     logger.error("Error occurred in 'dashboard/recent-activity' route", error);
