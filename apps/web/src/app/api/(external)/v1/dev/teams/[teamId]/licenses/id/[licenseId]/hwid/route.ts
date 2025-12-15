@@ -195,9 +195,9 @@ export async function GET(
     const take = pageSize;
 
     const where = {
-      teamId,
-      licenseId,
       ...(showForgotten ? {} : { forgotten: false }),
+      licenseId,
+      teamId,
     } as Prisma.HardwareIdentifierWhereInput;
 
     const [hardwareIdentifiers, totalResults] = await Promise.all([

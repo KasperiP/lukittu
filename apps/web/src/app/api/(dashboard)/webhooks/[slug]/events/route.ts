@@ -142,7 +142,7 @@ export async function GET(
       webhookId,
     } as Prisma.WebhookEventWhereInput;
 
-    const [events, totalResults, hasResults] = await prisma.$transaction([
+    const [events, totalResults, hasResults] = await Promise.all([
       prisma.webhookEvent.findMany({
         where,
         skip,

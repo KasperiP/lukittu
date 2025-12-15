@@ -103,31 +103,6 @@ export async function GET(
               deletedAt: null,
               id: selectedTeam,
             },
-            include: {
-              products: {
-                where: {
-                  id: productId,
-                  teamId: selectedTeam,
-                },
-                include: {
-                  branches: {
-                    where,
-                    skip,
-                    take,
-                    orderBy: {
-                      [sortColumn]: sortDirection,
-                    },
-                    include: {
-                      _count: {
-                        select: {
-                          releases: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -151,7 +126,22 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults] = await prisma.$transaction([
+    const [branches, hasResults, totalResults] = await Promise.all([
+      prisma.releaseBranch.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        include: {
+          _count: {
+            select: {
+              releases: true,
+            },
+          },
+        },
+      }),
       prisma.releaseBranch.findFirst({
         where: {
           productId,
@@ -167,21 +157,6 @@ export async function GET(
         where,
       }),
     ]);
-
-    const team = session.user.teams[0];
-
-    const product = team.products[0];
-
-    if (!product) {
-      return NextResponse.json(
-        {
-          message: t('validation.product_not_found'),
-        },
-        { status: HttpStatus.NOT_FOUND },
-      );
-    }
-
-    const branches = product.branches;
 
     const branchesFormatted = branches.map((branch) => ({
       ...branch,

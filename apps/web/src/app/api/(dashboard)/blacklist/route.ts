@@ -98,7 +98,6 @@ export async function GET(
     const where = (
       search && additionalCountrySearch
         ? {
-            teamId: selectedTeam,
             OR: [
               {
                 value: search
@@ -111,12 +110,13 @@ export async function GET(
                   : undefined,
               },
             ],
+            teamId: selectedTeam,
           }
         : {
-            teamId: selectedTeam,
             value: search
               ? { contains: search, mode: 'insensitive' }
               : undefined,
+            teamId: selectedTeam,
           }
     ) as Prisma.BlacklistWhereInput;
 
@@ -127,19 +127,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              blacklist: {
-                where,
-                skip,
-                take,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-                include: {
-                  metadata: true,
-                },
-              },
             },
           },
         },
@@ -164,7 +151,18 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults] = await prisma.$transaction([
+    const [blacklist, hasResults, totalResults] = await Promise.all([
+      prisma.blacklist.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        include: {
+          metadata: true,
+        },
+      }),
       prisma.blacklist.findFirst({
         where: {
           teamId: selectedTeam,
@@ -177,7 +175,6 @@ export async function GET(
         where,
       }),
     ]);
-    const blacklist = session.user.teams[0].blacklist;
 
     return NextResponse.json({
       blacklist: blacklist.map((blacklist) => ({

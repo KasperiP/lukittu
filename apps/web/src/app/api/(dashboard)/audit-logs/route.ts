@@ -143,52 +143,6 @@ export async function GET(
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
-    const team = await prisma.team.findUnique({
-      where: {
-        id: selectedTeam,
-        deletedAt: null,
-      },
-      include: {
-        limits: true,
-      },
-    });
-
-    if (!team) {
-      return NextResponse.json(
-        {
-          message: t('validation.team_not_found'),
-        },
-        { status: HttpStatus.NOT_FOUND },
-      );
-    }
-
-    const DAYS_IN_MONTH = 30;
-    const SIX_MONTHS_IN_DAYS = 6 * DAYS_IN_MONTH;
-
-    const teamLogRetentionDays =
-      team.limits?.logRetention ?? SIX_MONTHS_IN_DAYS;
-
-    const furthestAllowedDate = new Date();
-    furthestAllowedDate.setDate(
-      furthestAllowedDate.getDate() - teamLogRetentionDays,
-    );
-
-    let rangeStartToUse = furthestAllowedDate;
-    if (rangeStart && new Date(rangeStart) > furthestAllowedDate) {
-      rangeStartToUse = new Date(rangeStart);
-    }
-
-    const where = {
-      teamId: selectedTeam,
-      createdAt: {
-        gte: rangeStartToUse,
-        lte: rangeEnd ? new Date(rangeEnd) : new Date(),
-      },
-      source: sourceFilter ? sourceFilter : undefined,
-      targetType: targetTypeFilter ? targetTypeFilter : undefined,
-      ipAddress: ipSearch ? { contains: ipSearch } : undefined,
-    } as Prisma.AuditLogWhereInput;
-
     const session = await getSession({
       user: {
         include: {
@@ -198,19 +152,7 @@ export async function GET(
               id: selectedTeam,
             },
             include: {
-              auditLogs: {
-                where,
-                include: {
-                  user: true,
-                },
-                orderBy: [
-                  {
-                    [sortColumn]: sortDirection,
-                  },
-                ],
-                skip,
-                take,
-              },
+              limits: true,
             },
           },
         },
@@ -235,13 +177,55 @@ export async function GET(
       );
     }
 
-    const totalResults = await prisma.auditLog.count({
-      where,
-    });
+    const team = session.user.teams[0];
 
-    const auditlog = session.user.teams[0].auditLogs;
+    const DAYS_IN_MONTH = 30;
+    const SIX_MONTHS_IN_DAYS = 6 * DAYS_IN_MONTH;
 
-    const auditLogsWithCountries = auditlog.map((log) => {
+    const teamLogRetentionDays =
+      team.limits?.logRetention ?? SIX_MONTHS_IN_DAYS;
+
+    const furthestAllowedDate = new Date();
+    furthestAllowedDate.setDate(
+      furthestAllowedDate.getDate() - teamLogRetentionDays,
+    );
+
+    let rangeStartToUse = furthestAllowedDate;
+    if (rangeStart && new Date(rangeStart) > furthestAllowedDate) {
+      rangeStartToUse = new Date(rangeStart);
+    }
+
+    const where = {
+      createdAt: {
+        gte: rangeStartToUse,
+        lte: rangeEnd ? new Date(rangeEnd) : new Date(),
+      },
+      source: sourceFilter ? sourceFilter : undefined,
+      targetType: targetTypeFilter ? targetTypeFilter : undefined,
+      ipAddress: ipSearch ? { contains: ipSearch } : undefined,
+      teamId: selectedTeam,
+    } as Prisma.AuditLogWhereInput;
+
+    const [totalResults, auditLogs] = await Promise.all([
+      prisma.auditLog.count({
+        where,
+      }),
+      prisma.auditLog.findMany({
+        where,
+        include: {
+          user: true,
+        },
+        orderBy: [
+          {
+            [sortColumn]: sortDirection,
+          },
+        ],
+        skip,
+        take,
+      }),
+    ]);
+
+    const auditLogsWithCountries = auditLogs.map((log) => {
       let browser: string | null = null;
       let os: string | null = null;
       let device: string | null = null;
