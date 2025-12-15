@@ -196,7 +196,6 @@ export async function GET(
     }
 
     const where = {
-      teamId: selectedTeam,
       ...licenseCountFilter,
       licenses: licenseId
         ? {
@@ -262,6 +261,7 @@ export async function GET(
             },
           }
         : undefined,
+      teamId: selectedTeam,
     } as Prisma.CustomerWhereInput;
 
     const session = await getSession({
@@ -271,21 +271,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              customers: {
-                where,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-                skip,
-                take,
-                include: {
-                  address: true,
-                  metadata: true,
-                  discordAccount: true,
-                },
-              },
             },
           },
         },
@@ -310,7 +295,20 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults] = await prisma.$transaction([
+    const [customers, hasResults, totalResults] = await Promise.all([
+      prisma.customer.findMany({
+        where,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        skip,
+        take,
+        include: {
+          address: true,
+          metadata: true,
+          discordAccount: true,
+        },
+      }),
       prisma.customer.findFirst({
         where: {
           teamId: selectedTeam,
@@ -323,8 +321,6 @@ export async function GET(
         where,
       }),
     ]);
-
-    const customers = session.user.teams[0].customers;
 
     return NextResponse.json({
       customers,

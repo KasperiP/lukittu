@@ -156,7 +156,6 @@ export async function GET(
     }
 
     const where = {
-      teamId: selectedTeam,
       ...licenseCountFilter,
       licenses: licenseId
         ? {
@@ -171,6 +170,7 @@ export async function GET(
             mode: 'insensitive',
           }
         : undefined,
+      teamId: selectedTeam,
     } as Prisma.ProductWhereInput;
 
     const session = await getSession({
@@ -180,21 +180,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              products: {
-                where,
-                include: {
-                  releases: true,
-                  metadata: true,
-                  discordRoles: true,
-                },
-                skip,
-                take,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-              },
             },
           },
         },
@@ -219,7 +204,20 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults] = await prisma.$transaction([
+    const [products, hasResults, totalResults] = await Promise.all([
+      await prisma.product.findMany({
+        where,
+        include: {
+          releases: true,
+          metadata: true,
+          discordRoles: true,
+        },
+        skip,
+        take,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+      }),
       prisma.product.findFirst({
         where: {
           teamId: selectedTeam,
@@ -232,7 +230,6 @@ export async function GET(
         where,
       }),
     ]);
-    const products = session.user.teams[0].products;
 
     return NextResponse.json({
       products: products.map((product) => ({

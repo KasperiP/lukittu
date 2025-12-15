@@ -548,7 +548,6 @@ export async function GET(
     const take = pageSize;
 
     const where = {
-      teamId: selectedTeam,
       productId: productId || undefined,
       version: search
         ? {
@@ -556,6 +555,7 @@ export async function GET(
             mode: 'insensitive',
           }
         : undefined,
+      teamId: selectedTeam,
     } as Prisma.ReleaseWhereInput;
 
     const session = await getSession({
@@ -565,23 +565,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              releases: {
-                where,
-                include: {
-                  product: true,
-                  file: true,
-                  allowedLicenses: true,
-                  metadata: true,
-                  branch: true,
-                },
-                skip,
-                take,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-              },
             },
           },
         },
@@ -606,8 +589,23 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults, hasLatestReleasesData] =
-      await prisma.$transaction([
+    const [releases, hasResults, totalResults, hasLatestReleasesData] =
+      await Promise.all([
+        prisma.release.findMany({
+          where,
+          include: {
+            product: true,
+            file: true,
+            allowedLicenses: true,
+            metadata: true,
+            branch: true,
+          },
+          skip,
+          take,
+          orderBy: {
+            [sortColumn]: sortDirection,
+          },
+        }),
         prisma.release.findFirst({
           where: {
             teamId: selectedTeam,
@@ -648,9 +646,7 @@ export async function GET(
       (release) => release.hasLatestRelease,
     );
 
-    const team = session.user.teams[0];
-
-    const releases = team.releases.map((release) => ({
+    const releasesFormatted = releases.map((release) => ({
       ...release,
       allowedLicenses: release.allowedLicenses.map((license) => ({
         ...license,
@@ -660,7 +656,7 @@ export async function GET(
     }));
 
     return NextResponse.json({
-      releases,
+      releases: releasesFormatted,
       totalResults,
       hasLatestRelease: hasLatestForAll,
       hasResults: Boolean(hasResults),

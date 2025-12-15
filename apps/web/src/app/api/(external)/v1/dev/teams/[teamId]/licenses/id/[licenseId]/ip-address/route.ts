@@ -199,9 +199,9 @@ export async function GET(
     const take = pageSize;
 
     const where = {
-      teamId,
-      licenseId,
       ...(showForgotten ? {} : { forgotten: false }),
+      licenseId,
+      teamId,
     } as Prisma.IpAddressWhereInput;
 
     const [ipAddresses, totalResults] = await Promise.all([

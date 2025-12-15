@@ -91,9 +91,9 @@ export async function GET(
     }
 
     const where = {
-      teamId: selectedTeam,
-      licenseId,
       ...(showForgotten ? {} : { forgotten: false }),
+      licenseId,
+      teamId: selectedTeam,
     } as Prisma.IpAddressWhereInput;
 
     const session = await getSession({
@@ -106,14 +106,6 @@ export async function GET(
             },
             include: {
               settings: true,
-              ipAddresses: {
-                where,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-                skip,
-                take,
-              },
             },
           },
         },
@@ -140,11 +132,19 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    const totalResults = await prisma.ipAddress.count({
-      where,
-    });
-
-    const ipAddresses = team.ipAddresses;
+    const [totalResults, ipAddresses] = await Promise.all([
+      prisma.ipAddress.count({
+        where,
+      }),
+      prisma.ipAddress.findMany({
+        where,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        skip,
+        take,
+      }),
+    ]);
 
     const formattedIpAddresses = ipAddresses.map((ip) => {
       if (ip.forgotten) {

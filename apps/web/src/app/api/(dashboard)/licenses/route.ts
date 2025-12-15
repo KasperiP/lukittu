@@ -149,11 +149,42 @@ export async function GET(
       ? generateHMAC(`${licenseKey}:${selectedTeam}`)
       : undefined;
 
-    const teamSettings = await prisma.settings.findUnique({
-      where: {
-        teamId: selectedTeam,
+    const session = await getSession({
+      user: {
+        include: {
+          teams: {
+            where: {
+              deletedAt: null,
+              id: selectedTeam,
+            },
+            include: {
+              settings: true,
+            },
+          },
+        },
       },
     });
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          message: t('validation.unauthorized'),
+        },
+        { status: HttpStatus.UNAUTHORIZED },
+      );
+    }
+
+    if (!session.user.teams.length) {
+      return NextResponse.json(
+        {
+          message: t('validation.team_not_found'),
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
+    const team = session.user.teams[0];
+    const teamSettings = team.settings;
 
     if (!teamSettings) {
       return NextResponse.json(
@@ -318,7 +349,6 @@ export async function GET(
       ...specificIpFilter,
       ...specificHwidFilter,
       ...getLicenseStatusFilter(status),
-      teamId: selectedTeam,
       licenseKeyLookup,
       products: productIdsFormatted.length
         ? {
@@ -349,55 +379,23 @@ export async function GET(
             },
           }
         : undefined,
+      teamId: selectedTeam,
     } as Prisma.LicenseWhereInput;
 
-    const session = await getSession({
-      user: {
+    const [licenses, hasResults, totalResults] = await Promise.all([
+      prisma.license.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
         include: {
-          teams: {
-            where: {
-              deletedAt: null,
-              id: selectedTeam,
-            },
-            include: {
-              licenses: {
-                where,
-                skip,
-                take,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-                include: {
-                  products: true,
-                  customers: true,
-                  metadata: true,
-                },
-              },
-            },
-          },
+          products: true,
+          customers: true,
+          metadata: true,
         },
-      },
-    });
-
-    if (!session) {
-      return NextResponse.json(
-        {
-          message: t('validation.unauthorized'),
-        },
-        { status: HttpStatus.UNAUTHORIZED },
-      );
-    }
-
-    if (!session.user.teams.length) {
-      return NextResponse.json(
-        {
-          message: t('validation.team_not_found'),
-        },
-        { status: HttpStatus.NOT_FOUND },
-      );
-    }
-
-    const [hasResults, totalResults] = await prisma.$transaction([
+      }),
       prisma.license.findFirst({
         where: {
           teamId: selectedTeam,
@@ -411,14 +409,14 @@ export async function GET(
       }),
     ]);
 
-    const licenses = session.user.teams[0].licenses.map((license) => ({
+    const licensesFormatted = licenses.map((license) => ({
       ...license,
       licenseKey: decryptString(license.licenseKey),
       licenseKeyLookup: undefined,
     }));
 
     return NextResponse.json({
-      licenses,
+      licenses: licensesFormatted,
       totalResults,
       hasResults: Boolean(hasResults),
     });

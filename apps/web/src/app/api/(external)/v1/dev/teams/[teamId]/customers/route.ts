@@ -269,7 +269,6 @@ export async function GET(
 
     const where = {
       ...licenseCountFilter,
-      teamId,
       licenses: licenseId
         ? {
             some: {
@@ -334,10 +333,11 @@ export async function GET(
             },
           }
         : undefined,
+      teamId,
     } as Prisma.CustomerWhereInput;
 
     // Get total count and customers
-    const [totalResults, customers] = await prisma.$transaction([
+    const [totalResults, customers] = await Promise.all([
       prisma.customer.count({ where }),
       prisma.customer.findMany({
         where,

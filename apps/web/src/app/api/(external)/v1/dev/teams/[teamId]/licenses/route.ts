@@ -808,7 +808,7 @@ export async function GET(
     } as Prisma.LicenseWhereInput;
 
     // Get total count and licenses
-    const [totalResults, licenses] = await prisma.$transaction([
+    const [totalResults, licenses] = await Promise.all([
       prisma.license.count({ where }),
       prisma.license.findMany({
         where,

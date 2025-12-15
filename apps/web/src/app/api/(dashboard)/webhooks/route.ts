@@ -77,7 +77,6 @@ export async function GET(
     const take = pageSize;
 
     const where = {
-      teamId: selectedTeam,
       ...(search && {
         OR: [
           {
@@ -88,6 +87,7 @@ export async function GET(
           },
         ],
       }),
+      teamId: selectedTeam,
     } as Prisma.WebhookWhereInput;
 
     const session = await getSession({
@@ -97,16 +97,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              webhooks: {
-                where,
-                skip,
-                take,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-              },
             },
           },
         },
@@ -131,7 +121,15 @@ export async function GET(
       );
     }
 
-    const [hasResults, totalResults] = await prisma.$transaction([
+    const [webhooks, hasResults, totalResults] = await Promise.all([
+      prisma.webhook.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+      }),
       prisma.webhook.findFirst({
         where: {
           teamId: selectedTeam,
@@ -144,8 +142,6 @@ export async function GET(
         where,
       }),
     ]);
-
-    const webhooks = session.user.teams[0].webhooks;
 
     return NextResponse.json({
       webhooks,

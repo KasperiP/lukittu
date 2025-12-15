@@ -94,9 +94,9 @@ export async function GET(
     }
 
     const where = {
-      teamId: selectedTeam,
-      licenseId,
       ...(showForgotten ? {} : { forgotten: false }),
+      licenseId,
+      teamId: selectedTeam,
     } as Prisma.HardwareIdentifierWhereInput;
 
     const session = await getSession({
@@ -109,14 +109,6 @@ export async function GET(
             },
             include: {
               settings: true,
-              hardwareIdentifiers: {
-                where,
-                orderBy: {
-                  [sortColumn]: sortDirection,
-                },
-                skip,
-                take,
-              },
             },
           },
         },
@@ -143,11 +135,19 @@ export async function GET(
 
     const team = session.user.teams[0];
 
-    const totalResults = await prisma.hardwareIdentifier.count({
-      where,
-    });
-
-    const hardwareIdentifiers = team.hardwareIdentifiers;
+    const [totalResults, hardwareIdentifiers] = await Promise.all([
+      prisma.hardwareIdentifier.count({
+        where,
+      }),
+      prisma.hardwareIdentifier.findMany({
+        where,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        skip,
+        take,
+      }),
+    ]);
 
     const formattedHwids = hardwareIdentifiers.map((hwid) => {
       if (hwid.forgotten) {

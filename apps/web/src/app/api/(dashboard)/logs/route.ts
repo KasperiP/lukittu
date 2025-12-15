@@ -220,7 +220,6 @@ export async function GET(
     }
 
     const where = {
-      teamId: selectedTeam,
       statusCode: statusFilter ? statusFilter : undefined,
       createdAt: {
         gte: rangeStartToUse,
@@ -236,6 +235,7 @@ export async function GET(
       license: licenseKeyLookup ? { licenseKeyLookup } : undefined,
       ipAddress: ipSearch ? { contains: ipSearch } : undefined,
       type: type ? type : undefined,
+      teamId: selectedTeam,
     } as Prisma.RequestLogWhereInput;
 
     const session = await getSession({
@@ -245,18 +245,6 @@ export async function GET(
             where: {
               deletedAt: null,
               id: selectedTeam,
-            },
-            include: {
-              requestLogs: {
-                where,
-                orderBy: [
-                  {
-                    [sortColumn]: sortDirection,
-                  },
-                ],
-                skip,
-                take,
-              },
             },
           },
         },
@@ -281,11 +269,21 @@ export async function GET(
       );
     }
 
-    const totalResults = await prisma.requestLog.count({
-      where,
-    });
-
-    const requestLogs = session.user.teams[0].requestLogs;
+    const [totalResults, requestLogs] = await Promise.all([
+      prisma.requestLog.count({
+        where,
+      }),
+      prisma.requestLog.findMany({
+        where,
+        orderBy: [
+          {
+            [sortColumn]: sortDirection,
+          },
+        ],
+        skip,
+        take,
+      }),
+    ]);
 
     const requestLogsWithCountries = requestLogs.map((log) => {
       let browser: string | null = null;
