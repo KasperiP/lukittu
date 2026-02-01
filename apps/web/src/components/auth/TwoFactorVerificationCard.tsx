@@ -26,7 +26,7 @@ import {
   verifyTwoFactorSchema,
 } from '@/lib/validation/two-factor/verify-two-factor-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AlertCircle, ArrowLeft, KeyRound } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
