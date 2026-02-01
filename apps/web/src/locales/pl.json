@@ -181,16 +181,16 @@
     "discord_bot_not_in_guild": "Bot nie jest członkiem określonego serwera Discord!",
     "discord_guild_or_role_not_found": "Nie znaleziono serwera ani roli Discord!",
     "discord_account_already_linked_to_user": "To konto Discord jest już połączone z innym kontem użytkownika!",
-    "two_factor_code_required": "Verification code is required!",
-    "two_factor_code_length": "Verification code must be 6 digits!",
-    "two_factor_code_invalid": "Invalid verification code!",
-    "two_factor_code_min_length": "Verification code must be at least 6 characters!",
-    "two_factor_code_max_length": "Verification code must be at most 8 characters!",
-    "two_factor_token_required": "Two-factor token is required!",
-    "two_factor_token_expired": "Two-factor verification session has expired. Please login again.",
-    "two_factor_already_enabled": "Two-factor authentication is already enabled!",
-    "two_factor_not_enabled": "Two-factor authentication is not enabled!",
-    "two_factor_setup_expired": "Two-factor setup has expired. Please start the setup process again."
+    "two_factor_code_required": "Kod weryfikacyjny jest wymagany!",
+    "two_factor_code_length": "Kod weryfikacyjny musi mieć 6 cyfr!",
+    "two_factor_code_invalid": "Nieprawidłowy kod weryfikacyjny!",
+    "two_factor_code_min_length": "Kod weryfikacyjny musi mieć co najmniej 6 znaków!",
+    "two_factor_code_max_length": "Kod weryfikacyjny może mieć maksymalnie 8 znaków!",
+    "two_factor_token_required": "Token uwierzytelniania dwuskładnikowego jest wymagany!",
+    "two_factor_token_expired": "Sesja weryfikacji dwuskładnikowej wygasła. Zaloguj się ponownie.",
+    "two_factor_already_enabled": "Uwierzytelnianie dwuskładnikowe jest już włączone!",
+    "two_factor_not_enabled": "Uwierzytelnianie dwuskładnikowe nie jest włączone!",
+    "two_factor_setup_expired": "Konfiguracja uwierzytelniania dwuskładnikowego wygasła. Rozpocznij proces konfiguracji od nowa."
   },
   "general": {
     "add": "Dodaj",
@@ -493,14 +493,14 @@
       "sending_failed_title": "Wysłanie emaila weryfikacyjnego nie powiodło się"
     },
     "two_factor": {
-      "title": "Two-factor authentication",
-      "description": "Enter the 6-digit code from your authenticator app.",
-      "backup_code_description": "Enter one of your backup codes.",
-      "verification_code": "Verification code",
-      "backup_code": "Backup code",
-      "verify": "Verify",
-      "use_backup_code": "Use a backup code",
-      "use_authenticator": "Use authenticator app"
+      "title": "Uwierzytelnianie dwuskładnikowe",
+      "description": "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej.",
+      "backup_code_description": "Wprowadź jeden ze swoich kodów zapasowych.",
+      "verification_code": "Kod weryfikacyjny",
+      "backup_code": "Kod zapasowy",
+      "verify": "Zweryfikuj",
+      "use_backup_code": "Użyj kodu zapasowego",
+      "use_authenticator": "Użyj aplikacji uwierzytelniającej"
     }
   },
   "dashboard": {

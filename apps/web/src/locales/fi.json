@@ -181,16 +181,16 @@
     "discord_bot_not_in_guild": "Botti ei ole määritetyn Discord-palvelimen jäsen!",
     "discord_guild_or_role_not_found": "Discord-palvelinta tai roolia ei löytynyt!",
     "discord_account_already_linked_to_user": "Tämä Discord-tili on jo yhdistetty toiseen käyttäjätiliin!",
-    "two_factor_code_required": "Verification code is required!",
-    "two_factor_code_length": "Verification code must be 6 digits!",
-    "two_factor_code_invalid": "Invalid verification code!",
-    "two_factor_code_min_length": "Verification code must be at least 6 characters!",
-    "two_factor_code_max_length": "Verification code must be at most 8 characters!",
-    "two_factor_token_required": "Two-factor token is required!",
-    "two_factor_token_expired": "Two-factor verification session has expired. Please login again.",
-    "two_factor_already_enabled": "Two-factor authentication is already enabled!",
-    "two_factor_not_enabled": "Two-factor authentication is not enabled!",
-    "two_factor_setup_expired": "Two-factor setup has expired. Please start the setup process again."
+    "two_factor_code_required": "Vahvistuskoodi vaaditaan!",
+    "two_factor_code_length": "Vahvistuskoodin on oltava 6 numeroa!",
+    "two_factor_code_invalid": "Virheellinen vahvistuskoodi!",
+    "two_factor_code_min_length": "Vahvistuskoodin on oltava vähintään 6 merkkiä!",
+    "two_factor_code_max_length": "Vahvistuskoodin on oltava enintään 8 merkkiä!",
+    "two_factor_token_required": "Kaksivaiheinen tunniste vaaditaan!",
+    "two_factor_token_expired": "Kaksivaiheisen vahvistuksen istunto on vanhentunut. Kirjaudu sisään uudelleen.",
+    "two_factor_already_enabled": "Kaksivaiheinen tunnistautuminen on jo käytössä!",
+    "two_factor_not_enabled": "Kaksivaiheinen tunnistautuminen ei ole käytössä!",
+    "two_factor_setup_expired": "Kaksivaiheisen tunnistautumisen käyttöönotto on vanhentunut. Aloita määritys uudelleen."
   },
   "general": {
     "select_key": "Valitse avain",
@@ -493,14 +493,14 @@
       "sending_failed_title": "Vahvistusviestin lähettäminen epäonnistui"
     },
     "two_factor": {
-      "title": "Two-factor authentication",
-      "description": "Enter the 6-digit code from your authenticator app.",
-      "backup_code_description": "Enter one of your backup codes.",
-      "verification_code": "Verification code",
-      "backup_code": "Backup code",
-      "verify": "Verify",
-      "use_backup_code": "Use a backup code",
-      "use_authenticator": "Use authenticator app"
+      "title": "Kaksivaiheinen tunnistautuminen",
+      "description": "Syötä tunnistautumissovelluksen 6-numeroinen koodi.",
+      "backup_code_description": "Syötä yksi varakoodeistasi.",
+      "verification_code": "Vahvistuskoodi",
+      "backup_code": "Varakoodi",
+      "verify": "Vahvista",
+      "use_backup_code": "Käytä varakoodia",
+      "use_authenticator": "Käytä tunnistautumissovellusta"
     }
   },
   "dashboard": {

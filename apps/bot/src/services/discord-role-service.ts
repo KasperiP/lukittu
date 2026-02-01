@@ -21,7 +21,7 @@ interface RoleAssignmentData {
 }
 
 type CustomerWithLicenses = Customer & {
-  licenses: (License & {
+  licenses: (Omit<License, 'licenseKeyLookup'> & {
     products: Product[];
   })[];
 };
