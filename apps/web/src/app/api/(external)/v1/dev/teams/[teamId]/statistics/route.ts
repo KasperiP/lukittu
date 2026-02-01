@@ -194,7 +194,7 @@ export async function GET(
           )
           SELECT
             t.total, t.successful, t.failed, t.last_24h, t.last_7d,
-            COALESCE(bt.type, '') as type,
+            COALESCE(bt.type::text, '') as type,
             COALESCE(bt.type_count, 0) as type_count,
             bc.country,
             COALESCE(bc.country_requests, 0) as country_requests,
