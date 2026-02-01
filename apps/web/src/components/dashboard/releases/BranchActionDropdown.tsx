@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { BranchModalContext } from '@/providers/BranchModalProvider';
 import { VariantProps } from 'class-variance-authority';
-import { Edit, Ellipsis, Trash } from 'lucide-react';
+import { Copy, Edit, Ellipsis, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
+import { toast } from 'sonner';
 
 interface BranchActionDropdownProps {
   branch: IProductsBranchesGetSuccessResponse['branches'][number] | undefined;
@@ -36,6 +37,17 @@ export const BranchActionDropdown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="font-medium" forceMount>
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(branch.id);
+            toast.success(t('general.copied_to_clipboard'));
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          {t('general.copy_id')}
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="hover:cursor-pointer"
           onClick={(e) => {

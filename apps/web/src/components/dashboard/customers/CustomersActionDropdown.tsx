@@ -21,9 +21,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { CustomerModalContext } from '@/providers/CustomerModalProvider';
 import { VariantProps } from 'class-variance-authority';
-import { Edit, Ellipsis, Trash, X } from 'lucide-react';
+import { Copy, Edit, Ellipsis, Trash, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext, useState } from 'react';
+import { toast } from 'sonner';
 
 interface CustomersActionDropdownProps {
   customer: ICustomersGetSuccessResponse['customers'][number] | undefined;
@@ -66,6 +67,17 @@ export const CustomersActionDropdown = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="font-medium" forceMount>
+          <DropdownMenuItem
+            className="hover:cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigator.clipboard.writeText(customer.id);
+              toast.success(t('general.copied_to_clipboard'));
+            }}
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {t('general.copy_id')}
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="hover:cursor-pointer"
             onClick={(e) => {

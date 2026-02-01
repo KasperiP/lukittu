@@ -10,9 +10,10 @@ import {
 import { WebhookModalContext } from '@/providers/WebhookModalProvider';
 import { Webhook } from '@lukittu/shared';
 import { VariantProps } from 'class-variance-authority';
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Copy, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
+import { toast } from 'sonner';
 
 interface WebhooksActionDropdownProps {
   webhook: Webhook;
@@ -34,6 +35,17 @@ export function WebhooksActionDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(webhook.id);
+            toast.success(t('general.copied_to_clipboard'));
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          {t('general.copy_id')}
+        </DropdownMenuItem>
         <DropdownMenuItem
           className="hover:cursor-pointer"
           onClick={(e) => {
