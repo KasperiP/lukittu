@@ -1,0 +1,75 @@
+paths:
+  /api/v1/dev/teams/{teamId}/releases:
+    post:
+      summary: 'Create Release'
+      operationId: 'createRelease'
+      description: |
+        Create a new release for a product. Supports optional file upload via multipart/form-data.
+
+        The request body must be sent as `multipart/form-data` with:
+        - `data` field (required): JSON string containing the release configuration
+        - `file` field (optional): Binary file to attach to the release (max 10 MB)
+
+        File uploads require the team to have the classloader feature enabled (paid subscription).
+      tags:
+        - Dev - Releases
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - data
+              properties:
+                data:
+                  type: string
+                  description: |
+                    JSON string containing the release configuration. Must be a valid JSON object with the following fields:
+                    - `version` (string, required): Release version (3-255 chars, no spaces)
+                    - `productId` (string, required): UUID of the product
+                    - `status` (string, required): One of PUBLISHED, DRAFT, DEPRECATED, ARCHIVED
+                    - `setAsLatest` (boolean, optional): Whether to set this as the latest release (default: false)
+                    - `branchId` (string|null, optional): UUID of the branch (default: null)
+                    - `metadata` (array, optional): Array of key-value metadata objects (max 20)
+                    - `licenseIds` (array, optional): Array of license UUIDs to restrict access (max 30)
+                file:
+                  type: string
+                  format: binary
+                  description: 'Optional file to attach to the release (max 10 MB). Must have a file extension.'
+      responses:
+        '201':
+          description: 'Release created successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/product.yaml#/components/schemas/ReleaseResponse'
+              example:
+                data:
+                  id: '456e7890-e89b-12d3-a456-426614174111'
+                  version: '1.0.0'
+                  status: 'PUBLISHED'
+                  latest: true
+                  productId: '789e0123-e89b-12d3-a456-426614174222'
+                  branchId: null
+                  teamId: '123e4567-e89b-12d3-a456-426614174000'
+                  createdAt: '2023-09-15T14:30:00Z'
+                  updatedAt: '2023-09-15T14:30:00Z'
+                  metadata: []
+                  product:
+                    id: '789e0123-e89b-12d3-a456-426614174222'
+                    name: 'My Product'
+                  branch: null
+                  file: null
+                result:
+                  timestamp: '2023-09-15T14:30:00Z'
+                  valid: true
+                  details: 'Release created'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []

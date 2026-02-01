@@ -5,7 +5,9 @@ import { getIp, getLanguage } from '@/lib/utils/header-helpers';
 import { loginSchema, LoginSchema } from '@/lib/validation/auth/login-schema';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
+import { JwtTypes } from '@/types/jwt-types-enum';
 import { logger, prisma, Provider, verifyPassword } from '@lukittu/shared';
+import jwt from 'jsonwebtoken';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -13,7 +15,15 @@ type IAuthLoginSuccessResponse = {
   success: boolean;
 };
 
-export type IAuthLoginResponse = ErrorResponse | IAuthLoginSuccessResponse;
+type IAuthLoginTwoFactorResponse = {
+  requiresTwoFactor: boolean;
+  twoFactorToken: string;
+};
+
+export type IAuthLoginResponse =
+  | ErrorResponse
+  | IAuthLoginSuccessResponse
+  | IAuthLoginTwoFactorResponse;
 
 export async function POST(
   request: NextRequest,
@@ -64,6 +74,9 @@ export async function POST(
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: {
+        totp: true,
+      },
       omit: {
         passwordHash: false,
       },
@@ -108,6 +121,19 @@ export async function POST(
         },
         { status: HttpStatus.BAD_REQUEST },
       );
+    }
+
+    if (user.totp) {
+      const twoFactorToken = jwt.sign(
+        { userId: user.id, type: JwtTypes.TWO_FACTOR_VERIFICATION },
+        process.env.JWT_SECRET!,
+        { expiresIn: '5m' },
+      );
+
+      return NextResponse.json({
+        requiresTwoFactor: true,
+        twoFactorToken,
+      });
     }
 
     const session = await createSession(user.id, rememberMe);

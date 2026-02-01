@@ -180,7 +180,17 @@
     "ip_limit_min": "IP limit must be at least {min}!",
     "ip_limit_max": "IP limit must not exceed {max}!",
     "discord_account_already_linked": "This Discord account is already linked to another customer!",
-    "discord_account_already_linked_to_user": "This Discord account is already linked to another user account!"
+    "discord_account_already_linked_to_user": "This Discord account is already linked to another user account!",
+    "two_factor_code_required": "Verification code is required!",
+    "two_factor_code_length": "Verification code must be 6 digits!",
+    "two_factor_code_invalid": "Invalid verification code!",
+    "two_factor_code_min_length": "Verification code must be at least 6 characters!",
+    "two_factor_code_max_length": "Verification code must be at most 8 characters!",
+    "two_factor_token_required": "Two-factor token is required!",
+    "two_factor_token_expired": "Two-factor verification session has expired. Please login again.",
+    "two_factor_already_enabled": "Two-factor authentication is already enabled!",
+    "two_factor_not_enabled": "Two-factor authentication is not enabled!",
+    "two_factor_setup_expired": "Two-factor setup has expired. Please start the setup process again."
   },
   "general": {
     "response_status": "Response status",
@@ -401,7 +411,14 @@
     "completed_at": "Completed at",
     "response_information": "Response information",
     "payload_information": "Payload information",
-    "triggered_by": "Triggered by"
+    "triggered_by": "Triggered by",
+    "next": "Next",
+    "back": "Back",
+    "download": "Download",
+    "copy": "Copy",
+    "warning": "Warning",
+    "important": "Important",
+    "loading": "Loading"
   },
   "auth": {
     "oauth": {
@@ -474,6 +491,16 @@
     "emails": {
       "expired_link": "This link has expired.",
       "sending_failed_title": "Sending verification email failed"
+    },
+    "two_factor": {
+      "title": "Two-factor authentication",
+      "description": "Enter the 6-digit code from your authenticator app.",
+      "backup_code_description": "Enter one of your backup codes.",
+      "verification_code": "Verification code",
+      "backup_code": "Backup code",
+      "verify": "Verify",
+      "use_backup_code": "Use a backup code",
+      "use_authenticator": "Use authenticator app"
     }
   },
   "dashboard": {
@@ -605,7 +632,39 @@
       "delete_team": "Delete team",
       "transfer_ownership": "Transfer ownership",
       "select_new_owner": "Select new owner",
-      "no_users_found": "No users found"
+      "no_users_found": "No users found",
+      "two_factor_auth": "Two-factor authentication",
+      "two_factor_enabled_at": "Enabled at",
+      "backup_codes_remaining": "Backup codes remaining",
+      "manage_backup_codes": "Manage backup codes",
+      "enable_two_factor": "Enable 2FA",
+      "disable_two_factor": "Disable 2FA",
+      "setup_two_factor": "Set up two-factor authentication",
+      "setup_two_factor_scan_desc": "Scan the QR code with your authenticator app (like Google Authenticator or Authy).",
+      "setup_two_factor_password_desc": "Enter your account password to continue setting up two-factor authentication.",
+      "setup_two_factor_verify_desc": "Enter the 6-digit verification code from your authenticator app.",
+      "setup_two_factor_backup_desc": "Save these backup codes in a safe place. You can use them to access your account if you lose your phone.",
+      "verification_code": "Verification code",
+      "cant_scan_qr": "Can't scan the QR code? Enter this secret manually:",
+      "secret_copied": "Secret copied to clipboard",
+      "verify_and_enable": "Verify and enable",
+      "two_factor_enabled_success": "Two-factor authentication enabled!",
+      "save_backup_codes_warning": "Store these codes in a safe place. Each code can only be used once.",
+      "backup_codes_copied": "Backup codes copied to clipboard",
+      "backup_codes_downloaded": "Backup codes downloaded",
+      "done_saved_codes": "I've saved my codes",
+      "disable_two_factor_password_desc": "Enter your account password to continue disabling two-factor authentication.",
+      "disable_two_factor_verify_desc": "Enter a verification code from your authenticator app or a backup code.",
+      "two_factor_disabled_success": "Two-factor authentication disabled",
+      "backup_codes": "Backup codes",
+      "backup_codes_info_desc": "Backup codes can be used to access your account if you lose access to your authenticator app.",
+      "backup_codes_password_desc": "Enter your account password to continue regenerating backup codes.",
+      "backup_codes_verify_desc": "Enter the 6-digit verification code from your authenticator app.",
+      "backup_codes_display_desc": "Save these new backup codes. Your old codes are no longer valid.",
+      "codes_remaining": "Codes remaining",
+      "low_backup_codes_warning": "You have very few backup codes remaining. Consider regenerating them.",
+      "regenerate_codes_info": "If you've used most of your backup codes, you can generate a new set.",
+      "regenerate_codes": "Regenerate codes"
     },
     "products": {
       "add_product": "Add product",

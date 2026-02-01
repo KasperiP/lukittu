@@ -42,6 +42,28 @@ model User {
     blacklist                     Blacklist[]
     releases                      Release[]
     webhooks                      Webhook[]
+    totp                          UserTOTP?
+    recoveryCodes                 UserRecoveryCode[]
+}
+
+model UserTOTP {
+    id         String    @id @default(uuid())
+    userId     String    @unique
+    user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    secret     String
+    lastUsedAt DateTime?
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+}
+
+model UserRecoveryCode {
+    id        String    @id @default(uuid())
+    userId    String
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    code      String
+    used      Boolean   @default(false)
+    createdAt DateTime  @default(now())
+    usedAt    DateTime?
 }
 
 model UserDiscordAccount {

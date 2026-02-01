@@ -4,7 +4,7 @@ packages:
 
 catalogs:
   prisma:
-    prisma: ^7.1.0
+    prisma: ^7.3.0
 
 onlyBuiltDependencies:
   - '@prisma/client'

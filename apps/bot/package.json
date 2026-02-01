@@ -12,17 +12,17 @@
   "dependencies": {
     "@lukittu/shared": "workspace:*",
     "@sentry/cli": "^2.58.4",
-    "@sentry/node": "^10.30.0",
-    "@sentry/profiling-node": "^10.30.0",
+    "@sentry/node": "^10.38.0",
+    "@sentry/profiling-node": "^10.38.0",
     "discord.js": "^14.25.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-prettier": "^5.5.5",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0"
+    "typescript-eslint": "^8.54.0"
   }
 }
