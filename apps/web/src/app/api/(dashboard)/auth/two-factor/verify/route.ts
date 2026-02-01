@@ -200,17 +200,11 @@ export async function POST(
 
     let isValidCode = false;
     let usedBackupCodeId: string | null = null;
-    let totpVerifiedAt: Date | null = null;
 
     // Check if it's a 6-digit TOTP code or an 8-char backup code
     if (totpCode.length === 6 && /^\d{6}$/.test(totpCode)) {
-      const result = verifyTOTPCode(
-        decryptedSecret,
-        totpCode,
-        user.totp.lastUsedAt,
-      );
+      const result = verifyTOTPCode(decryptedSecret, totpCode);
       isValidCode = result.valid;
-      totpVerifiedAt = result.timestamp;
     } else if (totpCode.length === 8 && /^[A-Z0-9]{8}$/i.test(totpCode)) {
       const activeRecoveryCodes = user.recoveryCodes.filter((rc) => !rc.used);
       const hashedBackupCodes = activeRecoveryCodes.map((rc) => rc.code);
@@ -250,13 +244,6 @@ export async function POST(
               used: true,
               usedAt: new Date(),
             },
-          });
-        }
-
-        if (totpVerifiedAt) {
-          await tx.userTOTP.update({
-            where: { userId: user.id },
-            data: { lastUsedAt: totpVerifiedAt },
           });
         }
       });

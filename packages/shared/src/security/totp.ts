@@ -39,8 +39,7 @@ export function createTOTPUri(secret: string, email: string): string {
 export function verifyTOTPCode(
   secret: string,
   code: string,
-  lastUsedAt?: Date | null,
-): { valid: boolean; timestamp: Date } {
+): { valid: boolean } {
   try {
     const totp = new OTPAuth.TOTP({
       issuer: ISSUER,
@@ -50,28 +49,12 @@ export function verifyTOTPCode(
       secret: OTPAuth.Secret.fromBase32(secret),
     });
 
-    // delta returns null if invalid, or the difference in periods
     const delta = totp.validate({ token: code, window: 1 });
-    const now = new Date();
 
-    if (delta === null) {
-      return { valid: false, timestamp: now };
-    }
-
-    // Replay protection: reject if a code was already used within the validity window.
-    // With window: 1, each code is valid for up to 90 seconds (current + 1 adjacent period).
-    if (lastUsedAt) {
-      const elapsed = now.getTime() - lastUsedAt.getTime();
-      if (elapsed < 90_000) {
-        logger.warn('TOTP code replay detected, rejecting');
-        return { valid: false, timestamp: now };
-      }
-    }
-
-    return { valid: true, timestamp: now };
+    return { valid: delta !== null };
   } catch (error) {
     logger.error('Error occurred in verifyTOTPCode:', error);
-    return { valid: false, timestamp: new Date() };
+    return { valid: false };
   }
 }
 

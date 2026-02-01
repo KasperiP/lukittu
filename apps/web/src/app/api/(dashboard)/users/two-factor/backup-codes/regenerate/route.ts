@@ -182,11 +182,7 @@ export async function POST(
 
     // Check if it's a 6-digit TOTP code or an 8-char backup code
     if (totpCode.length === 6 && /^\d{6}$/.test(totpCode)) {
-      const result = verifyTOTPCode(
-        decryptedSecret,
-        totpCode,
-        session.user.totp.lastUsedAt,
-      );
+      const result = verifyTOTPCode(decryptedSecret, totpCode);
       isValidCode = result.valid;
     } else if (totpCode.length === 8 && /^[A-Z0-9]{8}$/i.test(totpCode)) {
       // It's a backup code - verify against existing codes
