@@ -111,112 +111,92 @@ export async function GET(
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const [
-      totalLicenses,
-      totalCustomers,
-      totalProducts,
-      activeLicensesResult,
-      requestTotalsResult,
-      requestsByTypeResult,
-      topCountriesResult,
-      topProductsResult,
-    ] = await Promise.all([
-      // 1. Total licenses count
-      prisma.license.count({
-        where: { teamId },
-      }),
-
-      // 2. Total customers count
-      prisma.customer.count({
-        where: { teamId },
-      }),
-
-      // 3. Total products count
-      prisma.product.count({
-        where: { teamId },
-      }),
-
-      // 4. Active licenses (distinct licenseIds in last hour)
-      prisma.$queryRaw<[{ count: bigint }]>(
-        Prisma.sql`
-          SELECT COUNT(DISTINCT "licenseId") as count
-          FROM "RequestLog"
-          WHERE "teamId" = ${teamId}
-          AND "createdAt" >= ${hourAgo}
-        `,
-      ),
-
-      // 5. Request totals + recent activity
-      prisma.$queryRaw<
-        [
-          {
-            total: bigint;
-            successful: bigint;
-            failed: bigint;
-            last_24h: bigint;
-            last_7d: bigint;
-          },
-        ]
-      >(
-        Prisma.sql`
-          SELECT
-            COUNT(*) as total,
-            COUNT(*) FILTER (WHERE status = 'VALID') as successful,
-            COUNT(*) FILTER (WHERE status != 'VALID') as failed,
-            COUNT(*) FILTER (WHERE "createdAt" >= ${dayAgo}) as last_24h,
-            COUNT(*) FILTER (WHERE "createdAt" >= ${weekAgo}) as last_7d
-          FROM "RequestLog"
-          WHERE "teamId" = ${teamId}
-          AND "createdAt" >= ${monthAgo}
-        `,
-      ),
-
-      // 6. Requests by type
-      prisma.$queryRaw<Array<{ type: string; count: bigint }>>(
-        Prisma.sql`
-          SELECT type::text, COUNT(*) as count
-          FROM "RequestLog"
-          WHERE "teamId" = ${teamId}
-          AND "createdAt" >= ${monthAgo}
-          GROUP BY type
-        `,
-      ),
-
-      // 7. Top 10 countries
-      prisma.$queryRaw<Array<{ country: string; requests: bigint }>>(
-        Prisma.sql`
-          SELECT "country", COUNT(*) as requests
-          FROM "RequestLog"
-          WHERE "teamId" = ${teamId}
-          AND "createdAt" >= ${monthAgo}
-          AND "country" IS NOT NULL
-          GROUP BY "country"
-          ORDER BY requests DESC
-          LIMIT 10
-        `,
-      ),
-
-      // 8. Top 5 products by license count
-      prisma.product.findMany({
-        where: { teamId },
-        orderBy: {
-          licenses: {
-            _count: 'desc',
-          },
-        },
-        take: 5,
-        include: {
-          _count: {
-            select: {
-              licenses: true,
+    const [totalLicenses, totalCustomers, totalProducts, topProductsResult] =
+      await Promise.all([
+        prisma.license.count({
+          where: { teamId },
+        }),
+        prisma.customer.count({
+          where: { teamId },
+        }),
+        prisma.product.count({
+          where: { teamId },
+        }),
+        prisma.product.findMany({
+          where: { teamId },
+          orderBy: {
+            licenses: {
+              _count: 'desc',
             },
           },
-        },
-      }),
-    ]);
+          take: 5,
+          include: {
+            _count: {
+              select: {
+                licenses: true,
+              },
+            },
+          },
+        }),
+      ]);
 
-    const activeLicenses = Number(activeLicensesResult[0]?.count || 0);
+    const requestTotalsResult = await prisma.$queryRaw<
+      [
+        {
+          total: bigint;
+          successful: bigint;
+          failed: bigint;
+          last_24h: bigint;
+          last_7d: bigint;
+          active_licenses: bigint;
+        },
+      ]
+    >(
+      Prisma.sql`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE status = 'VALID') as successful,
+          COUNT(*) FILTER (WHERE status != 'VALID') as failed,
+          COUNT(*) FILTER (WHERE "createdAt" >= ${dayAgo}) as last_24h,
+          COUNT(*) FILTER (WHERE "createdAt" >= ${weekAgo}) as last_7d,
+          COUNT(DISTINCT "licenseId") FILTER (WHERE "createdAt" >= ${hourAgo}) as active_licenses
+        FROM "RequestLog"
+        WHERE "teamId" = ${teamId}
+        AND "createdAt" >= ${monthAgo}
+      `,
+    );
+
+    // Requests by type
+    const requestsByTypeResult = await prisma.$queryRaw<
+      Array<{ type: string; count: bigint }>
+    >(
+      Prisma.sql`
+        SELECT type::text, COUNT(*) as count
+        FROM "RequestLog"
+        WHERE "teamId" = ${teamId}
+        AND "createdAt" >= ${monthAgo}
+        GROUP BY type
+      `,
+    );
+
+    // Top 10 countries
+    const topCountriesResult = await prisma.$queryRaw<
+      Array<{ country: string; requests: bigint }>
+    >(
+      Prisma.sql`
+        SELECT "country", COUNT(*) as requests
+        FROM "RequestLog"
+        WHERE "teamId" = ${teamId}
+        AND "createdAt" >= ${monthAgo}
+        AND "country" IS NOT NULL
+        GROUP BY "country"
+        ORDER BY requests DESC
+        LIMIT 10
+      `,
+    );
+
     const totals = requestTotalsResult[0];
+    const activeLicenses = Number(totals?.active_licenses || 0);
     const totalRequests = Number(totals?.total || 0);
     const successfulRequests = Number(totals?.successful || 0);
     const failedRequests = Number(totals?.failed || 0);
