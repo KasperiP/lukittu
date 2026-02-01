@@ -46,6 +46,17 @@ const ResponsiveDialog = ({
   ...props
 }: RootResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(desktop);
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent rendering until mounted to avoid hydration mismatch issues
+  if (!mounted) {
+    return null;
+  }
+
   const ResponsiveDialog = isDesktop ? Dialog : Drawer;
 
   return (
