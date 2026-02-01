@@ -234,9 +234,8 @@ export async function POST(
       );
     }
 
-    // Update database state atomically, then create session
     try {
-      await prisma.$transaction(async (tx) => {
+      const session = await prisma.$transaction(async (tx) => {
         if (usedBackupCodeId) {
           await tx.userRecoveryCode.update({
             where: { id: usedBackupCodeId },
@@ -246,19 +245,13 @@ export async function POST(
             },
           });
         }
+
+        const session = await createSession(user.id, rememberMe, tx);
+
+        return session;
       });
 
-      const session = await createSession(user.id, rememberMe);
-
       if (!session) {
-        // Compensate: if a backup code was marked used but session creation failed,
-        // revert the backup code so the user doesn't lose it without authentication
-        if (usedBackupCodeId) {
-          await prisma.userRecoveryCode.update({
-            where: { id: usedBackupCodeId },
-            data: { used: false, usedAt: null },
-          });
-        }
         logger.error('Failed to create session after 2FA verification', {
           userId: user.id,
         });

@@ -7,7 +7,11 @@ import { getCloudflareVisitorData } from '../providers/cloudflare';
 import { iso2toIso3 } from '../utils/country-helpers';
 import { getIp, getUserAgent } from '../utils/header-helpers';
 
-export async function createSession(userId: string, rememberMe: boolean) {
+export async function createSession(
+  userId: string,
+  rememberMe: boolean,
+  tx?: Prisma.TransactionClient,
+) {
   try {
     const ipAddress = await getIp();
     const userAgent = await getUserAgent();
@@ -23,7 +27,9 @@ export async function createSession(userId: string, rememberMe: boolean) {
       ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
       : new Date(Date.now() + 1000 * 60 * 60 * 24);
 
-    const session = await prisma.session.create({
+    const prismaClient = tx ?? prisma;
+
+    const session = await prismaClient.session.create({
       data: {
         sessionId,
         userId,
