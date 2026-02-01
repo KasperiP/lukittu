@@ -54,11 +54,22 @@ export const LicensesActionDropdown = ({
           className="hover:cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
+            navigator.clipboard.writeText(license.id);
+            toast.success(t('general.copied_to_clipboard'));
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          {t('general.copy_id')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
             handleCopy(license.licenseKey);
           }}
         >
           <Copy className="mr-2 h-4 w-4" />
-          {t('general.click_to_copy')}
+          {t('dashboard.licenses.copy_license_key')}
         </DropdownMenuItem>
         <DropdownMenuItem
           className="hover:cursor-pointer"

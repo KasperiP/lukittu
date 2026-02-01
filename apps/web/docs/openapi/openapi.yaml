@@ -56,6 +56,14 @@ tags:
     description: |
       Developer endpoints for customer management operations.
       These endpoints require API key authentication.
+  - name: Dev - Releases
+    description: |
+      Developer endpoints for release management operations.
+      These endpoints require API key authentication.
+  - name: Dev - Statistics
+    description: |
+      Developer endpoints for retrieving team usage statistics.
+      These endpoints require API key authentication.
 
 # Import all path definitions
 paths:
@@ -94,11 +102,20 @@ paths:
     $ref: './paths/dev/license-ips.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1licenses~1id~1{licenseId}~1ip-address~1{ipId}'
 
   # Developer customer endpoints
+  # Developer release endpoints
+  /api/v1/dev/teams/{teamId}/releases:
+    $ref: './paths/dev/releases.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1releases'
+
+  # Developer customer endpoints
   /api/v1/dev/teams/{teamId}/customers:
     $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers'
 
   /api/v1/dev/teams/{teamId}/customers/{customerId}:
     $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers~1{customerId}'
+
+  # Developer statistics endpoints
+  /api/v1/dev/teams/{teamId}/statistics:
+    $ref: './paths/dev/statistics.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1statistics'
 
 # Import all component definitions
 components:
@@ -151,6 +168,16 @@ components:
       $ref: './components/schemas/product.yaml#/components/schemas/ProductData'
     ProductResponse:
       $ref: './components/schemas/product.yaml#/components/schemas/ProductResponse'
+
+    # Release schemas
+    ReleaseData:
+      $ref: './components/schemas/product.yaml#/components/schemas/ReleaseData'
+    ReleaseFileData:
+      $ref: './components/schemas/product.yaml#/components/schemas/ReleaseFileData'
+    CreateReleaseRequest:
+      $ref: './components/schemas/product.yaml#/components/schemas/CreateReleaseRequest'
+    ReleaseResponse:
+      $ref: './components/schemas/product.yaml#/components/schemas/ReleaseResponse'
 
   # Parameters
   parameters:

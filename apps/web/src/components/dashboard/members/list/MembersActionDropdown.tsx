@@ -14,9 +14,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { MemberModalContext } from '@/providers/MemberModalProvider';
-import { Ellipsis, Trash } from 'lucide-react';
+import { Copy, Ellipsis, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
+import { toast } from 'sonner';
 
 interface MembersDropdownProps {
   member: ITeamsMembersGetSuccessResponse['members'][number] | undefined;
@@ -59,6 +60,17 @@ export const MembersActionDropdown = ({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="font-medium" forceMount>
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(member.id);
+            toast.success(t('general.copied_to_clipboard'));
+          }}
+        >
+          <Copy className="mr-2 h-4 w-4" />
+          {t('general.copy_id')}
+        </DropdownMenuItem>
         {!('isInvitation' in member) && (
           <DropdownMenuItem
             className="text-destructive hover:cursor-pointer"

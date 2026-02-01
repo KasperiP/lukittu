@@ -37,6 +37,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { LanguageSwitcher } from '../shared/LanguageSwitcher';
 import { ThemeSwitcher } from '../shared/ThemeSwitcher';
 import LoginWithGithubButton from './LoginWithGithubButton';
+import TwoFactorVerificationCard from './TwoFactorVerificationCard';
 
 export default function LoginCard() {
   const t = useTranslations();
@@ -52,6 +53,8 @@ export default function LoginCard() {
     useState(false);
   const [showTurnstile, setShowTurnstile] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState('');
 
   const error = searchParams.get('error');
   const provider = searchParams.get('provider');
@@ -116,6 +119,13 @@ export default function LoginCard() {
         return setFormError(res.message);
       }
 
+      // Check if 2FA is required
+      if ('requiresTwoFactor' in res && res.requiresTwoFactor) {
+        setTwoFactorToken(res.twoFactorToken);
+        setRequiresTwoFactor(true);
+        return;
+      }
+
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error: any) {
@@ -131,6 +141,23 @@ export default function LoginCard() {
     setShowTurnstile(true);
     turnstile.current?.reset();
   };
+
+  const handleBackFromTwoFactor = () => {
+    setRequiresTwoFactor(false);
+    setTwoFactorToken('');
+    form.setValue('password', '');
+    setShowTurnstile(false);
+  };
+
+  if (requiresTwoFactor) {
+    return (
+      <TwoFactorVerificationCard
+        rememberMe={form.getValues('rememberMe')}
+        twoFactorToken={twoFactorToken}
+        onBack={handleBackFromTwoFactor}
+      />
+    );
+  }
 
   return (
     <>

@@ -24,24 +24,25 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.1.0",
-    "@prisma/client": "^7.1.0",
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
     "dotenv": "^17.2.3",
-    "ioredis": "^5.8.2"
+    "ioredis": "^5.9.2",
+    "otpauth": "^9.4.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.19.27",
+    "@types/node": "^20.19.30",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-prettier": "^5.5.5",
     "jest": "^29.7.0",
     "jest-mock-extended": "2.0.4",
     "prisma": "catalog:prisma",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.49.0"
+    "typescript-eslint": "^8.54.0"
   },
   "browser": {
     "./server": false,

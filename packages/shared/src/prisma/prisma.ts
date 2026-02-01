@@ -1,9 +1,15 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '../../prisma/generated/client';
 
-const prismaOmitConfig: Prisma.GlobalOmitConfig = {
+const prismaOmitConfig = {
   user: {
     passwordHash: true,
+  },
+  userRecoveryCode: {
+    code: true,
+  },
+  userTOTP: {
+    secret: true,
   },
   session: {
     sessionId: true,
@@ -20,22 +26,20 @@ const prismaOmitConfig: Prisma.GlobalOmitConfig = {
   userDiscordAccount: {
     refreshToken: true,
   },
-} as const;
+} satisfies Prisma.GlobalOmitConfig;
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 
-const options: Prisma.PrismaClientOptions = {
+const options = {
   omit: prismaOmitConfig,
   adapter,
-};
+} satisfies Prisma.PrismaClientOptions;
 
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;
 }
 
-const prisma = global.prisma || new PrismaClient(options);
-
-if (process.env.NODE_ENV === 'development') global.prisma = prisma;
+const prisma = new PrismaClient(options);
 
 export { prisma };

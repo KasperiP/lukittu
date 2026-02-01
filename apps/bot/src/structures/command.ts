@@ -11,7 +11,7 @@ import {
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 
-export type LinkedDiscordAccount = UserDiscordAccount & {
+export type LinkedDiscordAccount = Omit<UserDiscordAccount, 'refreshToken'> & {
   user: Omit<User, 'passwordHash'> & {
     teams: (Team & {
       discordIntegration: DiscordIntegration | null;
