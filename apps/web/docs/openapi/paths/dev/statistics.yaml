@@ -1,0 +1,160 @@
+paths:
+  /api/v1/dev/teams/{teamId}/statistics:
+    get:
+      summary: 'Get Team Statistics'
+      operationId: 'getTeamStatistics'
+      description: |
+        Returns combined usage statistics for a team, including license counts, request metrics,
+        top countries, top products, and recent activity.
+
+        Results are cached for 15 minutes per team.
+      tags:
+        - Dev - Statistics
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+      responses:
+        '200':
+          description: 'Statistics retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      overview:
+                        type: object
+                        properties:
+                          totalLicenses:
+                            type: integer
+                            description: 'Total number of licenses for the team'
+                          totalCustomers:
+                            type: integer
+                            description: 'Total number of customers for the team'
+                          totalProducts:
+                            type: integer
+                            description: 'Total number of products for the team'
+                          activeLicenses:
+                            type: integer
+                            description: 'Number of licenses active in the last hour'
+                          totalRequests:
+                            type: integer
+                            description: 'Total requests in the last 30 days'
+                      requests:
+                        type: object
+                        properties:
+                          total:
+                            type: integer
+                            description: 'Total requests in the last 30 days'
+                          successful:
+                            type: integer
+                            description: 'Successful (VALID) requests in the last 30 days'
+                          failed:
+                            type: integer
+                            description: 'Failed (non-VALID) requests in the last 30 days'
+                          successRate:
+                            type: number
+                            format: float
+                            description: 'Percentage of successful requests'
+                          byType:
+                            type: object
+                            description: 'Request counts grouped by type'
+                            additionalProperties:
+                              type: integer
+                            example:
+                              VERIFY: 8500
+                              HEARTBEAT: 3200
+                              DOWNLOAD: 750
+                      topCountries:
+                        type: array
+                        description: 'Top 10 countries by request count (last 30 days)'
+                        items:
+                          type: object
+                          properties:
+                            country:
+                              type: string
+                              description: 'Country name'
+                            alpha3:
+                              type: string
+                              description: 'ISO 3166-1 alpha-3 country code'
+                            alpha2:
+                              type: string
+                              description: 'ISO 3166-1 alpha-2 country code'
+                            requests:
+                              type: integer
+                              description: 'Number of requests from this country'
+                      topProducts:
+                        type: array
+                        description: 'Top 5 products by license count'
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: 'Product UUID'
+                            name:
+                              type: string
+                              description: 'Product name'
+                            licenses:
+                              type: integer
+                              description: 'Number of licenses for this product'
+                      recentActivity:
+                        type: object
+                        properties:
+                          last24h:
+                            type: integer
+                            description: 'Request count in the last 24 hours'
+                          last7d:
+                            type: integer
+                            description: 'Request count in the last 7 days'
+                          last30d:
+                            type: integer
+                            description: 'Request count in the last 30 days'
+                  result:
+                    $ref: '../../components/schemas/common.yaml#/components/schemas/StandardResult'
+              example:
+                data:
+                  overview:
+                    totalLicenses: 150
+                    totalCustomers: 45
+                    totalProducts: 8
+                    activeLicenses: 32
+                    totalRequests: 12450
+                  requests:
+                    total: 12450
+                    successful: 11200
+                    failed: 1250
+                    successRate: 89.96
+                    byType:
+                      VERIFY: 8500
+                      HEARTBEAT: 3200
+                      DOWNLOAD: 750
+                  topCountries:
+                    - country: 'United States of America'
+                      alpha3: 'USA'
+                      alpha2: 'US'
+                      requests: 5200
+                    - country: 'Germany'
+                      alpha3: 'DEU'
+                      alpha2: 'DE'
+                      requests: 2100
+                  topProducts:
+                    - id: '789e0123-e89b-12d3-a456-426614174222'
+                      name: 'My Product'
+                      licenses: 50
+                  recentActivity:
+                    last24h: 850
+                    last7d: 4200
+                    last30d: 12450
+                result:
+                  timestamp: '2023-09-15T14:30:00Z'
+                  valid: true
+                  details: 'Statistics retrieved'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
