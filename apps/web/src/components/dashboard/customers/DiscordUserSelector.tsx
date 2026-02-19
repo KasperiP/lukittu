@@ -89,10 +89,17 @@ export default function DiscordUserSelector({
       if (
         discordId &&
         regex.discordId.test(discordId) &&
-        discordId.length >= 17 &&
-        BigInt(discordId) <= BigInt('9223372036854775807')
+        discordId.length >= 17
       ) {
-        setDebouncedDiscordId(discordId);
+        try {
+          if (BigInt(discordId) <= BigInt('9223372036854775807')) {
+            setDebouncedDiscordId(discordId);
+          } else {
+            setDebouncedDiscordId(null);
+          }
+        } catch {
+          setDebouncedDiscordId(null);
+        }
       } else {
         setDebouncedDiscordId(null);
       }
