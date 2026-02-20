@@ -533,16 +533,27 @@ async function executeRoleChanges(
   member: GuildMember,
   roleAssignmentData: RoleAssignmentData[],
 ): Promise<void> {
+  // Deduplicate by roleId: if ANY product grants this role, keep it
+  const roleDecisionMap = new Map<string, boolean>();
+  for (const assignment of roleAssignmentData) {
+    const current = roleDecisionMap.get(assignment.roleId);
+    roleDecisionMap.set(
+      assignment.roleId,
+      current === undefined
+        ? assignment.hasActiveLicense
+        : current || assignment.hasActiveLicense,
+    );
+  }
+
   const rolesToAdd: string[] = [];
   const rolesToRemove: string[] = [];
 
-  for (const assignment of roleAssignmentData) {
-    const hasRole = member.roles.cache.has(assignment.roleId);
-
-    if (assignment.hasActiveLicense && !hasRole) {
-      rolesToAdd.push(assignment.roleId);
-    } else if (!assignment.hasActiveLicense && hasRole) {
-      rolesToRemove.push(assignment.roleId);
+  for (const [roleId, hasActiveLicense] of roleDecisionMap) {
+    const hasRole = member.roles.cache.has(roleId);
+    if (hasActiveLicense && !hasRole) {
+      rolesToAdd.push(roleId);
+    } else if (!hasActiveLicense && hasRole) {
+      rolesToRemove.push(roleId);
     }
   }
 
