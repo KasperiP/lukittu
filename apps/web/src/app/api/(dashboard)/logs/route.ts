@@ -54,6 +54,7 @@ export async function GET(
 
     const licenseSearch = (searchParams.get('licenseSearch') as string) || '';
     const ipSearch = (searchParams.get('ipSearch') as string) || '';
+    const hwidSearch = (searchParams.get('hwidSearch') as string) || '';
     const licenseId = searchParams.get('licenseId') as string;
     const productIds = (searchParams.get('productIds') as string) || '';
     const customerIds = (searchParams.get('customerIds') as string) || '';
@@ -234,6 +235,7 @@ export async function GET(
         : undefined,
       license: licenseKeyLookup ? { licenseKeyLookup } : undefined,
       ipAddress: ipSearch ? { contains: ipSearch } : undefined,
+      hardwareIdentifier: hwidSearch ? { contains: hwidSearch } : undefined,
       type: type ? type : undefined,
       teamId: selectedTeam,
     } as Prisma.RequestLogWhereInput;

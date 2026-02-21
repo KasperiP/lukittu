@@ -4,6 +4,7 @@ import { DateConverter } from '@/components/shared/DateConverter';
 import { CustomerFilterChip } from '@/components/shared/filtering/CustomerFilterChip';
 import { DateRangeFilterChip } from '@/components/shared/filtering/DateRangeFilterChip';
 import { IpFilterChip } from '@/components/shared/filtering/IpFilterChip';
+import { LicenseHwidFilterChip } from '@/components/shared/filtering/LicenseHwidFilterChip';
 import { LicenseFilterChip } from '@/components/shared/filtering/LicenseFilterChip';
 import { ProductFilterChip } from '@/components/shared/filtering/ProductFilterChip';
 import { StatusFilterChip } from '@/components/shared/filtering/StatusFilterChip';
@@ -90,6 +91,10 @@ export default function LogViewer() {
     'ipSearch',
     parseAsString.withDefault(''),
   );
+  const [hwidSearch, setHwidSearch] = useQueryState(
+    'hwidSearch',
+    parseAsString.withDefault(''),
+  );
   const [dateRangeFrom, setDateRangeFrom] = useQueryState(
     'dateRangeFrom',
     parseAsLocalDate,
@@ -116,6 +121,7 @@ export default function LogViewer() {
   );
   const [tempLicenseSearch, setTempLicenseSearch] = useState(licenseSearch);
   const [tempIpSearch, setTempIpSearch] = useState(ipSearch);
+  const [tempHwidSearch, setTempHwidSearch] = useState(hwidSearch);
   const [tempProductIds, setTempProductIds] = useState(productIds);
   const [tempCustomerIds, setTempCustomerIds] = useState(customerIds);
 
@@ -127,6 +133,7 @@ export default function LogViewer() {
     if (productIds.length > 0) count++;
     if (licenseSearch) count++;
     if (ipSearch) count++;
+    if (hwidSearch) count++;
     if (dateRangeFrom || dateRangeTo) count++;
     return count;
   }, [
@@ -136,6 +143,7 @@ export default function LogViewer() {
     productIds,
     licenseSearch,
     ipSearch,
+    hwidSearch,
     dateRangeFrom,
     dateRangeTo,
   ]);
@@ -170,6 +178,9 @@ export default function LogViewer() {
     }
     if (ipSearch) {
       params.append('ipSearch', ipSearch);
+    }
+    if (hwidSearch) {
+      params.append('hwidSearch', hwidSearch);
     }
     const effectiveDateRangeFrom = dateRangeFrom || DEFAULT_DATE_RANGE_FROM;
     const effectiveDateRangeTo = dateRangeTo || DEFAULT_DATE_RANGE_TO;
@@ -270,6 +281,8 @@ export default function LogViewer() {
     setTempLicenseSearch(DEFAULT_SEARCH);
     setIpSearch(DEFAULT_SEARCH);
     setTempIpSearch(DEFAULT_SEARCH);
+    setHwidSearch(DEFAULT_SEARCH);
+    setTempHwidSearch(DEFAULT_SEARCH);
     setDateRangeFrom(DEFAULT_DATE_RANGE_FROM);
     setDateRangeTo(DEFAULT_DATE_RANGE_TO);
     setTempDateRange({
@@ -310,6 +323,13 @@ export default function LogViewer() {
         setIpSearch={setIpSearch}
         setTempIpSearch={setTempIpSearch}
         tempIpSearch={tempIpSearch}
+      />
+
+      <LicenseHwidFilterChip
+        hwid={hwidSearch}
+        setHwid={setHwidSearch}
+        setTempHwid={setTempHwidSearch}
+        tempHwid={tempHwidSearch}
       />
 
       <ProductFilterChip
@@ -358,6 +378,8 @@ export default function LogViewer() {
               setTempLicenseSearch(DEFAULT_SEARCH);
               setIpSearch(DEFAULT_SEARCH);
               setTempIpSearch(DEFAULT_SEARCH);
+              setHwidSearch(DEFAULT_SEARCH);
+              setTempHwidSearch(DEFAULT_SEARCH);
               setDateRangeFrom(null);
               setDateRangeTo(null);
               setTempDateRange(undefined);
