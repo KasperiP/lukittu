@@ -274,7 +274,7 @@ export default function ProductsPreviewTable({
       <LicenseProductsModal
         license={license}
         open={licenseProductsModalOpen}
-        selectedProducts={products}
+        selectedProducts={license?.products}
         onOpenChange={setLicenseProductsModalOpen}
         onSubmit={handleLicenseProductsSet}
       />

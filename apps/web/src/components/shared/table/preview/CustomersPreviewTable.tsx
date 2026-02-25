@@ -310,7 +310,7 @@ export default function CustomersPreviewTable({
       <LicenseCustomersModal
         license={license}
         open={customersModalOpen}
-        selectedCustomers={customers}
+        selectedCustomers={license?.customers}
         onOpenChange={setCustomersModalOpen}
         onSubmit={handleLicenseCustomersSet}
       />
