@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       lukittuData: {
         productId: rawBody.lukittuData.productId,
         ipLimit: rawBody.lukittuData.ipLimit,
-        hwidLimit: rawBody.lukittuData.hwidLimit || legacySeats,
+        hwidLimit: rawBody.lukittuData.hwidLimit || legacySeats || null,
         expirationDays: rawBody.lukittuData.expirationDays,
         expirationStart: rawBody.lukittuData.expirationStart,
       },

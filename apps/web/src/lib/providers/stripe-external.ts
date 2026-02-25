@@ -215,8 +215,7 @@ export const handleInvoicePaid = async (
        * @deprecated use hwid_limit. Only for backward compatibility.
        */
       const legacySeats = product.metadata.seats as string | undefined;
-      const hwidLimit =
-        product.metadata.hwid_limit || (legacySeats as string | undefined);
+      const hwidLimit = product.metadata.hwid_limit ?? legacySeats ?? null;
 
       // Parse and validate product IDs
       const lukittuProductIds = parseProductIds(productIdString);
