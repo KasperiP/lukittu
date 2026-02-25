@@ -81,15 +81,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const query = {
+      productId,
+      ipLimit,
+      hwidLimit,
+      expirationDays,
+      expirationStart,
+    };
+
+    logger.info('Polymart webhook: Query parameters received', query);
+
     // Validate purchase params from query parameters
     const purchaseParamsValidation =
-      await polymartPurchaseParamsSchema().safeParseAsync({
-        productId,
-        ipLimit,
-        hwidLimit,
-        expirationDays,
-        expirationStart,
-      });
+      await polymartPurchaseParamsSchema().safeParseAsync(query);
 
     if (!purchaseParamsValidation.success) {
       logger.warn('Polymart webhook: Purchase params validation failed', {

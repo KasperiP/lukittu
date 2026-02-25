@@ -79,6 +79,8 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    logger.info('BuiltByBit webhook: Payload received', body);
+
     const validated = await purchaseBuiltByBitSchema().safeParseAsync(body);
 
     if (!validated.success) {
