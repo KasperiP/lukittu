@@ -119,11 +119,11 @@ export default function ProductsPreviewTable({
       expirationType: license.expirationType,
       ipLimit: license.ipLimit,
       licenseKey: license.licenseKey,
-      metadata: license.metadata as {
-        key: string;
-        value: string;
-        locked: boolean;
-      }[],
+      metadata: license.metadata?.map((m) => ({
+        key: m.key,
+        value: m.value,
+        locked: m.locked,
+      })),
       hwidLimit: license.hwidLimit,
       suspended: license.suspended,
     });
