@@ -50,6 +50,16 @@ components:
         $ref: '../schemas/common.yaml#/components/schemas/UUID'
       example: '789e0123-e89b-12d3-a456-426614174222'
 
+    # Release ID path parameter
+    ReleaseIdPath:
+      name: releaseId
+      in: path
+      required: true
+      description: 'The unique identifier (UUID v4) of the release.'
+      schema:
+        $ref: '../schemas/common.yaml#/components/schemas/UUID'
+      example: '456e7890-e89b-12d3-a456-426614174111'
+
     # Customer ID query parameter
     CustomerId:
       name: customerId

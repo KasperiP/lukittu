@@ -215,6 +215,48 @@ components:
           maxItems: 30
           description: 'License UUIDs to restrict access to this release'
 
+    # Update release request (JSON fields within multipart data)
+    UpdateReleaseRequest:
+      type: object
+      required:
+        - version
+        - productId
+        - status
+        - setAsLatest
+        - keepExistingFile
+        - branchId
+        - metadata
+        - licenseIds
+      properties:
+        version:
+          $ref: './common.yaml#/components/schemas/Version'
+          description: 'Release version string (3-255 chars, no spaces)'
+        productId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          description: 'UUID of the product this release belongs to'
+        status:
+          $ref: '#/components/schemas/ReleaseStatus'
+          description: 'Release status'
+        setAsLatest:
+          type: boolean
+          description: 'Set this as the latest release for the product/branch'
+        keepExistingFile:
+          type: boolean
+          description: 'When no new file is uploaded: true keeps the existing file, false deletes it. Ignored when a new file is uploaded.'
+        branchId:
+          $ref: './common.yaml#/components/schemas/UUID'
+          nullable: true
+          description: 'UUID of the branch (null for default branch)'
+        metadata:
+          $ref: './common.yaml#/components/schemas/Metadata'
+          description: 'Key-value metadata pairs (max 20). Replaces all existing metadata.'
+        licenseIds:
+          type: array
+          items:
+            $ref: './common.yaml#/components/schemas/UUID'
+          maxItems: 30
+          description: 'License UUIDs to restrict access to this release. Replaces all existing associations.'
+
     # Release response with extended data
     ReleaseResponse:
       allOf:

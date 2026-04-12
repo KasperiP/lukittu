@@ -106,6 +106,9 @@ paths:
   /api/v1/dev/teams/{teamId}/releases:
     $ref: './paths/dev/releases.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1releases'
 
+  /api/v1/dev/teams/{teamId}/releases/{releaseId}:
+    $ref: './paths/dev/releases.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1releases~1{releaseId}'
+
   # Developer customer endpoints
   /api/v1/dev/teams/{teamId}/customers:
     $ref: './paths/dev/customers.yaml#/paths/~1api~1v1~1dev~1teams~1{teamId}~1customers'
@@ -178,6 +181,8 @@ components:
       $ref: './components/schemas/product.yaml#/components/schemas/CreateReleaseRequest'
     ReleaseResponse:
       $ref: './components/schemas/product.yaml#/components/schemas/ReleaseResponse'
+    UpdateReleaseRequest:
+      $ref: './components/schemas/product.yaml#/components/schemas/UpdateReleaseRequest'
 
   # Parameters
   parameters:
@@ -189,6 +194,8 @@ components:
       $ref: './components/parameters/common.yaml#/components/parameters/LicenseKeyPath'
     CustomerIdPath:
       $ref: './components/parameters/common.yaml#/components/parameters/CustomerIdPath'
+    ReleaseIdPath:
+      $ref: './components/parameters/common.yaml#/components/parameters/ReleaseIdPath'
     Page:
       $ref: './components/parameters/pagination.yaml#/components/parameters/Page'
     PageSize:
