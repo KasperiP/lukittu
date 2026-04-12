@@ -181,6 +181,8 @@ components:
       $ref: './components/schemas/product.yaml#/components/schemas/CreateReleaseRequest'
     ReleaseResponse:
       $ref: './components/schemas/product.yaml#/components/schemas/ReleaseResponse'
+    ReleaseListResponse:
+      $ref: './components/schemas/product.yaml#/components/schemas/ReleaseListResponse'
     UpdateReleaseRequest:
       $ref: './components/schemas/product.yaml#/components/schemas/UpdateReleaseRequest'
 

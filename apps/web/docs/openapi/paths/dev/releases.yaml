@@ -1,5 +1,87 @@
 paths:
   /api/v1/dev/teams/{teamId}/releases:
+    get:
+      summary: 'List Releases'
+      operationId: 'listReleases'
+      description: |
+        Retrieve a paginated list of releases for a specific product within the team.
+        Results can be filtered by version search and release status.
+      tags:
+        - Dev - Releases
+      parameters:
+        - $ref: '../../components/parameters/common.yaml#/components/parameters/TeamId'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/Page'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/PageSize'
+        - $ref: '../../components/parameters/pagination.yaml#/components/parameters/SortDirection'
+        - name: productId
+          in: query
+          required: true
+          description: 'UUID of the product to list releases for'
+          schema:
+            $ref: '../../components/schemas/common.yaml#/components/schemas/UUID'
+          example: '789e0123-e89b-12d3-a456-426614174222'
+        - name: sortColumn
+          in: query
+          required: false
+          description: 'Column to sort by'
+          schema:
+            type: string
+            enum: [version, createdAt, updatedAt, latest]
+            default: createdAt
+          example: 'createdAt'
+        - name: search
+          in: query
+          required: false
+          description: 'Search releases by version (case-insensitive partial match)'
+          schema:
+            type: string
+          example: '1.0'
+        - name: status
+          in: query
+          required: false
+          description: 'Filter releases by status'
+          schema:
+            $ref: '../../components/schemas/product.yaml#/components/schemas/ReleaseStatus'
+          example: 'PUBLISHED'
+      responses:
+        '200':
+          description: 'Releases retrieved successfully'
+          content:
+            application/json:
+              schema:
+                $ref: '../../components/schemas/product.yaml#/components/schemas/ReleaseListResponse'
+              example:
+                data:
+                  releases:
+                    - id: '456e7890-e89b-12d3-a456-426614174111'
+                      version: '1.0.0'
+                      status: 'PUBLISHED'
+                      latest: true
+                      productId: '789e0123-e89b-12d3-a456-426614174222'
+                      branchId: null
+                      teamId: '123e4567-e89b-12d3-a456-426614174000'
+                      createdAt: '2023-09-15T14:30:00Z'
+                      updatedAt: '2023-09-15T14:30:00Z'
+                      metadata: []
+                      product:
+                        id: '789e0123-e89b-12d3-a456-426614174222'
+                        name: 'My Product'
+                      branch: null
+                      file: null
+                      allowedLicenses: []
+                  hasNextPage: false
+                  totalResults: 1
+                result:
+                  timestamp: '2023-09-15T14:30:00Z'
+                  valid: true
+                  details: 'Releases found'
+        '4XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+        '5XX':
+          $ref: '../../components/responses/common.yaml#/components/responses/StandardError'
+      security:
+        - bearerAuth: []
+
     post:
       summary: 'Create Release'
       operationId: 'createRelease'

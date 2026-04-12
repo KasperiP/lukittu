@@ -18,10 +18,13 @@ import {
   AuditLogTargetType,
   createReleasePayload,
   createWebhookEvents,
+  decryptString,
   generateMD5Hash,
   logger,
+  Prisma,
   prisma,
   regex,
+  ReleaseStatus,
   WebhookEventType,
 } from '@lukittu/shared';
 import crypto from 'crypto';
@@ -644,6 +647,300 @@ export async function POST(
     const responseTime = Date.now() - requestTime.getTime();
 
     logger.error('Dev API: Create release failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/releases',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
+
+    return NextResponse.json(
+      {
+        data: null,
+        result: {
+          details: 'Internal server error',
+          timestamp: new Date(),
+          valid: false,
+        },
+      },
+      { status: HttpStatus.INTERNAL_SERVER_ERROR },
+    );
+  }
+}
+
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ teamId: string }> },
+): Promise<NextResponse<IExternalDevResponse>> {
+  const params = await props.params;
+  const { teamId } = params;
+  const requestTime = new Date();
+  const requestId = crypto.randomUUID();
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || 'unknown';
+  const ipAddress = await getIp();
+
+  try {
+    logger.info('Dev API: Get releases request started', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/releases',
+      method: 'GET',
+      userAgent,
+      timestamp: requestTime.toISOString(),
+      ipAddress,
+    });
+
+    if (!teamId || !regex.uuidV4.test(teamId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid teamId provided for release listing', {
+        requestId,
+        providedTeamId: teamId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid teamId',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const { team } = await verifyApiAuthorization(teamId);
+
+    if (!team) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn(
+        'Dev API: API key authentication failed for release listing',
+        {
+          requestId,
+          teamId,
+          responseTimeMs: responseTime,
+          statusCode: HttpStatus.UNAUTHORIZED,
+          ipAddress,
+          userAgent,
+        },
+      );
+
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid API key',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.UNAUTHORIZED },
+      );
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+
+    const MAX_PAGE_SIZE = 100;
+    const DEFAULT_PAGE_SIZE = 25;
+    const DEFAULT_PAGE = 1;
+    const DEFAULT_SORT_DIRECTION = 'desc' as const;
+    const DEFAULT_SORT_COLUMN = 'createdAt';
+
+    const allowedPageSizes = [10, 25, 50, 100];
+    const allowedSortDirections = ['asc', 'desc'] as const;
+    const allowedSortColumns = [
+      'version',
+      'createdAt',
+      'updatedAt',
+      'latest',
+    ] as const;
+
+    const allowedStatuses = Object.values(ReleaseStatus);
+
+    // Parse and validate parameters
+    const rawPage = parseInt(searchParams.get('page') as string);
+    const rawPageSize = parseInt(searchParams.get('pageSize') as string);
+    const rawSortColumn = searchParams.get('sortColumn');
+    const rawSortDirection = searchParams.get(
+      'sortDirection',
+    ) as (typeof allowedSortDirections)[number];
+    const rawStatus = searchParams.get('status') as ReleaseStatus | null;
+
+    const page = !isNaN(rawPage) && rawPage > 0 ? rawPage : DEFAULT_PAGE;
+
+    const pageSize =
+      !isNaN(rawPageSize) && allowedPageSizes.includes(rawPageSize)
+        ? Math.min(rawPageSize, MAX_PAGE_SIZE)
+        : DEFAULT_PAGE_SIZE;
+
+    const sortDirection = allowedSortDirections.includes(rawSortDirection)
+      ? rawSortDirection
+      : DEFAULT_SORT_DIRECTION;
+
+    const sortColumn =
+      rawSortColumn &&
+      allowedSortColumns.includes(
+        rawSortColumn as (typeof allowedSortColumns)[number],
+      )
+        ? rawSortColumn
+        : DEFAULT_SORT_COLUMN;
+
+    const search = searchParams.get('search') || '';
+    const productId = searchParams.get('productId');
+
+    const status =
+      rawStatus && allowedStatuses.includes(rawStatus) ? rawStatus : undefined;
+
+    // Validate productId (required)
+    if (!productId || !regex.uuidV4.test(productId)) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Invalid or missing productId for release listing', {
+        requestId,
+        teamId,
+        providedProductId: productId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.BAD_REQUEST,
+        ipAddress,
+        userAgent,
+      });
+
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid or missing productId',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    // Validate product exists and belongs to team
+    const product = await prisma.product.findFirst({
+      where: {
+        id: productId,
+        teamId: team.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!product) {
+      const responseTime = Date.now() - requestTime.getTime();
+
+      logger.warn('Dev API: Product not found for release listing', {
+        requestId,
+        teamId,
+        productId,
+        responseTimeMs: responseTime,
+        statusCode: HttpStatus.NOT_FOUND,
+        ipAddress,
+        userAgent,
+      });
+
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Product not found',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.NOT_FOUND },
+      );
+    }
+
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.ReleaseWhereInput = {
+      teamId,
+      productId,
+      version: search
+        ? {
+            contains: search,
+            mode: 'insensitive',
+          }
+        : undefined,
+      status: status || undefined,
+    };
+
+    const [totalResults, releases] = await Promise.all([
+      prisma.release.count({ where }),
+      prisma.release.findMany({
+        where,
+        skip,
+        take: pageSize + 1,
+        orderBy: {
+          [sortColumn]: sortDirection,
+        },
+        include: {
+          product: true,
+          file: true,
+          allowedLicenses: true,
+          metadata: true,
+          branch: true,
+        },
+      }),
+    ]);
+
+    const hasNextPage = releases.length > pageSize;
+
+    const formattedReleases = releases.slice(0, pageSize).map((release) => ({
+      ...release,
+      allowedLicenses: release.allowedLicenses.map((license) => ({
+        ...license,
+        licenseKey: decryptString(license.licenseKey),
+        licenseKeyLookup: undefined,
+      })),
+    }));
+
+    const response: IExternalDevResponse = {
+      data: {
+        releases: formattedReleases,
+        hasNextPage,
+        totalResults,
+      },
+      result: {
+        details: 'Releases found',
+        timestamp: new Date(),
+        valid: true,
+      },
+    };
+
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.info('Dev API: Releases retrieved successfully', {
+      requestId,
+      teamId,
+      productId,
+      totalResults,
+      returnedCount: formattedReleases.length,
+      hasNextPage,
+      responseTimeMs: responseTime,
+      statusCode: HttpStatus.OK,
+    });
+
+    return NextResponse.json(response);
+  } catch (error) {
+    const responseTime = Date.now() - requestTime.getTime();
+
+    logger.error('Dev API: Get releases failed', {
       requestId,
       teamId,
       route: '/v1/dev/teams/[teamId]/releases',

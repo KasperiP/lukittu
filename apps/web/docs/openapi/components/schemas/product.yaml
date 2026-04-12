@@ -257,6 +257,51 @@ components:
           maxItems: 30
           description: 'License UUIDs to restrict access to this release. Replaces all existing associations.'
 
+    # Release list response (paginated)
+    ReleaseListResponse:
+      allOf:
+        - $ref: './common.yaml#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                releases:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/ReleaseData'
+                      - type: object
+                        properties:
+                          metadata:
+                            $ref: './common.yaml#/components/schemas/Metadata'
+                          product:
+                            $ref: '#/components/schemas/ProductData'
+                          branch:
+                            type: object
+                            nullable: true
+                            properties:
+                              id:
+                                $ref: './common.yaml#/components/schemas/UUID'
+                              name:
+                                type: string
+                          file:
+                            $ref: '#/components/schemas/ReleaseFileData'
+                          allowedLicenses:
+                            type: array
+                            items:
+                              $ref: './license.yaml#/components/schemas/LicenseData'
+                hasNextPage:
+                  type: boolean
+                  description: Whether more pages are available
+                totalResults:
+                  type: integer
+                  description: Total number of matching releases
+              required:
+                - releases
+                - hasNextPage
+                - totalResults
+
     # Release response with extended data
     ReleaseResponse:
       allOf:
