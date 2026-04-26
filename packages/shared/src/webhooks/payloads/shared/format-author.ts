@@ -1,6 +1,6 @@
 import { Team } from '../../../../prisma/generated/client';
 
-export interface FormatAuthorParams {
+interface FormatAuthorParams {
   team: Team;
 }
 

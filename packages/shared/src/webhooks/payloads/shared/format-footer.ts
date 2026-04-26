@@ -36,7 +36,7 @@ const getIntegrationLogoUrl = (source: AuditLogSource): string | null => {
   }
 };
 
-export interface FormatFooterParams {
+interface FormatFooterParams {
   source: AuditLogSource;
   user?: Omit<User, 'passwordHash'> | null;
 }
