@@ -686,22 +686,19 @@ export async function PUT(
   } catch (error) {
     const responseTime = Date.now() - requestTime.getTime();
 
-    logger.error('Dev API: Update license failed', {
-      requestId,
-      teamId,
-      licenseId,
-      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]',
-      error: error instanceof Error ? error.message : String(error),
-      errorType:
-        error instanceof SyntaxError
-          ? 'SyntaxError'
-          : error?.constructor?.name || 'Unknown',
-      responseTimeMs: responseTime,
-      ipAddress,
-      userAgent,
-    });
-
     if (error instanceof SyntaxError) {
+      logger.warn('Dev API: Update license invalid JSON body', {
+        requestId,
+        teamId,
+        licenseId,
+        route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]',
+        error: error.message,
+        errorType: 'SyntaxError',
+        responseTimeMs: responseTime,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -716,6 +713,18 @@ export async function PUT(
         },
       );
     }
+
+    logger.error('Dev API: Update license failed', {
+      requestId,
+      teamId,
+      licenseId,
+      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     return NextResponse.json(
       {

@@ -90,21 +90,18 @@ export async function POST(
   } catch (error) {
     const responseTime = Date.now() - requestTime.getTime();
 
-    logger.error('License verify: Failed', {
-      requestId,
-      teamId,
-      route: '/v1/client/teams/[teamId]/verification/verify',
-      error: error instanceof Error ? error.message : String(error),
-      errorType:
-        error instanceof SyntaxError
-          ? 'SyntaxError'
-          : error?.constructor?.name || 'Unknown',
-      responseTimeMs: responseTime,
-      ipAddress,
-      userAgent,
-    });
-
     if (error instanceof SyntaxError) {
+      logger.warn('License verify: Invalid JSON payload', {
+        requestId,
+        teamId,
+        route: '/v1/client/teams/[teamId]/verification/verify',
+        error: error.message,
+        errorType: 'SyntaxError',
+        responseTimeMs: responseTime,
+        ipAddress,
+        userAgent,
+      });
+
       return loggedResponse({
         ...loggedResponseBase,
         status: RequestStatus.BAD_REQUEST,
@@ -119,6 +116,17 @@ export async function POST(
         httpStatus: HttpStatus.BAD_REQUEST,
       });
     }
+
+    logger.error('License verify: Failed', {
+      requestId,
+      teamId,
+      route: '/v1/client/teams/[teamId]/verification/verify',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     return loggedResponse({
       ...loggedResponseBase,

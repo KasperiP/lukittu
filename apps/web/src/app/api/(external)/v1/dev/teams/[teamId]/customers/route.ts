@@ -779,21 +779,18 @@ export async function POST(
   } catch (error) {
     const responseTime = Date.now() - requestTime.getTime();
 
-    logger.error('Dev API: Create customer failed', {
-      requestId,
-      teamId,
-      route: '/v1/dev/teams/[teamId]/customers',
-      error: error instanceof Error ? error.message : String(error),
-      errorType:
-        error instanceof SyntaxError
-          ? 'SyntaxError'
-          : error?.constructor?.name || 'Unknown',
-      responseTimeMs: responseTime,
-      ipAddress,
-      userAgent,
-    });
-
     if (error instanceof SyntaxError) {
+      logger.warn('Dev API: Create customer invalid JSON body', {
+        requestId,
+        teamId,
+        route: '/v1/dev/teams/[teamId]/customers',
+        error: error.message,
+        errorType: 'SyntaxError',
+        responseTimeMs: responseTime,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -808,6 +805,17 @@ export async function POST(
         },
       );
     }
+
+    logger.error('Dev API: Create customer failed', {
+      requestId,
+      teamId,
+      route: '/v1/dev/teams/[teamId]/customers',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     return NextResponse.json(
       {

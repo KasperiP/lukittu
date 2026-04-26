@@ -316,23 +316,20 @@ export async function PATCH(
   } catch (error) {
     const responseTime = Date.now() - requestTime.getTime();
 
-    logger.error('Dev API: Manage HWID failed', {
-      requestId,
-      teamId,
-      licenseId,
-      hwidId,
-      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]',
-      error: error instanceof Error ? error.message : String(error),
-      errorType:
-        error instanceof SyntaxError
-          ? 'SyntaxError'
-          : error?.constructor?.name || 'Unknown',
-      responseTimeMs: responseTime,
-      ipAddress,
-      userAgent,
-    });
-
     if (error instanceof SyntaxError) {
+      logger.warn('Dev API: Manage HWID invalid JSON body', {
+        requestId,
+        teamId,
+        licenseId,
+        hwidId,
+        route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]',
+        error: error.message,
+        errorType: 'SyntaxError',
+        responseTimeMs: responseTime,
+        ipAddress,
+        userAgent,
+      });
+
       return NextResponse.json(
         {
           data: null,
@@ -347,6 +344,19 @@ export async function PATCH(
         },
       );
     }
+
+    logger.error('Dev API: Manage HWID failed', {
+      requestId,
+      teamId,
+      licenseId,
+      hwidId,
+      route: '/v1/dev/teams/[teamId]/licenses/id/[licenseId]/hwid/[hwidId]',
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error?.constructor?.name || 'Unknown',
+      responseTimeMs: responseTime,
+      ipAddress,
+      userAgent,
+    });
 
     return NextResponse.json(
       {
