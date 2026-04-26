@@ -216,6 +216,7 @@ export async function PUT(
                   id: customerId,
                 },
                 include: {
+                  address: true,
                   discordAccount: true,
                 },
               },
@@ -343,7 +344,9 @@ export async function PUT(
                   update: address,
                 },
               }
-            : { delete: true },
+            : existingCustomer.address
+              ? { delete: true }
+              : undefined,
           discordAccount:
             discordUser && discordId
               ? {

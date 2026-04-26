@@ -532,6 +532,10 @@ export async function PUT(
         id: customerId,
         teamId,
       },
+      include: {
+        address: true,
+        discordAccount: true,
+      },
     });
 
     if (!existingCustomer) {
@@ -590,7 +594,9 @@ export async function PUT(
                   update: address,
                 },
               }
-            : { delete: true },
+            : existingCustomer.address
+              ? { delete: true }
+              : undefined,
           discordAccount:
             discordUser && discordId
               ? {
@@ -610,7 +616,8 @@ export async function PUT(
                     },
                   },
                 }
-              : discordId === null || discordId === ''
+              : (discordId === null || discordId === '') &&
+                  existingCustomer.discordAccount
                 ? {
                     delete: true,
                   }
