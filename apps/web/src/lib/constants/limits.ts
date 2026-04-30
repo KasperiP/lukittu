@@ -1,3 +1,12 @@
+export const MAX_RELEASE_FILE_SIZE =
+  (Number(process.env.NEXT_PUBLIC_MAX_RELEASE_FILE_SIZE_MB) || 10) *
+  1024 *
+  1024;
+export const MAX_ANALYZER_FILE_SIZE =
+  (Number(process.env.NEXT_PUBLIC_MAX_ANALYZER_FILE_SIZE_MB) || 50) *
+  1024 *
+  1024;
+
 export const DEFAULT_LIMITS = {
   maxLicenses: 100,
   maxProducts: 3,

@@ -7,11 +7,13 @@ import {
 } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
+import {
+  MAX_ANALYZER_FILE_SIZE,
+} from '@/lib/constants/limits';
 import { decryptString, generateHMAC, logger, prisma } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 20; // 10MB
 
 type IWatermarkServiceResponse = {
   watermarkFound: boolean;
@@ -51,11 +53,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_ANALYZER_FILE_SIZE) {
       return NextResponse.json(
         {
           message: t('validation.file_too_large', {
-            size: MAX_FILE_SIZE.toString(),
+            size: MAX_ANALYZER_FILE_SIZE.toString(),
           }),
         },
         { status: HttpStatus.BAD_REQUEST },

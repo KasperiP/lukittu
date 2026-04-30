@@ -2,6 +2,9 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+  MAX_ANALYZER_FILE_SIZE,
+} from '@/lib/constants/limits';
 import { bytesToSize } from '@/lib/utils/number-helpers';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { TeamContext } from '@/providers/TeamProvider';
@@ -20,7 +23,6 @@ import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { ProgressStages } from './ProgressStages';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 50; // 50 MB
 const ALLOWED_FILE_TYPE = 'application/java-archive';
 
 export default function Analyzer() {
@@ -73,10 +75,10 @@ export default function Analyzer() {
   };
 
   const validateFile = (file: File) => {
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_ANALYZER_FILE_SIZE) {
       toast.error(
         t('validation.file_too_large', {
-          size: bytesToSize(MAX_FILE_SIZE),
+          size: bytesToSize(MAX_ANALYZER_FILE_SIZE),
         }),
       );
       return false;
@@ -238,7 +240,7 @@ export default function Analyzer() {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {t('dashboard.analyzer.file_size_limit', {
-                      size: bytesToSize(MAX_FILE_SIZE),
+                      size: bytesToSize(MAX_ANALYZER_FILE_SIZE),
                     })}
                   </p>
                 </div>
