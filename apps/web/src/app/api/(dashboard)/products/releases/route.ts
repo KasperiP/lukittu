@@ -13,6 +13,9 @@ import {
   SetReleaseSchema,
   setReleaseSchema,
 } from '@/lib/validation/products/set-release-schema';
+import {
+  MAX_RELEASE_FILE_SIZE,
+} from '@/lib/constants/limits';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -39,7 +42,6 @@ import {
 import { getTranslations } from 'next-intl/server';
 import { after, NextRequest, NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
 export type IProductsReleasesCreateSuccessResponse = {
   release: Release;
@@ -98,11 +100,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (file && file.size > MAX_FILE_SIZE) {
+    if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
         {
           message: t('validation.file_too_large', {
-            size: bytesToSize(MAX_FILE_SIZE),
+            size: bytesToSize(MAX_RELEASE_FILE_SIZE),
           }),
         },
         { status: HttpStatus.BAD_REQUEST },

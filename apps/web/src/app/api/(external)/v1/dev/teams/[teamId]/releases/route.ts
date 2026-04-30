@@ -12,6 +12,9 @@ import {
 import { IExternalDevResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
+  MAX_RELEASE_FILE_SIZE,
+} from '@/lib/constants/limits';
+import {
   attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
@@ -31,7 +34,6 @@ import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { after, NextRequest, NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
 export async function POST(
   request: NextRequest,
@@ -255,12 +257,12 @@ export async function POST(
       );
     }
 
-    if (file && file.size > MAX_FILE_SIZE) {
+    if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: `File too large. Maximum size is ${bytesToSize(MAX_FILE_SIZE)}`,
+            details: `File too large. Maximum size is ${bytesToSize(MAX_RELEASE_FILE_SIZE)}`,
             timestamp: new Date(),
             valid: false,
           },

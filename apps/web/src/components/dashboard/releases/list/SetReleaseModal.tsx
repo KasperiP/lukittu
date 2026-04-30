@@ -34,6 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  MAX_RELEASE_FILE_SIZE,
+} from '@/lib/constants/limits';
 import { bytesToSize } from '@/lib/utils/number-helpers';
 import {
   setReleaseSchema,
@@ -49,7 +52,6 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10 MB
 
 export default function SetReleaseModal() {
   const t = useTranslations();
@@ -177,10 +179,10 @@ export default function SetReleaseModal() {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        if (file.size > MAX_FILE_SIZE) {
+        if (file.size > MAX_RELEASE_FILE_SIZE) {
           return toast.error(
             t('validation.file_too_large', {
-              size: bytesToSize(MAX_FILE_SIZE),
+              size: bytesToSize(MAX_RELEASE_FILE_SIZE),
             }),
           );
         }
@@ -210,10 +212,10 @@ export default function SetReleaseModal() {
 
     const droppedFile = e.dataTransfer.files[0] as File | null;
     if (droppedFile) {
-      if (droppedFile.size > MAX_FILE_SIZE) {
+      if (droppedFile.size > MAX_RELEASE_FILE_SIZE) {
         return toast.error(
           t('validation.file_too_large', {
-            size: bytesToSize(MAX_FILE_SIZE),
+            size: bytesToSize(MAX_RELEASE_FILE_SIZE),
           }),
         );
       }
@@ -430,7 +432,7 @@ export default function SetReleaseModal() {
                       {hasFileUploadPermission && (
                         <span className="text-xs text-muted-foreground">
                           {t('dashboard.releases.supported_file_types', {
-                            size: bytesToSize(MAX_FILE_SIZE),
+                            size: bytesToSize(MAX_RELEASE_FILE_SIZE),
                           })}
                         </span>
                       )}
