@@ -140,11 +140,11 @@ export default function DiscordUserSelector({
   // Determine when to show loading skeleton
   const shouldShowLoadingSkeleton = Boolean(
     isLoading &&
-      debouncedDiscordId &&
-      !apiDiscordUser &&
-      !existingDiscordUser &&
-      !error &&
-      !errorMessage,
+    debouncedDiscordId &&
+    !apiDiscordUser &&
+    !existingDiscordUser &&
+    !error &&
+    !errorMessage,
   );
 
   return (

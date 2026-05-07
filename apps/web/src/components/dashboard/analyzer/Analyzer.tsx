@@ -2,9 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  MAX_ANALYZER_FILE_SIZE,
-} from '@/lib/constants/limits';
+import { MAX_ANALYZER_FILE_SIZE } from '@/lib/constants/limits';
 import { bytesToSize } from '@/lib/utils/number-helpers';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { TeamContext } from '@/providers/TeamProvider';

@@ -34,9 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { bytesToSize } from '@/lib/utils/number-helpers';
 import {
   setReleaseSchema,
@@ -51,7 +49,6 @@ import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
-
 
 export default function SetReleaseModal() {
   const t = useTranslations();

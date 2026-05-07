@@ -42,16 +42,13 @@ export const setCustomerSchema = (t?: I18nTranslator) =>
         .string()
         .regex(regex.discordId, t?.('validation.invalid_discord_id'))
         .min(17, t?.('validation.invalid_discord_id'))
-        .refine(
-          (val) => {
-            try {
-              return BigInt(val) <= BigInt('9223372036854775807');
-            } catch {
-              return false;
-            }
-          },
-          t?.('validation.invalid_discord_id'),
-        )
+        .refine((val) => {
+          try {
+            return BigInt(val) <= BigInt('9223372036854775807');
+          } catch {
+            return false;
+          }
+        }, t?.('validation.invalid_discord_id'))
         .nullish(),
       address: z
         .object({

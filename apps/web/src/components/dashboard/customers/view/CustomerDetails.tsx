@@ -22,10 +22,10 @@ export function CustomerDetails({ customer }: CustomerDetailsProps) {
     if (!address) return false;
     return Boolean(
       address.line1 ||
-        address.city ||
-        address.country ||
-        address.postalCode ||
-        address.state,
+      address.city ||
+      address.country ||
+      address.postalCode ||
+      address.state,
     );
   };
 

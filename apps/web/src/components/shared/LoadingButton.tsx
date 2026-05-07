@@ -3,8 +3,7 @@ import { VariantProps } from 'class-variance-authority';
 import { Button, buttonVariants } from '../ui/button';
 import { LoadingSpinner } from './LoadingSpinner';
 
-interface LoadingButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface LoadingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   pending?: boolean;
   size?: VariantProps<typeof buttonVariants>['size'];

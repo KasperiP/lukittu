@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { uploadFileToPrivateS3 } from '@/lib/providers/aws-s3';
 import { isRateLimited } from '@/lib/security/rate-limiter';
@@ -13,9 +14,6 @@ import {
   SetReleaseSchema,
   setReleaseSchema,
 } from '@/lib/validation/products/set-release-schema';
-import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
@@ -41,7 +39,6 @@ import {
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { after, NextRequest, NextResponse } from 'next/server';
-
 
 export type IProductsReleasesCreateSuccessResponse = {
   release: Release;

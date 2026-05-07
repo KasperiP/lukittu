@@ -79,8 +79,8 @@ export const ReleasesActionDropdown = ({
           className="hover:cursor-pointer"
           disabled={Boolean(
             release.latest ||
-              release.status !== 'PUBLISHED' ||
-              release.allowedLicenses.length,
+            release.status !== 'PUBLISHED' ||
+            release.allowedLicenses.length,
           )}
           onClick={(e) => {
             e.stopPropagation();

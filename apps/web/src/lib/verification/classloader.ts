@@ -906,15 +906,15 @@ export const handleClassloader = async ({
 
   const hasAtLeastOneWatermarkingMethodEnabled = Boolean(
     watermarkingSettings?.staticConstantPoolSynthesis ||
-      watermarkingSettings?.dynamicBytecodeInjection ||
-      watermarkingSettings?.temporalAttributeEmbedding,
+    watermarkingSettings?.dynamicBytecodeInjection ||
+    watermarkingSettings?.temporalAttributeEmbedding,
   );
 
   const watermarkingEnabled = Boolean(
     watermarkingSettings?.watermarkingEnabled &&
-      hasAtLeastOneWatermarkingMethodEnabled &&
-      limits.allowWatermarking &&
-      isJar,
+    hasAtLeastOneWatermarkingMethodEnabled &&
+    limits.allowWatermarking &&
+    isJar,
   );
 
   logger.info('handleClassloader: File download initiated', {

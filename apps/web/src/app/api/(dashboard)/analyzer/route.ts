@@ -1,3 +1,4 @@
+import { MAX_ANALYZER_FILE_SIZE } from '@/lib/constants/limits';
 import { isRateLimited } from '@/lib/security/rate-limiter';
 import { getSession } from '@/lib/security/session';
 import {
@@ -7,13 +8,9 @@ import {
 } from '@/lib/utils/header-helpers';
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
-import {
-  MAX_ANALYZER_FILE_SIZE,
-} from '@/lib/constants/limits';
 import { decryptString, generateHMAC, logger, prisma } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
-
 
 type IWatermarkServiceResponse = {
   watermarkFound: boolean;

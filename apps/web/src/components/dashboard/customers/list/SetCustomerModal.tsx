@@ -77,10 +77,10 @@ export default function SetCustomerModal() {
     if (!address) return false;
     return Boolean(
       address.line1 ||
-        address.city ||
-        address.country ||
-        address.postalCode ||
-        address.state,
+      address.city ||
+      address.country ||
+      address.postalCode ||
+      address.state,
     );
   };
 

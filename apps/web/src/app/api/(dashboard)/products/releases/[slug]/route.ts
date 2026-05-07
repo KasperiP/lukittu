@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import {
   deleteFileFromPrivateS3,
@@ -19,9 +20,6 @@ import {
 import { ErrorResponse } from '@/types/common-api-types';
 import { HttpStatus } from '@/types/http-status';
 import {
-  MAX_RELEASE_FILE_SIZE,
-} from '@/lib/constants/limits';
-import {
   attemptWebhookDelivery,
   AuditLogAction,
   AuditLogSource,
@@ -38,7 +36,6 @@ import {
 } from '@lukittu/shared';
 import { getTranslations } from 'next-intl/server';
 import { after, NextRequest, NextResponse } from 'next/server';
-
 
 export type IProductsReleasesUpdateSuccessResponse = {
   release: Release;
