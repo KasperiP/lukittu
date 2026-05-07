@@ -29,7 +29,6 @@ WORKDIR /app
 
 # Copy dependencies from deps stage and .npmrc
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=deps /app/pnpm-workspace.yaml ./
 COPY --from=deps /app/package.json ./
 COPY --from=deps /app/.npmrc ./

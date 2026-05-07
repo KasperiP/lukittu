@@ -6,12 +6,27 @@ catalogs:
   prisma:
     prisma: ^7.8.0
 
-onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
-  - '@sentry-internal/node-cpu-profiler'
-  - '@sentry/cli'
-  - esbuild
-  - prisma
-  - sharp
-  - unrs-resolver
+# Needed for ESLint to resolve workspace deps.
+# https://github.com/pnpm/pnpm/issues/4741#issuecomment-1177965681
+nodeLinker: hoisted
+
+publicHoistPattern:
+  - '*@prisma*'
+  - '*pg*'
+  - '*ioredis*'
+  - '*import-in-the-middle*'
+  - '*require-in-the-middle*'
+  - '*@opentelemetry*'
+  - '*@sentry*'
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@sentry-internal/node-cpu-profiler': true
+  '@sentry/cli': true
+  '@swc/core': true
+  esbuild: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
