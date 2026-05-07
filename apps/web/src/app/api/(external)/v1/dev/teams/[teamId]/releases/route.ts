@@ -138,10 +138,10 @@ export async function POST(
     }
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const data = formData.get('data') as string | null;
+    const fileEntry = formData.get('file');
+    const dataEntry = formData.get('data');
 
-    if (!data) {
+    if (typeof dataEntry !== 'string') {
       const responseTime = Date.now() - requestTime.getTime();
 
       logger.warn('Dev API: Missing data field in release creation', {
@@ -166,9 +166,25 @@ export async function POST(
       );
     }
 
+    if (fileEntry !== null && !(fileEntry instanceof File)) {
+      return NextResponse.json(
+        {
+          data: null,
+          result: {
+            details: 'Invalid file',
+            timestamp: new Date(),
+            valid: false,
+          },
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const file = fileEntry;
+
     let body: CreateReleaseSchema;
     try {
-      body = JSON.parse(data) as CreateReleaseSchema;
+      body = JSON.parse(dataEntry) as CreateReleaseSchema;
     } catch {
       const responseTime = Date.now() - requestTime.getTime();
 
@@ -238,21 +254,6 @@ export async function POST(
       licenseIds,
       branchId,
     } = validated.data;
-
-    // Validate file
-    if (file && !(file instanceof File)) {
-      return NextResponse.json(
-        {
-          data: null,
-          result: {
-            details: 'Invalid file',
-            timestamp: new Date(),
-            valid: false,
-          },
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
 
     if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(

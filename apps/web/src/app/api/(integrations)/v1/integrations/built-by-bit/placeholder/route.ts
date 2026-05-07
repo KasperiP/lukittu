@@ -98,10 +98,29 @@ export async function POST(
       );
     }
 
-    const formData = await request.formData();
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      logger.warn('BuiltByBit placeholder: Failed to parse formData', {
+        requestId,
+        teamId,
+        error: error instanceof Error ? error.message : String(error),
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+      });
+      return NextResponse.json(
+        {
+          message: 'Invalid form data',
+        },
+        { status: HttpStatus.OK }, // Return 200 to prevent BuiltByBit from retrying the request
+      );
+    }
+
     const formDataObject: Record<string, string> = {};
     for (const [key, value] of formData.entries()) {
-      formDataObject[key] = value.toString();
+      if (typeof value === 'string') {
+        formDataObject[key] = value;
+      }
     }
 
     logger.info('BuiltByBit placeholder: Received data', {

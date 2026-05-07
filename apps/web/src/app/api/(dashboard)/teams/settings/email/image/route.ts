@@ -44,9 +44,9 @@ export async function POST(
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
 
-    if (!file || !(file instanceof File)) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
         {
           message: t('validation.bad_request'),

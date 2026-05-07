@@ -30,16 +30,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-
-    if (!file) {
-      return NextResponse.json(
-        {
-          message: t('validation.invalid_file_type'),
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
+    const file = formData.get('file');
 
     if (!(file instanceof File)) {
       return NextResponse.json(

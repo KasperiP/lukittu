@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const data = formData.get('data') as string | null;
+    const fileEntry = formData.get('file');
+    const dataEntry = formData.get('data');
 
-    if (!data) {
+    if (typeof dataEntry !== 'string') {
       return NextResponse.json(
         {
           message: t('validation.bad_request'),
@@ -65,7 +65,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = JSON.parse(data) as SetReleaseSchema;
+    if (fileEntry !== null && !(fileEntry instanceof File)) {
+      return NextResponse.json(
+        {
+          message: t('validation.bad_request'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
+    const file = fileEntry;
+
+    let body: SetReleaseSchema;
+    try {
+      body = JSON.parse(dataEntry) as SetReleaseSchema;
+    } catch {
+      return NextResponse.json(
+        {
+          message: t('validation.bad_request'),
+        },
+        { status: HttpStatus.BAD_REQUEST },
+      );
+    }
+
     const validated = await setReleaseSchema(t).safeParseAsync(body);
 
     if (!validated.success) {
@@ -87,15 +109,6 @@ export async function POST(request: NextRequest) {
       licenseIds,
       branchId,
     } = body;
-
-    if (file && !(file instanceof File)) {
-      return NextResponse.json(
-        {
-          message: t('validation.bad_request'),
-        },
-        { status: HttpStatus.BAD_REQUEST },
-      );
-    }
 
     if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
