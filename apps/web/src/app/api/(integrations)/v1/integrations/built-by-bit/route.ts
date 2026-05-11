@@ -205,7 +205,9 @@ export async function POST(request: NextRequest) {
       productId: lukittuData.productId,
     });
 
-    // Might be error but we return 200 to prevent BuiltByBit from retrying the request.
+    // Expected failures (limits, product missing, duplicate) return 200 so
+    // BuiltByBit doesn't retry. Unexpected errors throw and are handled by the
+    // outer catch below, which returns 500 so BuiltByBit will retry.
     return NextResponse.json({
       success: result.success,
       message: result.message,

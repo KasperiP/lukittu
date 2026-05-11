@@ -584,10 +584,7 @@ export const handleBuiltByBitPurchase = async (
         handlerTimeMs: handlerTime,
       },
     );
-    return {
-      success: false,
-      message: 'An error occurred while processing the purchase',
-    };
+    throw error;
   }
 };
 

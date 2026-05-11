@@ -376,7 +376,7 @@ describe('BuiltByBit Integration', () => {
       );
     });
 
-    test('handles database error', async () => {
+    test('propagates database error so the route returns non-200', async () => {
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
@@ -386,17 +386,15 @@ describe('BuiltByBit Integration', () => {
       const error = new Error('Database error');
       prismaMock.$transaction.mockRejectedValue(error);
 
-      const result = await handleBuiltByBitPurchase(
-        'test-request-id',
-        mockBuiltByBitData,
-        mockLukittuData,
-        mockTeam,
-      );
+      await expect(
+        handleBuiltByBitPurchase(
+          'test-request-id',
+          mockBuiltByBitData,
+          mockLukittuData,
+          mockTeam,
+        ),
+      ).rejects.toThrow('Database error');
 
-      expect(result).toEqual({
-        success: false,
-        message: 'An error occurred while processing the purchase',
-      });
       expect(logger.error).toHaveBeenCalledWith(
         'handleBuiltByBitPurchase: Built-by-bit purchase processing failed',
         expect.any(Object),
