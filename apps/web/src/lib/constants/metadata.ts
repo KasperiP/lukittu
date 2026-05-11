@@ -3,6 +3,7 @@ export enum BuiltByBitMetadataKeys {
   BBB_USER_ID = 'BBB_USER_ID', // User's unique identifier on BuiltByBit platform
   BBB_ADDON_ID = 'BBB_ADDON_ID', // Unique identifier for the addon/plugin on BuiltByBit
   BBB_RESOURCE_ID = 'BBB_RESOURCE_ID', // Resource identifier within BuiltByBit system
+  BBB_PLACEHOLDER = 'BBB_PLACEHOLDER', // Marks a suspended license created by the placeholder endpoint before the purchase webhook arrived
 }
 
 export enum StripeMetadataKeys {

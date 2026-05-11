@@ -108,6 +108,7 @@ describe('BuiltByBit Integration', () => {
     prismaMock.$transaction.mockImplementation(
       async (callback) => await callback(prismaMock),
     );
+    prismaMock.$executeRaw.mockResolvedValue(1 as any);
     (generateHMAC as jest.Mock).mockReturnValue('test-hmac');
     (generateUniqueLicense as jest.Mock).mockResolvedValue('test-license-key');
     (encryptString as jest.Mock).mockReturnValue('encrypted-license-key');
@@ -116,14 +117,14 @@ describe('BuiltByBit Integration', () => {
 
   describe('handleBuiltByBitPurchase', () => {
     test('successfully processes a new purchase', async () => {
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
-
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
         teamId: mockTeam.id,
       } as any);
 
+      // dup check + placeholder lookup both return null
+      prismaMock.license.findFirst.mockResolvedValue(null);
       prismaMock.customer.findFirst.mockResolvedValue(null);
       prismaMock.customer.upsert.mockResolvedValue({
         id: 'cust_123',
@@ -134,6 +135,7 @@ describe('BuiltByBit Integration', () => {
         id: 'license_123',
         licenseKey: 'encrypted-license-key',
         products: [{ name: 'Test Product' }],
+        metadata: [],
       } as any);
 
       const result = await handleBuiltByBitPurchase(
@@ -149,6 +151,7 @@ describe('BuiltByBit Integration', () => {
       });
       expect(prismaMock.customer.upsert).toHaveBeenCalled();
       expect(prismaMock.license.create).toHaveBeenCalled();
+      expect(prismaMock.license.update).not.toHaveBeenCalled();
       expect(generateUniqueLicense).toHaveBeenCalledWith(mockTeam.id);
       expect(logger.info).toHaveBeenCalledWith(
         'handleBuiltByBitPurchase: Built-by-bit purchase processed successfully',
@@ -156,7 +159,66 @@ describe('BuiltByBit Integration', () => {
       );
     });
 
+    test('claims an existing placeholder license', async () => {
+      prismaMock.product.findUnique.mockResolvedValueOnce({
+        id: mockLukittuData.productId,
+        name: 'Test Product',
+        teamId: mockTeam.id,
+      } as any);
+
+      // dup check returns null, placeholder lookup returns a placeholder license
+      prismaMock.license.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 'placeholder_license_123',
+          licenseKey: 'encrypted-license-key',
+          metadata: [
+            { id: 'meta_placeholder', key: 'BBB_PLACEHOLDER', value: 'true' },
+          ],
+        } as any);
+
+      prismaMock.customer.findFirst.mockResolvedValue(null);
+      prismaMock.customer.upsert.mockResolvedValue({
+        id: 'cust_123',
+        username: 'testuser',
+      } as any);
+
+      prismaMock.license.update.mockResolvedValue({
+        id: 'placeholder_license_123',
+        licenseKey: 'encrypted-license-key',
+        products: [{ name: 'Test Product' }],
+        metadata: [],
+      } as any);
+
+      const result = await handleBuiltByBitPurchase(
+        'test-request-id',
+        mockBuiltByBitData,
+        mockLukittuData,
+        mockTeam,
+      );
+
+      expect(result).toEqual({
+        success: true,
+        message: 'Placeholder license claimed successfully',
+      });
+      const updateCall = prismaMock.license.update.mock.calls[0][0] as any;
+      expect(updateCall.where).toEqual({ id: 'placeholder_license_123' });
+      expect(updateCall.data.suspended).toBe(false);
+      expect(updateCall.data.metadata.deleteMany).toEqual({
+        key: 'BBB_PLACEHOLDER',
+      });
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+      expect(generateUniqueLicense).not.toHaveBeenCalled();
+    });
+
     test('skips duplicate purchases', async () => {
+      prismaMock.product.findUnique.mockResolvedValueOnce({
+        id: mockLukittuData.productId,
+        name: 'Test Product',
+        teamId: mockTeam.id,
+      } as any);
+
+      // dup check finds an existing purchase
       prismaMock.license.findFirst.mockResolvedValueOnce({
         id: 'existing_license',
       } as any);
@@ -174,6 +236,7 @@ describe('BuiltByBit Integration', () => {
       });
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
       expect(prismaMock.license.create).not.toHaveBeenCalled();
+      expect(prismaMock.license.update).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
         'handleBuiltByBitPurchase: Built-by-bit purchase skipped - already processed',
         expect.any(Object),
@@ -181,8 +244,6 @@ describe('BuiltByBit Integration', () => {
     });
 
     test('handles product not found', async () => {
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
-
       prismaMock.product.findUnique.mockResolvedValueOnce(null);
 
       const result = await handleBuiltByBitPurchase(
@@ -198,6 +259,7 @@ describe('BuiltByBit Integration', () => {
       });
       expect(prismaMock.customer.upsert).not.toHaveBeenCalled();
       expect(prismaMock.license.create).not.toHaveBeenCalled();
+      expect(prismaMock.$transaction).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledWith(
         'handleBuiltByBitPurchase: Built-by-bit purchase failed - product not found',
         expect.any(Object),
@@ -217,13 +279,14 @@ describe('BuiltByBit Integration', () => {
         },
       };
 
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
-
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
         teamId: teamWithLicenseLimitReached.id,
       } as any);
+
+      // dup check and placeholder lookup both null → fresh license needed → limit hits
+      prismaMock.license.findFirst.mockResolvedValue(null);
 
       const result = await handleBuiltByBitPurchase(
         'test-request-id',
@@ -255,13 +318,15 @@ describe('BuiltByBit Integration', () => {
         },
       };
 
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
-
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
         teamId: teamWithCustomerLimitReached.id,
       } as any);
+
+      // dup check and placeholder lookup both null; existing customer lookup returns null
+      prismaMock.license.findFirst.mockResolvedValue(null);
+      prismaMock.customer.findFirst.mockResolvedValue(null);
 
       const result = await handleBuiltByBitPurchase(
         'test-request-id',
@@ -281,12 +346,12 @@ describe('BuiltByBit Integration', () => {
     });
 
     test('handles license generation failure', async () => {
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
         teamId: mockTeam.id,
       } as any);
+      prismaMock.license.findFirst.mockResolvedValue(null);
       prismaMock.customer.findFirst.mockResolvedValue(null);
       prismaMock.customer.upsert.mockResolvedValue({
         id: 'cust_123',
@@ -312,7 +377,6 @@ describe('BuiltByBit Integration', () => {
     });
 
     test('handles database error', async () => {
-      prismaMock.license.findFirst.mockResolvedValueOnce(null);
       prismaMock.product.findUnique.mockResolvedValueOnce({
         id: mockLukittuData.productId,
         name: 'Test Product',
@@ -342,60 +406,110 @@ describe('BuiltByBit Integration', () => {
 
   describe('handleBuiltByBitPlaceholder', () => {
     const mockPlaceholderData = {
+      builtbybit: 'true',
       steam_id: '76561198123456789',
       user_id: '12345',
       resource_id: '67890',
       version_id: '54321',
+      version_number: '1.0.0',
+      secret: 'bbb_'.padEnd(68, 'a'),
     } as any;
 
-    test('successfully retrieves license key', async () => {
+    test('returns existing license key when one already exists', async () => {
       (prisma.license.findFirst as jest.Mock).mockResolvedValueOnce({
         id: 'license_123',
         licenseKey: 'encrypted-license-key',
       });
 
-      // Clear previous mock calls
       (createAuditLog as jest.Mock).mockClear();
 
       const result = await handleBuiltByBitPlaceholder(
         'test-request-id',
         mockPlaceholderData,
-        mockTeam.id,
+        mockTeam,
       );
 
       expect(result).toEqual({
         success: true,
         licenseKey: 'decrypted-license-key',
       });
-
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
+      expect(generateUniqueLicense).not.toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
         'handleBuiltByBitPlaceholder: Built-by-bit placeholder request started',
         expect.any(Object),
       );
       expect(logger.info).toHaveBeenCalledWith(
         'handleBuiltByBitPlaceholder: Built-by-bit placeholder completed',
-        expect.any(Object),
+        expect.objectContaining({ placeholderCreated: false }),
       );
       expect(createAuditLog).toHaveBeenCalledTimes(1);
     });
 
-    test('handles license key not found', async () => {
+    test('creates suspended placeholder license when none exists', async () => {
+      (prisma.license.findFirst as jest.Mock).mockResolvedValueOnce(null);
+      prismaMock.license.create.mockResolvedValueOnce({
+        id: 'placeholder_license_456',
+        licenseKey: 'encrypted-license-key',
+      } as any);
+
+      const result = await handleBuiltByBitPlaceholder(
+        'test-request-id',
+        mockPlaceholderData,
+        mockTeam,
+      );
+
+      expect(result).toEqual({
+        success: true,
+        licenseKey: 'decrypted-license-key',
+      });
+      expect(generateUniqueLicense).toHaveBeenCalledWith(mockTeam.id);
+      expect(prismaMock.license.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            suspended: true,
+            teamId: mockTeam.id,
+          }),
+        }),
+      );
+
+      const createCall = prismaMock.license.create.mock.calls[0][0] as any;
+      const metadataValues = createCall.data.metadata.createMany.data.map(
+        (m: any) => m.key,
+      );
+      expect(metadataValues).toEqual(
+        expect.arrayContaining([
+          'BBB_USER_ID',
+          'BBB_RESOURCE_ID',
+          'BBB_PLACEHOLDER',
+        ]),
+      );
+      expect(logger.info).toHaveBeenCalledWith(
+        'handleBuiltByBitPlaceholder: Built-by-bit placeholder completed',
+        expect.objectContaining({ placeholderCreated: true }),
+      );
+    });
+
+    test('rejects placeholder creation when license limit reached', async () => {
+      const teamAtLimit = {
+        ...mockTeam,
+        limits: { ...mockTeam.limits!, maxLicenses: 5 },
+        _count: { licenses: 5, customers: 0 },
+      } as ExtendedTeam;
+
       (prisma.license.findFirst as jest.Mock).mockResolvedValueOnce(null);
 
       const result = await handleBuiltByBitPlaceholder(
         'test-request-id',
         mockPlaceholderData,
-        mockTeam.id,
+        teamAtLimit,
       );
 
       expect(result).toEqual({
         status: HttpStatus.NOT_FOUND,
-        message: 'License key not found',
+        message: 'Team has reached the maximum number of licenses',
       });
-      expect(logger.warn).toHaveBeenCalledWith(
-        'handleBuiltByBitPlaceholder: License not found',
-        expect.any(Object),
-      );
+      expect(prismaMock.license.create).not.toHaveBeenCalled();
     });
 
     test('handles unexpected errors', async () => {
@@ -409,7 +523,7 @@ describe('BuiltByBit Integration', () => {
         handleBuiltByBitPlaceholder(
           'test-request-id',
           mockPlaceholderData,
-          mockTeam.id,
+          mockTeam,
         ),
       ).rejects.toThrow('Unexpected error');
 

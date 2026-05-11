@@ -60,10 +60,18 @@ export async function POST(
       },
       include: {
         builtByBitIntegration: true,
+        settings: true,
+        limits: true,
+        _count: {
+          select: {
+            licenses: true,
+            customers: true,
+          },
+        },
       },
     });
 
-    if (!team || !team.builtByBitIntegration) {
+    if (!team || !team.builtByBitIntegration || !team.limits) {
       logger.warn(
         'BuiltByBit placeholder: Team not found or missing integration',
         {
@@ -71,6 +79,7 @@ export async function POST(
           teamId,
           hasTeam: !!team,
           hasBuiltByBitIntegration: !!team?.builtByBitIntegration,
+          hasLimits: !!team?.limits,
         },
       );
       return NextResponse.json(
@@ -174,7 +183,7 @@ export async function POST(
     const result = await handleBuiltByBitPlaceholder(
       requestId,
       validated.data,
-      teamId,
+      team,
     );
     const processingTime = Date.now() - startTime;
     const responseTime = Date.now() - requestTime.getTime();
