@@ -1,3 +1,4 @@
+import { MAX_IMAGE_FILE_SIZE } from '@/lib/constants/limits';
 import {
   deleteFileFromPublicS3,
   uploadFileToPublicS3,
@@ -14,7 +15,6 @@ import { getTranslations } from 'next-intl/server';
 import { NextRequest, NextResponse } from 'next/server';
 import sharp from 'sharp';
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1 MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_DIMENSION = 600; // pixels
 
@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_IMAGE_FILE_SIZE) {
       return NextResponse.json(
         {
           message: t('validation.file_too_large', {
-            size: bytesToSize(MAX_FILE_SIZE),
+            size: bytesToSize(MAX_IMAGE_FILE_SIZE),
           }),
         },
         { status: HttpStatus.BAD_REQUEST },

@@ -1,3 +1,4 @@
+import { MAX_RELEASE_FILE_SIZE } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import {
   deleteFileFromPrivateS3,
@@ -30,8 +31,6 @@ import {
 import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { after, NextRequest, NextResponse } from 'next/server';
-
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
 
 export async function PUT(
   request: NextRequest,
@@ -289,12 +288,12 @@ export async function PUT(
       branchId,
     } = validated.data;
 
-    if (file && file.size > MAX_FILE_SIZE) {
+    if (file && file.size > MAX_RELEASE_FILE_SIZE) {
       return NextResponse.json(
         {
           data: null,
           result: {
-            details: `File too large. Maximum size is ${bytesToSize(MAX_FILE_SIZE)}`,
+            details: `File too large. Maximum size is ${bytesToSize(MAX_RELEASE_FILE_SIZE)}`,
             timestamp: new Date(),
             valid: false,
           },
