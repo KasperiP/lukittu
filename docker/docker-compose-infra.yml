@@ -4,6 +4,7 @@ services:
     container_name: lukittuPostgres
     platform: linux/amd64
     restart: unless-stopped
+    shm_size: '256mb'
     env_file: .env
     environment:
       POSTGRES_USER: ${DATABASE_USERNAME}

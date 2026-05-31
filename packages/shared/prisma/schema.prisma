@@ -687,7 +687,9 @@ model RequestLog {
     // -- CreateIndex
     // CREATE INDEX "RequestLog_customerId_idx" ON "public"."RequestLog"("customerId") WHERE "customerId" IS NOT NULL;
 
-    @@index([teamId, createdAt])
+    // CREATE INDEX CONCURRENTLY "RequestLog_teamId_createdAt_stats_idx"
+    //   ON "public"."RequestLog" ("teamId", "createdAt")
+    //   INCLUDE ("status", "type", "country", "licenseId");
 }
 
 enum RequestType {
