@@ -82,9 +82,10 @@ export async function POST(
     // registration is blocked unless the email has a pending invitation (so the
     // invite flow, which requires an account to accept, keeps working).
     if (isSingleTenantMode()) {
-      const userCount = await prisma.user.count();
+      const hasUsers =
+        (await prisma.user.findFirst({ select: { id: true } })) !== null;
 
-      if (userCount > 0) {
+      if (hasUsers) {
         const pendingInvitation = await prisma.invitation.findFirst({
           where: {
             email,

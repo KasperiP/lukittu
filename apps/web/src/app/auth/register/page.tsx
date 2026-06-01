@@ -9,10 +9,12 @@ export default async function Register() {
   // In single-tenant mode, public registration is closed once the first user
   // exists. Invited users can still register (the API allows emails with a
   // pending invitation), so the form stays available with an invite-only notice.
-  const invitationOnly =
-    isSingleTenantMode() && (await prisma.user.count()) > 0;
+  const singleTenant = isSingleTenantMode();
+  const hasUsers = singleTenant
+    ? (await prisma.user.findFirst({ select: { id: true } })) !== null
+    : false;
 
-  return <RegisterCard invitationOnly={invitationOnly} />;
+  return <RegisterCard invitationOnly={singleTenant && hasUsers} />;
 }
 
 export async function generateMetadata(): Promise<Metadata> {

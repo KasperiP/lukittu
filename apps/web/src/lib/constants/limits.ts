@@ -43,7 +43,10 @@ export const UNLIMITED_LIMITS = {
   maxBranchesPerProduct: UNLIMITED,
   maxInvitations: UNLIMITED,
   maxWebhooks: UNLIMITED,
-  allowClassloader: true,
+
+  // Watermarking and the classloader rely on services that are not part of this
+  // repository / not publicly available, so they stay disabled when self-hosting.
+  allowClassloader: false,
   allowCustomEmails: true,
-  allowWatermarking: true,
+  allowWatermarking: false,
 };
