@@ -428,7 +428,8 @@
       "google": "Google",
       "github": "GitHub",
       "discord": "Discord",
-      "server_error": "Nie udało się uwierzytelnić za pomocą <strong>{provider}</strong>. Spróbuj ponownie później."
+      "server_error": "Nie udało się uwierzytelnić za pomocą <strong>{provider}</strong>. Spróbuj ponownie później.",
+      "oauth_disabled": "Logowanie przez <strong>{provider}</strong> jest wyłączone w tej instancji."
     },
     "login": {
       "title": "Zaloguj się do swojego konta",
@@ -454,6 +455,9 @@
       "email_already_in_use": "Ten adres email jest już w użyciu!",
       "email_sent_title": "Potwierdź rejestrację",
       "email_sent_description": "Wysłaliśmy email weryfikacyjny na adres <strong>{email}</strong>. Sprawdź swoją skrzynkę odbiorczą i folder spam. Jeśli nie otrzymasz wiadomości w ciągu kilku minut, możesz spróbować zarejestrować się ponownie.",
+      "registration_disabled": "Rejestracja jest wyłączona w tej instancji. Możesz utworzyć konto tylko, jeśli otrzymałeś zaproszenie.",
+      "invitation_only_title": "Rejestracja tylko na zaproszenie",
+      "invitation_only_description": "Ta instancja działa w trybie jednego najemcy. Tylko osoby z oczekującym zaproszeniem mogą utworzyć konto.",
       "seo_title": "Zarejestruj się i utwórz konto Lukittu | Lukittu"
     },
     "forgot_password": {

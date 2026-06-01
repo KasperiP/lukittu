@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { isSingleTenantMode } from '@/lib/utils/single-tenant';
 import {
   RegisterSchema,
   registerSchema,
@@ -43,7 +44,13 @@ import { LanguageSwitcher } from '../shared/LanguageSwitcher';
 import { ThemeSwitcher } from '../shared/ThemeSwitcher';
 import LoginWithGithubButton from './LoginWithGithubButton';
 
-export default function RegisterCard() {
+interface RegisterCardProps {
+  invitationOnly?: boolean;
+}
+
+export default function RegisterCard({
+  invitationOnly = false,
+}: RegisterCardProps) {
   const t = useTranslations();
   const turnstile = useRef<TurnstileInstance>(null);
   const router = useRouter();
@@ -152,6 +159,15 @@ export default function RegisterCard() {
           <CardDescription>{t('auth.register.description')}</CardDescription>
         </CardHeader>
         <CardContent>
+          {invitationOnly && (
+            <Alert className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{t('auth.register.invitation_only_title')}</AlertTitle>
+              <AlertDescription>
+                {t('auth.register.invitation_only_description')}
+              </AlertDescription>
+            </Alert>
+          )}
           {formError && (
             <Alert className="mb-6" variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -281,17 +297,19 @@ export default function RegisterCard() {
               >
                 {t('auth.register.button')}
               </LoadingButton>
-              <div className="space-y-4">
-                <div className="flex w-full items-center gap-4">
-                  <Separator className="w-auto flex-grow" />
-                  <span className="text-sm">
-                    {t('general.or').toUpperCase()}
-                  </span>
-                  <Separator className="w-auto flex-grow" />
+              {!isSingleTenantMode() && (
+                <div className="space-y-4">
+                  <div className="flex w-full items-center gap-4">
+                    <Separator className="w-auto flex-grow" />
+                    <span className="text-sm">
+                      {t('general.or').toUpperCase()}
+                    </span>
+                    <Separator className="w-auto flex-grow" />
+                  </div>
+                  <LoginWithGoogleButton />
+                  <LoginWithGithubButton />
                 </div>
-                <LoginWithGoogleButton />
-                <LoginWithGithubButton />
-              </div>
+              )}
             </form>
           </Form>
         </CardContent>

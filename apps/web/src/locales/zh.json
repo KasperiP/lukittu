@@ -428,7 +428,8 @@
       "google": "Google",
       "github": "GitHub",
       "discord": "Discord",
-      "server_error": "使用 <strong>{provider}</strong> 认证失败。请稍后重试。"
+      "server_error": "使用 <strong>{provider}</strong> 认证失败。请稍后重试。",
+      "oauth_disabled": "此实例已禁用使用 <strong>{provider}</strong> 登录。"
     },
     "login": {
       "title": "登录您的账户",
@@ -454,6 +455,9 @@
       "email_already_in_use": "此邮箱已被使用！",
       "email_sent_title": "确认您的注册",
       "email_sent_description": "我们已向 <strong>{email}</strong> 发送了邮箱验证邮件。请检查您的收件箱和垃圾邮件文件夹。如果几分钟内没有收到邮件，您可以尝试重新注册。",
+      "registration_disabled": "此实例已禁用注册。只有受邀用户才能创建账户。",
+      "invitation_only_title": "注册仅限受邀用户",
+      "invitation_only_description": "此实例处于单租户模式。只有拥有待处理邀请的用户才能创建账户。",
       "seo_title": "注册并创建 Lukittu 账户 | Lukittu"
     },
     "forgot_password": {

@@ -5,6 +5,12 @@ import { z } from 'zod';
  * Schema for validating environment variables
  */
 export const envSchema = z.object({
+  // Single-tenant (self-hosted) mode. When 'true', the first signup becomes the
+  // sole owner of the instance; afterwards public registration and OAuth login
+  // are disabled and per-team usage limits are bypassed. Defaults to
+  // multi-tenant (SaaS) when unset.
+  NEXT_PUBLIC_SINGLE_TENANT_MODE: z.enum(['true', 'false']).optional(),
+
   // Discord webhooks for notifications and status updates
   DISCORD_WEBHOOK_URL: z
     .string({
@@ -124,17 +130,20 @@ export const envSchema = z.object({
     .string({
       required_error: 'GOOGLE_CLIENT_SECRET is required',
     })
-    .min(1, { message: 'GOOGLE_CLIENT_SECRET is required' }),
+    .min(1, { message: 'GOOGLE_CLIENT_SECRET is required' })
+    .optional(),
   NEXT_PUBLIC_GOOGLE_CLIENT_ID: z
     .string({
       required_error: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID is required',
     })
-    .min(1, { message: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID is required' }),
+    .min(1, { message: 'NEXT_PUBLIC_GOOGLE_CLIENT_ID is required' })
+    .optional(),
   NEXT_PUBLIC_GOOGLE_REDIRECT_URI: z
     .string({
       required_error: 'NEXT_PUBLIC_GOOGLE_REDIRECT_URI is required',
     })
-    .url({ message: 'NEXT_PUBLIC_GOOGLE_REDIRECT_URI must be a valid URL' }),
+    .url({ message: 'NEXT_PUBLIC_GOOGLE_REDIRECT_URI must be a valid URL' })
+    .optional(),
   NEXT_PUBLIC_SENTRY_DSN: z
     .string({
       required_error: 'NEXT_PUBLIC_SENTRY_DSN is required',
@@ -158,17 +167,20 @@ export const envSchema = z.object({
     .string({
       required_error: 'GITHUB_CLIENT_SECRET is required',
     })
-    .min(1, { message: 'GITHUB_CLIENT_SECRET is required' }),
+    .min(1, { message: 'GITHUB_CLIENT_SECRET is required' })
+    .optional(),
   NEXT_PUBLIC_GITHUB_CLIENT_ID: z
     .string({
       required_error: 'NEXT_PUBLIC_GITHUB_CLIENT_ID is required',
     })
-    .min(1, { message: 'NEXT_PUBLIC_GITHUB_CLIENT_ID is required' }),
+    .min(1, { message: 'NEXT_PUBLIC_GITHUB_CLIENT_ID is required' })
+    .optional(),
   NEXT_PUBLIC_GITHUB_REDIRECT_URI: z
     .string({
       required_error: 'NEXT_PUBLIC_GITHUB_REDIRECT_URI is required',
     })
-    .url({ message: 'NEXT_PUBLIC_GITHUB_REDIRECT_URI must be a valid URL' }),
+    .url({ message: 'NEXT_PUBLIC_GITHUB_REDIRECT_URI must be a valid URL' })
+    .optional(),
 
   // Sentry error tracking
   SENTRY_AUTH_TOKEN: z
@@ -239,27 +251,32 @@ export const envSchema = z.object({
     .string({
       required_error: 'STRIPE_MONTHLY_PRICE_ID is required',
     })
-    .min(1, { message: 'STRIPE_MONTHLY_PRICE_ID is required' }),
+    .min(1, { message: 'STRIPE_MONTHLY_PRICE_ID is required' })
+    .optional(),
   STRIPE_YEARLY_PRICE_ID: z
     .string({
       required_error: 'STRIPE_YEARLY_PRICE_ID is required',
     })
-    .min(1, { message: 'STRIPE_YEARLY_PRICE_ID is required' }),
+    .min(1, { message: 'STRIPE_YEARLY_PRICE_ID is required' })
+    .optional(),
   STRIPE_PUBLIC_KEY: z
     .string({
       required_error: 'STRIPE_PUBLIC_KEY is required',
     })
-    .min(1, { message: 'STRIPE_PUBLIC_KEY is required' }),
+    .min(1, { message: 'STRIPE_PUBLIC_KEY is required' })
+    .optional(),
   STRIPE_SECRET_KEY: z
     .string({
       required_error: 'STRIPE_SECRET_KEY is required',
     })
-    .min(1, { message: 'STRIPE_SECRET_KEY is required' }),
+    .min(1, { message: 'STRIPE_SECRET_KEY is required' })
+    .optional(),
   STRIPE_WEBHOOK_SECRET: z
     .string({
       required_error: 'STRIPE_WEBHOOK_SECRET is required',
     })
-    .min(1, { message: 'STRIPE_WEBHOOK_SECRET is required' }),
+    .min(1, { message: 'STRIPE_WEBHOOK_SECRET is required' })
+    .optional(),
 
   // Discord oauth
   NEXT_PUBLIC_DISCORD_CLIENT_ID: z
@@ -279,10 +296,43 @@ export const envSchema = z.object({
     .url({ message: 'DISCORD_REDIRECT_URI must be a valid URL' }),
 });
 
+// OAuth (Google/GitHub) and Stripe are unused in single-tenant mode (OAuth login
+// is disabled and billing/limits are bypassed), so their vars are optional then.
+// In multi-tenant (SaaS) mode they remain required.
+const REQUIRED_WHEN_MULTI_TENANT = [
+  'GOOGLE_CLIENT_SECRET',
+  'NEXT_PUBLIC_GOOGLE_CLIENT_ID',
+  'NEXT_PUBLIC_GOOGLE_REDIRECT_URI',
+  'GITHUB_CLIENT_SECRET',
+  'NEXT_PUBLIC_GITHUB_CLIENT_ID',
+  'NEXT_PUBLIC_GITHUB_REDIRECT_URI',
+  'STRIPE_MONTHLY_PRICE_ID',
+  'STRIPE_YEARLY_PRICE_ID',
+  'STRIPE_PUBLIC_KEY',
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+] as const;
+
+const refinedEnvSchema = envSchema.superRefine((env, ctx) => {
+  if (env.NEXT_PUBLIC_SINGLE_TENANT_MODE === 'true') {
+    return;
+  }
+
+  for (const key of REQUIRED_WHEN_MULTI_TENANT) {
+    if (!env[key]) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [key],
+        message: `${key} is required`,
+      });
+    }
+  }
+});
+
 /**
  * Type for validated environment variables
  */
-export type Env = z.infer<typeof envSchema>;
+export type Env = z.infer<typeof refinedEnvSchema>;
 
 /**
  * Validates environment variables against the schema
@@ -290,7 +340,7 @@ export type Env = z.infer<typeof envSchema>;
  */
 export function validateEnv(): Env {
   try {
-    return envSchema.parse(process.env);
+    return refinedEnvSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
       const issues = error.issues.map(
