@@ -12,6 +12,8 @@ import { getCloudflareVisitorData } from '../providers/cloudflare';
 import { iso2toIso3 } from '../utils/country-helpers';
 import { getIp, getUserAgent } from '../utils/header-helpers';
 
+const LAST_ACTIVE_THROTTLE_MS = 3 * 60 * 1000; // 3 minutes
+
 interface LogRequestProps {
   pathname: string;
   requestBody: any;
@@ -59,60 +61,58 @@ export async function logRequest({
       ? iso2toIso3(geoData.alpha2!)
       : null;
 
-    await prisma.$transaction(async (prisma) => {
-      if (licenseKeyLookup && teamId) {
-        await prisma.license.update({
-          where: {
-            teamId_licenseKeyLookup: {
-              teamId,
-              licenseKeyLookup,
-            },
-          },
-          data: {
-            lastActiveAt: new Date(),
-          },
-        });
-      }
-
-      await prisma.requestLog.create({
-        data: {
-          version: process.env.version!,
-          method: method.toUpperCase() as RequestMethod,
-          path: pathname,
-          userAgent: await getUserAgent(),
-          statusCode,
-          longitude: hasBothLongitudeAndLatitude ? longitude : null,
-          latitude: hasBothLongitudeAndLatitude ? latitude : null,
-          responseTime: new Date().getTime() - requestTime.getTime(),
-          status,
-          requestBody,
-          requestQuery,
-          responseBody,
-          type,
-          hardwareIdentifier,
-          ipAddress,
-          release: releaseId ? { connect: { id: releaseId } } : undefined,
-          releaseFile: releaseFileId
-            ? { connect: { id: releaseFileId } }
-            : undefined,
-          country: countryAlpha3,
-          team: { connect: { id: teamId } },
-          customer: customerId ? { connect: { id: customerId } } : undefined,
-          product: productId ? { connect: { id: productId } } : undefined,
-          license:
-            licenseKeyLookup && teamId
-              ? {
-                  connect: {
-                    teamId_licenseKeyLookup: {
-                      teamId,
-                      licenseKeyLookup,
-                    },
+    await prisma.requestLog.create({
+      data: {
+        version: process.env.version!,
+        method: method.toUpperCase() as RequestMethod,
+        path: pathname,
+        userAgent: await getUserAgent(),
+        statusCode,
+        longitude: hasBothLongitudeAndLatitude ? longitude : null,
+        latitude: hasBothLongitudeAndLatitude ? latitude : null,
+        responseTime: new Date().getTime() - requestTime.getTime(),
+        status,
+        requestBody,
+        requestQuery,
+        responseBody,
+        type,
+        hardwareIdentifier,
+        ipAddress,
+        release: releaseId ? { connect: { id: releaseId } } : undefined,
+        releaseFile: releaseFileId
+          ? { connect: { id: releaseFileId } }
+          : undefined,
+        country: countryAlpha3,
+        team: { connect: { id: teamId } },
+        customer: customerId ? { connect: { id: customerId } } : undefined,
+        product: productId ? { connect: { id: productId } } : undefined,
+        license:
+          licenseKeyLookup && teamId
+            ? {
+                connect: {
+                  teamId_licenseKeyLookup: {
+                    teamId,
+                    licenseKeyLookup,
                   },
-                }
-              : undefined,
+                },
+              }
+            : undefined,
+      },
+    });
+
+    if (licenseKeyLookup && teamId) {
+      const staleCutoff = new Date(Date.now() - LAST_ACTIVE_THROTTLE_MS);
+      await prisma.license.updateMany({
+        where: {
+          teamId,
+          licenseKeyLookup,
+          lastActiveAt: { lt: staleCutoff },
+        },
+        data: {
+          lastActiveAt: new Date(),
         },
       });
-    });
+    }
   } catch (error) {
     logger.error("Error logging request in 'license/verify' route", error);
   }

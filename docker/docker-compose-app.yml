@@ -2,6 +2,7 @@ services:
   lukittu:
     image: kassq/lukittu:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    mem_limit: 2g
     expose:
       - '3000'
     env_file: .env
@@ -9,6 +10,7 @@ services:
       - REDIS_HOST=lukittuRedis
       - VIRTUAL_HOST=app.lukittu.com,www.app.lukittu.com
       - VIRTUAL_PORT=3000
+      - NODE_OPTIONS=--max-old-space-size=1536
     networks:
       - lukittu-network
     labels:
