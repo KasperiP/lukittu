@@ -28,7 +28,7 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} translate="no" suppressHydrationWarning>
       <head>
         <PlausibleProvider
           customDomain={process.env.NEXT_PUBLIC_BASE_URL}
