@@ -111,7 +111,6 @@ model Team {
     releases               Release[]
     blacklist              Blacklist[]
     metadata               Metadata[]
-    watermarkingSettings   WatermarkingSettings?
     limits                 Limits?
     stripeIntegration      StripeIntegration?
     discordIntegration     DiscordIntegration?
@@ -292,7 +291,6 @@ model Limits {
     maxWebhooks           Int      @default(20)
     allowClassloader      Boolean  @default(false)
     allowCustomEmails     Boolean  @default(false)
-    allowWatermarking     Boolean  @default(false)
     updatedAt             DateTime @updatedAt
     createdAt             DateTime @default(now())
 }
@@ -336,19 +334,6 @@ model ReturnedFields {
     productMetadataKeys    String[]
     updatedAt              DateTime @updatedAt
     createdAt              DateTime @default(now())
-}
-
-model WatermarkingSettings {
-    id                          String  @id @default(uuid())
-    teamId                      String  @unique
-    team                        Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-    watermarkingEnabled         Boolean @default(false)
-    staticConstantPoolSynthesis Boolean @default(false)
-    staticConstantPoolDensity   Int     @default(0)
-    dynamicBytecodeInjection    Boolean @default(false)
-    dynamicBytecodeDensity      Int     @default(0)
-    temporalAttributeEmbedding  Boolean @default(false)
-    temporalAttributeDensity    Int     @default(0)
 }
 
 model KeyPair {

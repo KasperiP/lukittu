@@ -18,7 +18,6 @@
 - **Flexible License Management** – Support for various licensing models
 - **Customer Management** – Organize and manage licensees efficiently
 - **Product Release Versioning** – Track and manage different software versions
-- **Advanced Watermarking** – Protect Java applications with unique identifiers
 - **Detailed Analytics & Logging** – Monitor usage and detect potential abuse
 - **Team Collaboration** – Work with your team seamlessly
 - **Comprehensive API** – Easily integrate Lukittu with your applications

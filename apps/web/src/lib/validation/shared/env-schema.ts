@@ -17,13 +17,6 @@ export const envSchema = z.object({
     })
     .url({ message: 'INTERNAL_STATUS_WEBHOOK must be a valid URL' }),
 
-  // Watermark service configuration
-  WATERMARK_SERVICE_BASE_URL: z
-    .string({
-      required_error: 'WATERMARK_SERVICE_BASE_URL is required',
-    })
-    .url({ message: 'WATERMARK_SERVICE_BASE_URL must be a valid URL' }),
-
   // Internal API security
   INTERNAL_API_KEY: z
     .string({

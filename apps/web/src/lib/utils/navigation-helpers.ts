@@ -2,7 +2,6 @@ import { DiscordIcon } from '@/components/shared/Icons';
 import {
   Ban,
   BookOpenText,
-  FileScan,
   GithubIcon,
   KeyRound,
   LayoutGrid,
@@ -117,18 +116,6 @@ export function getMenuList(pathname: string): Group[] {
           translation: 'webhooks',
           active: pathname === '/dashboard/webhooks',
           icon: Webhook,
-          submenus: [],
-        },
-      ],
-    },
-    {
-      groupTranslation: '',
-      menus: [
-        {
-          href: '/dashboard/analyzer',
-          translation: 'analyzer',
-          active: pathname === '/dashboard/analyzer',
-          icon: FileScan,
           submenus: [],
         },
       ],

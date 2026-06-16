@@ -8,9 +8,9 @@
 -- lets those queries run as index-only scans.
 
 -- CreateIndex
-CREATE INDEX CONCURRENTLY IF NOT EXISTS "RequestLog_teamId_createdAt_stats_idx"
+CREATE INDEX IF NOT EXISTS "RequestLog_teamId_createdAt_stats_idx"
     ON "public"."RequestLog" ("teamId", "createdAt")
     INCLUDE ("status", "type", "country", "licenseId");
 
 -- DropIndex (now redundant: same key prefix, no payload)
-DROP INDEX CONCURRENTLY IF EXISTS "public"."RequestLog_teamId_createdAt_idx";
+DROP INDEX IF EXISTS "public"."RequestLog_teamId_createdAt_idx";

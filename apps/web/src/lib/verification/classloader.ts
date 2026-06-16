@@ -168,14 +168,12 @@ export const handleClassloader = async ({
         },
       },
       settings: true,
-      watermarkingSettings: true,
       blacklist: true,
       limits: true,
     },
   });
 
   const settings = team?.settings;
-  const watermarkingSettings = team?.watermarkingSettings;
   const limits = team?.limits;
   const keyPair = team?.keyPair;
 
@@ -902,21 +900,6 @@ export const handleClassloader = async ({
     };
   }
 
-  const isJar = Boolean(releaseToUse.file?.mainClassName);
-
-  const hasAtLeastOneWatermarkingMethodEnabled = Boolean(
-    watermarkingSettings?.staticConstantPoolSynthesis ||
-    watermarkingSettings?.dynamicBytecodeInjection ||
-    watermarkingSettings?.temporalAttributeEmbedding,
-  );
-
-  const watermarkingEnabled = Boolean(
-    watermarkingSettings?.watermarkingEnabled &&
-    hasAtLeastOneWatermarkingMethodEnabled &&
-    limits.allowWatermarking &&
-    isJar,
-  );
-
   logger.info('handleClassloader: File download initiated', {
     requestId,
     teamId,
@@ -925,14 +908,10 @@ export const handleClassloader = async ({
     releaseId: releaseToUse.id,
     fileId: fileToUse.id,
     version: releaseToUse.version,
-    watermarkingEnabled,
     fileSize: fileToUse.size,
-    isJar,
   });
 
-  const fileStream = watermarkingEnabled
-    ? await file.Body?.transformToByteArray()
-    : file.Body?.transformToWebStream();
+  const fileStream = file.Body?.transformToWebStream();
 
   if (!fileStream) {
     logger.error('handleClassloader: Failed to get file stream', {
@@ -940,7 +919,6 @@ export const handleClassloader = async ({
       teamId,
       releaseId: releaseToUse.id,
       fileId: fileToUse.id,
-      watermarkingEnabled,
     });
     return {
       ...commonBase,
@@ -957,134 +935,7 @@ export const handleClassloader = async ({
     };
   }
 
-  let fileStreamFormatted: ReadableStream<any> | null = null;
-
-  if (watermarkingEnabled) {
-    const embedFormData = new FormData();
-    embedFormData.append(
-      'file',
-      new Blob([fileStream as Uint8Array<ArrayBuffer>], {
-        type: 'application/java-archive',
-      }),
-      'file.jar',
-    );
-
-    const WATERMARK = `${teamId}:${licenseKeyLookup}`;
-    const ENCRYPTION_KEY = generateHMAC(teamId).slice(0, 16);
-
-    const methods: (
-      | 'STATIC_CONSTANT_POOL_SYNTHESIS'
-      | 'DYNAMIC_BYTECODE_INJECTION'
-      | 'TEMPORAL_ATTRIBUTE_EMBEDDING'
-    )[] = [];
-
-    const densities: number[] = [];
-
-    logger.info('handleClassloader: Watermarking file', {
-      requestId,
-      teamId,
-      releaseId: releaseToUse.id,
-      fileId: fileToUse.id,
-      methods: methods.join(','),
-    });
-
-    if (watermarkingSettings?.staticConstantPoolSynthesis) {
-      methods.push('STATIC_CONSTANT_POOL_SYNTHESIS');
-      densities.push(
-        watermarkingSettings.staticConstantPoolDensity
-          ? Number(
-              (watermarkingSettings.staticConstantPoolDensity / 100).toFixed(2),
-            )
-          : 0,
-      );
-    }
-
-    if (watermarkingSettings?.dynamicBytecodeInjection) {
-      methods.push('DYNAMIC_BYTECODE_INJECTION');
-      densities.push(
-        watermarkingSettings.dynamicBytecodeDensity
-          ? Number(
-              (watermarkingSettings.dynamicBytecodeDensity / 100).toFixed(2),
-            )
-          : 0,
-      );
-    }
-
-    if (watermarkingSettings?.temporalAttributeEmbedding) {
-      methods.push('TEMPORAL_ATTRIBUTE_EMBEDDING');
-      densities.push(
-        watermarkingSettings.temporalAttributeDensity
-          ? Number(
-              (watermarkingSettings.temporalAttributeDensity / 100).toFixed(2),
-            )
-          : 0,
-      );
-    }
-
-    const embedResponse = await fetch(
-      `${process.env.WATERMARK_SERVICE_BASE_URL}/api/watermark/embed`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Watermark': WATERMARK,
-          'X-Encryption-Key': ENCRYPTION_KEY,
-          'X-Watermark-Methods': methods.join(','),
-          'X-Watermark-Density': densities.join(','),
-        },
-        body: embedFormData,
-      },
-    );
-
-    if (!embedResponse.ok) {
-      logger.error('handleClassloader: Watermarking failed', {
-        requestId,
-        teamId,
-        releaseId: releaseToUse.id,
-        fileId: fileToUse.id,
-        status: embedResponse.status,
-        statusText: embedResponse.statusText,
-      });
-      return {
-        ...commonBase,
-        status: RequestStatus.INTERNAL_SERVER_ERROR,
-        response: {
-          data: null,
-          result: {
-            timestamp: new Date(),
-            valid: false,
-            details: 'Internal server error',
-          },
-        },
-        httpStatus: HttpStatus.INTERNAL_SERVER_ERROR,
-      };
-    }
-
-    const watermarkedData = await embedResponse.arrayBuffer();
-    logger.info('handleClassloader: Watermarking completed successfully', {
-      requestId,
-      teamId,
-      releaseId: releaseToUse.id,
-      fileId: fileToUse.id,
-      watermarkedSizeBytes: watermarkedData.byteLength,
-    });
-
-    // Create a readable stream with proper chunking (128KB)
-    const CHUNK_SIZE = 128 * 1024; // 128KB
-    fileStreamFormatted = new ReadableStream({
-      start(controller) {
-        const data = new Uint8Array(watermarkedData);
-        for (let i = 0; i < data.length; i += CHUNK_SIZE) {
-          const chunk = data.slice(i, i + CHUNK_SIZE);
-          controller.enqueue(chunk);
-        }
-        controller.close();
-      },
-    });
-  } else {
-    fileStreamFormatted = fileStream as ReadableStream<any>;
-  }
-
-  const encryptedStream = fileStreamFormatted.pipeThrough(
+  const encryptedStream = fileStream.pipeThrough(
     createEncryptionStream(validatedSessionKey),
   );
 
@@ -1098,7 +949,6 @@ export const handleClassloader = async ({
     releaseId: releaseToUse.id,
     fileId: fileToUse.id,
     version: releaseToUse.version,
-    watermarkingEnabled,
     handlerTimeMs: handlerTime,
     fileSize: fileToUse.size,
   });
