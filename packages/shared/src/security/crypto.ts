@@ -194,14 +194,8 @@ export async function privateDecrypt(
   }
 }
 
-export function encryptChunk(chunk: Buffer, sessionKey: string) {
+function encryptChunk(chunk: Buffer, sessionKeyHash: Buffer) {
   const iv = crypto.randomBytes(12); // 96-bit IV for AES-GCM
-
-  // Hash the session key consistently
-  const sessionKeyHash = crypto
-    .createHash('sha256')
-    .update(sessionKey)
-    .digest();
 
   const cipher = crypto.createCipheriv('aes-256-gcm', sessionKeyHash, iv);
 
@@ -213,16 +207,24 @@ export function encryptChunk(chunk: Buffer, sessionKey: string) {
 }
 
 export function createEncryptionStream(sessionKey: string): TransformStream {
+  const sessionKeyHash = crypto
+    .createHash('sha256')
+    .update(sessionKey)
+    .digest();
+
   return new TransformStream({
-    transform: async (chunk: Buffer, controller) => {
-      const { authTag, encryptedChunk, iv } = encryptChunk(chunk, sessionKey);
+    transform: (chunk: Buffer, controller) => {
+      const { authTag, encryptedChunk, iv } = encryptChunk(
+        chunk,
+        sessionKeyHash,
+      );
 
-      // Combine in specific order: IV + Auth Tag + Encrypted Data
-      const length = Buffer.alloc(4);
-      const encryptedData = Buffer.concat([iv, authTag, encryptedChunk]);
-      length.writeUInt32BE(encryptedData.length);
+      const header = Buffer.allocUnsafe(4 + iv.length + authTag.length);
+      header.writeUInt32BE(iv.length + authTag.length + encryptedChunk.length);
+      iv.copy(header, 4);
+      authTag.copy(header, 4 + iv.length);
 
-      controller.enqueue(Buffer.concat([length, encryptedData]));
+      controller.enqueue(Buffer.concat([header, encryptedChunk]));
     },
   });
 }

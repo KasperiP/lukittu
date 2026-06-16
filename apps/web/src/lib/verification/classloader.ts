@@ -821,61 +821,66 @@ export const handleClassloader = async ({
     }
   }
 
-  await prisma.$transaction([
-    prisma.hardwareIdentifier.upsert({
-      where: {
-        teamId,
-        licenseId_hwid: {
-          licenseId: license.id,
-          hwid: hardwareIdentifier,
+  // The last-seen writes and the S3 read are independent, so run them
+  // concurrently to overlap the DB and S3 round-trips. If the transaction
+  // rejects, Promise.all rejects and the handler still throws (→ 500), exactly
+  // as before.
+  const [, file] = await Promise.all([
+    prisma.$transaction([
+      prisma.hardwareIdentifier.upsert({
+        where: {
+          teamId,
+          licenseId_hwid: {
+            licenseId: license.id,
+            hwid: hardwareIdentifier,
+          },
         },
-      },
-      create: {
-        hwid: hardwareIdentifier,
-        teamId,
-        licenseId: license.id,
-      },
-      update: {
-        lastSeenAt: new Date(),
-        forgotten: false,
-        forgottenAt: null,
-      },
-    }),
-    ...(ipAddress
-      ? [
-          prisma.ipAddress.upsert({
-            where: {
-              teamId,
-              licenseId_ip: {
-                licenseId: license.id,
-                ip: ipAddress,
+        create: {
+          hwid: hardwareIdentifier,
+          teamId,
+          licenseId: license.id,
+        },
+        update: {
+          lastSeenAt: new Date(),
+          forgotten: false,
+          forgottenAt: null,
+        },
+      }),
+      ...(ipAddress
+        ? [
+            prisma.ipAddress.upsert({
+              where: {
+                teamId,
+                licenseId_ip: {
+                  licenseId: license.id,
+                  ip: ipAddress,
+                },
               },
-            },
-            create: {
-              ip: ipAddress,
-              teamId,
-              licenseId: license.id,
-            },
-            update: {
-              lastSeenAt: new Date(),
-              forgotten: false,
-              forgottenAt: null,
-            },
-          }),
-        ]
-      : []),
-    prisma.release.update({
-      where: { id: releaseToUse.id },
-      data: {
-        lastSeenAt: new Date(),
-      },
-    }),
+              create: {
+                ip: ipAddress,
+                teamId,
+                licenseId: license.id,
+              },
+              update: {
+                lastSeenAt: new Date(),
+                forgotten: false,
+                forgottenAt: null,
+              },
+            }),
+          ]
+        : []),
+      prisma.release.update({
+        where: { id: releaseToUse.id },
+        data: {
+          lastSeenAt: new Date(),
+        },
+      }),
+    ]),
+    getFileFromPrivateS3(
+      process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+      fileToUse.key,
+    ),
   ]);
-
-  const file = await getFileFromPrivateS3(
-    process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-    fileToUse.key,
-  );
 
   if (!file) {
     logger.error('handleClassloader: File not found in S3', {
