@@ -34,6 +34,9 @@ For detailed pricing and feature comparisons, visit [our website](https://lukitt
 > [!IMPORTANT]  
 > While self-hosting Lukittu is possible, it is **not recommended** for most users. Lukittu is designed as a SaaS platform with proper security measures and ongoing maintenance. If you choose to self-host, be aware that by default anyone can register and use the platform unless you implement custom modifications. These modifications may complicate receiving updates from upstream. For more information about self-hosting requirements and limitations, please refer to our [self-hosting documentation](https://docs.lukittu.com/hosting/self-hosting).
 
+> [!TIP]
+> For self-hosting, set `NEXT_PUBLIC_SINGLE_TENANT_MODE=true` to run Lukittu in **single-tenant mode**: the first signup becomes the sole owner of the instance, after which public registration and OAuth login are disabled and per-team usage limits are bypassed. Existing members can still be added via invitations, and the owner can still create multiple teams. In this mode the Google/GitHub OAuth and Stripe environment variables are optional.
+
 ## Local Development
 
 Lukittu uses a pnpm workspace monorepo structure with the following packages:

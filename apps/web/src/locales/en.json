@@ -428,7 +428,8 @@
       "google": "Google",
       "github": "GitHub",
       "discord": "Discord",
-      "server_error": "Failed to authenticate with <strong>{provider}</strong>. Please try again later."
+      "server_error": "Failed to authenticate with <strong>{provider}</strong>. Please try again later.",
+      "oauth_disabled": "Sign in with <strong>{provider}</strong> is disabled on this instance."
     },
     "login": {
       "title": "Sign in to your account",
@@ -454,6 +455,9 @@
       "email_already_in_use": "This email is already in use!",
       "email_sent_title": "Confirm your registration",
       "email_sent_description": "We have sent a email verification mail to <strong>{email}</strong>. Please check your inbox spam folder. If you don't receive the email within a few minutes, you can try registering again.",
+      "registration_disabled": "Registration is disabled on this instance. You can only create an account if you have been invited.",
+      "invitation_only_title": "Registration is invite-only",
+      "invitation_only_description": "This instance is in single-tenant mode. Only people with a pending invitation can create an account.",
       "seo_title": "Sign Up and Create a Lukittu Account | Lukittu"
     },
     "forgot_password": {

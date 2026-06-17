@@ -1,6 +1,8 @@
+import { UNLIMITED_LIMITS } from '@/lib/constants/limits';
 import { createAuditLog } from '@/lib/logging/audit-log';
 import { getSession } from '@/lib/security/session';
 import { getLanguage } from '@/lib/utils/header-helpers';
+import { isSingleTenantMode } from '@/lib/utils/single-tenant';
 import {
   setTeamSchema,
   SetTeamSchema,
@@ -139,7 +141,7 @@ export async function POST(
             },
           },
           limits: {
-            create: {},
+            create: isSingleTenantMode() ? UNLIMITED_LIMITS : {},
           },
         },
       });

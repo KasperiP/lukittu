@@ -1,5 +1,6 @@
 import { sendDiscordWebhook } from '@/lib/providers/discord-webhook';
 import { createSession } from '@/lib/security/session';
+import { isSingleTenantMode } from '@/lib/utils/single-tenant';
 import { generateKeyPair, logger, prisma, Provider } from '@lukittu/shared';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -26,6 +27,13 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
 
 export async function GET(request: NextRequest) {
   try {
+    // OAuth login is disabled in single-tenant (self-hosted) mode.
+    if (isSingleTenantMode()) {
+      return NextResponse.redirect(
+        new URL('/auth/login?error=oauth_disabled&provider=google', baseUrl),
+      );
+    }
+
     const code = request.nextUrl.searchParams.get('code');
 
     if (!code || typeof code !== 'string') {

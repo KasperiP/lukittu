@@ -428,7 +428,8 @@
       "google": "Google",
       "github": "GitHub",
       "server_error": "No se pudo autenticar con <strong>{provider}</strong>. Por favor, intenta de nuevo más tarde.",
-      "discord": "Discord"
+      "discord": "Discord",
+      "oauth_disabled": "El inicio de sesión con <strong>{provider}</strong> está deshabilitado en esta instancia."
     },
     "login": {
       "title": "Inicia sesión en tu cuenta",
@@ -454,6 +455,9 @@
       "email_already_in_use": "Este correo electrónico ya está en uso!",
       "email_sent_title": "Confirma tu registro",
       "email_sent_description": "Hemos enviado un correo de verificación a <strong>{email}</strong>. Por favor, revisa tu bandeja de entrada y carpeta de spam. Si no recibes el correo en unos minutos, puedes intentar registrarte de nuevo.",
+      "registration_disabled": "El registro está deshabilitado en esta instancia. Solo puedes crear una cuenta si has sido invitado.",
+      "invitation_only_title": "El registro es solo por invitación",
+      "invitation_only_description": "Esta instancia está en modo de un solo inquilino. Solo las personas con una invitación pendiente pueden crear una cuenta.",
       "seo_title": "Regístrate y Crea una Cuenta de Lukittu | Lukittu"
     },
     "forgot_password": {

@@ -428,7 +428,8 @@
       "google": "Google",
       "github": "GitHub",
       "server_error": "Tunnistautuminen <strong>{provider}</strong> kanssa epäonnistui. Yritä myöhemmin uudelleen.",
-      "discord": "Discord"
+      "discord": "Discord",
+      "oauth_disabled": "Kirjautuminen <strong>{provider}</strong>-tilillä on poistettu käytöstä tässä instanssissa."
     },
     "login": {
       "title": "Kirjaudu sisään tilillesi",
@@ -454,6 +455,9 @@
       "email_already_in_use": "Tämä sähköposti on jo käytössä!",
       "email_sent_title": "Vahvista rekisteröintisi",
       "email_sent_description": "Olemme lähettäneet sähköpostivahvistusviestin osoitteeseen <strong>{email}</strong>. Tarkista postilaatikkosi ja roskapostikansio. Jos et saa sähköpostia muutaman minuutin sisällä, voit yrittää rekisteröityä uudelleen.",
+      "registration_disabled": "Rekisteröityminen on poistettu käytöstä tässä instanssissa. Voit luoda tilin vain, jos sinut on kutsuttu.",
+      "invitation_only_title": "Rekisteröityminen vain kutsulla",
+      "invitation_only_description": "Tämä instanssi on yhden vuokralaisen tilassa. Vain henkilöt, joilla on odottava kutsu, voivat luoda tilin.",
       "seo_title": "Rekisteröidy ja Luo Lukittu-tili | Lukittu"
     },
     "forgot_password": {

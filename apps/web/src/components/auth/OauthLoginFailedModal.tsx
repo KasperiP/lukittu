@@ -31,7 +31,7 @@ export default function OauthLoginFailedccessModal({
     router.push('/auth/login');
   };
 
-  const allowedErrors = ['server_error', 'wrong_provider'];
+  const allowedErrors = ['server_error', 'wrong_provider', 'oauth_disabled'];
 
   if (!error || !allowedErrors.includes(error)) {
     return null;

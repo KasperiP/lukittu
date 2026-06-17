@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { isSingleTenantMode } from '@/lib/utils/single-tenant';
 import { LoginSchema, loginSchema } from '@/lib/validation/auth/login-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
@@ -79,7 +80,10 @@ export default function LoginCard() {
   }, [formWatcher]);
 
   useEffect(() => {
-    if (error && ['server_error', 'wrong_provider'].includes(error)) {
+    if (
+      error &&
+      ['server_error', 'wrong_provider', 'oauth_disabled'].includes(error)
+    ) {
       setErrorModalOpen(true);
     }
   }, [error]);
@@ -284,17 +288,19 @@ export default function LoginCard() {
               >
                 {t('general.login')}
               </LoadingButton>
-              <div className="space-y-4">
-                <div className="flex w-full items-center gap-4">
-                  <Separator className="w-auto flex-grow" />
-                  <span className="text-sm">
-                    {t('general.or').toUpperCase()}
-                  </span>
-                  <Separator className="w-auto flex-grow" />
+              {!isSingleTenantMode() && (
+                <div className="space-y-4">
+                  <div className="flex w-full items-center gap-4">
+                    <Separator className="w-auto flex-grow" />
+                    <span className="text-sm">
+                      {t('general.or').toUpperCase()}
+                    </span>
+                    <Separator className="w-auto flex-grow" />
+                  </div>
+                  <LoginWithGoogleButton />
+                  <LoginWithGithubButton />
                 </div>
-                <LoginWithGoogleButton />
-                <LoginWithGithubButton />
-              </div>
+              )}
             </form>
           </Form>
         </CardContent>

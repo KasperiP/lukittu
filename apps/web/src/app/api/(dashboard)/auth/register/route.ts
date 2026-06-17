@@ -1,8 +1,10 @@
+import { UNLIMITED_LIMITS } from '@/lib/constants/limits';
 import { sendVerifyEmailEmail } from '@/lib/emails/templates/send-verify-email-email';
 import { verifyTurnstileToken } from '@/lib/providers/cloudflare';
 import { sendDiscordWebhook } from '@/lib/providers/discord-webhook';
 import { isRateLimited } from '@/lib/security/rate-limiter';
 import { getIp, getLanguage } from '@/lib/utils/header-helpers';
+import { isSingleTenantMode } from '@/lib/utils/single-tenant';
 import {
   registerSchema,
   RegisterSchema,
@@ -76,6 +78,35 @@ export async function POST(
       );
     }
 
+    // In single-tenant mode, only the first-ever signup is allowed. Later
+    // registration is blocked unless the email has a pending invitation (so the
+    // invite flow, which requires an account to accept, keeps working).
+    if (isSingleTenantMode()) {
+      const hasUsers =
+        (await prisma.user.findFirst({ select: { id: true } })) !== null;
+
+      if (hasUsers) {
+        const pendingInvitation = await prisma.invitation.findFirst({
+          where: {
+            email,
+            accepted: false,
+            createdAt: {
+              gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // 24 hours
+            },
+          },
+        });
+
+        if (!pendingInvitation) {
+          return NextResponse.json(
+            {
+              message: t('auth.register.registration_disabled'),
+            },
+            { status: HttpStatus.FORBIDDEN },
+          );
+        }
+      }
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -147,7 +178,7 @@ export async function POST(
             },
           },
           limits: {
-            create: {},
+            create: isSingleTenantMode() ? UNLIMITED_LIMITS : {},
           },
         },
       });
