@@ -1,7 +1,9 @@
 'use client';
 import Confetti from '@/components/ui/confetti';
-import { ThemeProvider as NextThemesProvider } from 'next-themes';
-import { type ThemeProviderProps } from 'next-themes/dist/types';
+import {
+  ThemeProvider as NextThemesProvider,
+  type ThemeProviderProps,
+} from 'next-themes';
 import { createContext, useState } from 'react';
 
 export const ConfettiContext = createContext({
