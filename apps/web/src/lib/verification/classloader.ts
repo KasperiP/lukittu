@@ -101,7 +101,7 @@ export const handleClassloader = async ({
 
   if (ipAddress && !isTrusted) {
     const key = `license-encrypted:${ipAddress}`;
-    const isLimited = await isRateLimited(key, 30, 60); // 30 requests per 1 minute
+    const isLimited = await isRateLimited(key, 100, 60); // 100 requests per 1 minute
 
     if (isLimited) {
       logger.warn('handleClassloader: Rate limit exceeded (IP)', {
@@ -132,9 +132,9 @@ export const handleClassloader = async ({
 
     const isLicenseKeyLimited = await isRateLimited(
       licenseKeyRatelimitKey,
-      30,
+      100,
       60,
-    ); // 30 requests per 1 minute
+    ); // 100 requests per 1 minute
 
     if (isLicenseKeyLimited) {
       logger.warn('handleClassloader: Rate limit exceeded (license key)', {
