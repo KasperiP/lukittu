@@ -91,7 +91,6 @@
     "release_product_required": "Producto es obligatorio!",
     "release_exists_this_branch": "Ya existe una versión con esta versión y producto en esta sucursal!",
     "invalid_release_version": "Versión no válida!",
-    "main_class_not_found": "El archivo cargado es JAR pero falló la extracción de la clase principal! Por favor, contacta al soporte.",
     "city_required": "Ciudad es obligatoria!",
     "city_min_length": "La ciudad debe tener al menos 3 caracteres!",
     "city_max_length": "La ciudad debe tener como máximo 100 caracteres!",

@@ -1,6 +1,6 @@
 import { logger } from '@lukittu/shared';
 import nodemailer from 'nodemailer';
-import { MailOptions } from 'nodemailer/lib/sendmail-transport';
+import { MailOptions } from 'nodemailer/lib/smtp-transport';
 import 'server-only';
 
 interface Email {

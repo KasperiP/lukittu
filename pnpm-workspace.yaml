@@ -4,7 +4,7 @@ packages:
 
 catalogs:
   prisma:
-    prisma: ^7.8.0
+    prisma: ^7.9.1
 
 # Needed for ESLint to resolve workspace deps.
 # https://github.com/pnpm/pnpm/issues/4741#issuecomment-1177965681
@@ -23,8 +23,8 @@ allowBuilds:
   '@parcel/watcher': true
   '@prisma/client': true
   '@prisma/engines': true
-  '@sentry-internal/node-cpu-profiler': true
   '@sentry/cli': true
+  '@sentry/node-cpu-profiler': true
   '@swc/core': true
   esbuild: true
   prisma: true

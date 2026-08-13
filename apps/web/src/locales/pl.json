@@ -100,7 +100,6 @@
     "release_version_max_length": "Numer wersji może mieć maksymalnie 255 znaków!",
     "release_product_required": "Wymagany jest produkt!",
     "invalid_release_version": "Nieprawidłowa wersja!",
-    "main_class_not_found": "Przesłany plik jest JAR, ale ekstrakcja głównej klasy nie powiodła się! Skontaktuj się z pomocą techniczną.",
     "city_required": "Wymagane jest miasto!",
     "city_min_length": "Miasto musi mieć co najmniej 3 znaki!",
     "city_max_length": "Miasto może mieć maksymalnie 100 znaków!",

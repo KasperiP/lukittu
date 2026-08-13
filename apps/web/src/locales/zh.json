@@ -109,7 +109,6 @@
     "release_product_required": "产品是必需的！",
     "release_exists_this_branch": "此分支中已存在此版本的发布！",
     "invalid_release_version": "无效的版本！",
-    "main_class_not_found": "上传的文件是JAR但提取主类失败！请联系支持。",
     "city_required": "城市是必需的！",
     "city_min_length": "城市至少需要3个字符！",
     "city_max_length": "城市最多100个字符！",

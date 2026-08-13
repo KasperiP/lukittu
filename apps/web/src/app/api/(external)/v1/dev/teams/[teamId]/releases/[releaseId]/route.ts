@@ -554,22 +554,7 @@ export async function PUT(
       }
 
       if (fileExtension === 'jar') {
-        const foundMainClassName = await getMainClassFromJar(file);
-        if (!foundMainClassName) {
-          return NextResponse.json(
-            {
-              data: null,
-              result: {
-                details: 'Main class not found in JAR file',
-                timestamp: new Date(),
-                valid: false,
-              },
-            },
-            { status: HttpStatus.BAD_REQUEST },
-          );
-        }
-
-        mainClassName = foundMainClassName;
+        mainClassName = await getMainClassFromJar(file);
       }
 
       fileKey = `releases/${team.id}/${productId}-${version}.${fileExtension}`;
