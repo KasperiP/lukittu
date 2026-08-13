@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@lukittu/shared": "workspace:*",
-    "@sentry/cli": "^2.58.4",
+    "@sentry/cli": "^3.6.2",
     "@sentry/node": "^10.70.0",
     "@sentry/profiling-node": "^10.70.0",
     "discord.js": "^14.27.0"
