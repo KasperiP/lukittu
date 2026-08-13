@@ -91,7 +91,6 @@
     "release_product_required": "Tuote on pakollinen!",
     "release_exists_this_branch": "Tällä versiolla oleva julkaisu on jo olemassa tässä haarassa!",
     "invalid_release_version": "Virheellinen versio!",
-    "main_class_not_found": "Ladattu tiedosto on JAR, mutta pääluokan purkaminen epäonnistui! Ota yhteyttä tukeen.",
     "city_required": "Kaupunki on pakollinen!",
     "city_min_length": "Kaupungin on oltava vähintään 3 merkkiä pitkä!",
     "city_max_length": "Kaupungin on oltava enintään 100 merkkiä pitkä!",

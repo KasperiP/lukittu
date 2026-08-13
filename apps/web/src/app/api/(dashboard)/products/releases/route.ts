@@ -356,17 +356,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (fileExtension === 'jar') {
-        const foundMainClassName = await getMainClassFromJar(file);
-        if (!foundMainClassName) {
-          return NextResponse.json(
-            {
-              message: t('validation.main_class_not_found'),
-            },
-            { status: HttpStatus.BAD_REQUEST },
-          );
-        }
-
-        mainClassName = foundMainClassName;
+        mainClassName = await getMainClassFromJar(file);
       }
 
       fileKey = `releases/${team.id}/${productId}-${version}.${fileExtension}`;

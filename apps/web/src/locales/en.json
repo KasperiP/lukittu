@@ -134,7 +134,6 @@
     "release_product_required": "Product is required!",
     "release_exists_this_branch": "Release with this version already exists in this branch!",
     "invalid_release_version": "Invalid version!",
-    "main_class_not_found": "Uploaded file is JAR but extracting the main class failed! Please contact support.",
     "city_required": "City is required!",
     "city_min_length": "City must be at least 3 characters long!",
     "city_max_length": "City must be at most 100 characters long!",
