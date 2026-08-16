@@ -6,10 +6,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { copyToClipboard } from '@/lib/utils/clipboard-helpers';
 import { cn } from '@/lib/utils/tailwind-helpers';
 import { Copy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
 
 interface ClickableIdentifierProps {
   value: string;
@@ -24,9 +24,12 @@ export function ClickableIdentifier({
 }: ClickableIdentifierProps) {
   const t = useTranslations();
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-    toast.success(t('general.copied_to_clipboard'));
+  const handleCopy = async () => {
+    await copyToClipboard(
+      value,
+      t('general.copied_to_clipboard'),
+      t('general.error_occurred'),
+    );
   };
 
   return (

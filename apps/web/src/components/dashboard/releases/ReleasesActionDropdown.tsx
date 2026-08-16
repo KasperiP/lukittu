@@ -13,6 +13,7 @@ import { VariantProps } from 'class-variance-authority';
 import { Copy, Edit, Ellipsis, Star, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
+import { copyToClipboard } from '@/lib/utils/clipboard-helpers';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 
@@ -66,10 +67,13 @@ export const ReleasesActionDropdown = ({
       <DropdownMenuContent align="end" className="font-medium" forceMount>
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(release.id);
-            toast.success(t('general.copied_to_clipboard'));
+            await copyToClipboard(
+              release.id,
+              t('general.copied_to_clipboard'),
+              t('general.error_occurred'),
+            );
           }}
         >
           <Copy className="mr-2 h-4 w-4" />

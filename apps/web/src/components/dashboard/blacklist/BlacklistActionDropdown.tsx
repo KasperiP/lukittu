@@ -13,7 +13,7 @@ import { VariantProps } from 'class-variance-authority';
 import { Copy, Edit, Ellipsis, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
-import { toast } from 'sonner';
+import { copyToClipboard } from '@/lib/utils/clipboard-helpers';
 
 interface BlacklistActionDropdownProps {
   blacklist: IBlacklistGetSuccessResponse['blacklist'][number] | undefined;
@@ -39,10 +39,13 @@ export const BlacklistActionDropdown = ({
       <DropdownMenuContent align="end" className="font-medium" forceMount>
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(blacklist.id);
-            toast.success(t('general.copied_to_clipboard'));
+            await copyToClipboard(
+              blacklist.id,
+              t('general.copied_to_clipboard'),
+              t('general.error_occurred'),
+            );
           }}
         >
           <Copy className="mr-2 h-4 w-4" />
