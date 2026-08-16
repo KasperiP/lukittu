@@ -13,7 +13,7 @@ import { VariantProps } from 'class-variance-authority';
 import { Copy, Edit, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useContext } from 'react';
-import { toast } from 'sonner';
+import { copyToClipboard } from '@/lib/utils/clipboard-helpers';
 
 interface WebhooksActionDropdownProps {
   webhook: Webhook;
@@ -37,10 +37,13 @@ export function WebhooksActionDropdown({
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           className="hover:cursor-pointer"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(webhook.id);
-            toast.success(t('general.copied_to_clipboard'));
+            await copyToClipboard(
+              webhook.id,
+              t('general.copied_to_clipboard'),
+              t('general.error_occurred'),
+            );
           }}
         >
           <Copy className="mr-2 h-4 w-4" />
