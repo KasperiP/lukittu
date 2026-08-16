@@ -39,7 +39,7 @@ export const handleVerify = async ({
   const handlerStartTime = Date.now();
 
   if (!teamId || !regex.uuidV4.test(teamId)) {
-    logger.warn('handleVerify: Invalid team UUID provided', {
+    logger.info('handleVerify: Invalid team UUID provided', {
       requestId,
       teamId,
     });
@@ -60,7 +60,7 @@ export const handleVerify = async ({
   const validated = await verifyLicenseSchema().safeParseAsync(payload);
 
   if (!validated.success) {
-    logger.warn('handleVerify: Schema validation failed', {
+    logger.info('handleVerify: Schema validation failed', {
       requestId,
       teamId,
       error: validated.error.errors[0].message,
@@ -134,7 +134,7 @@ export const handleVerify = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !keyPair) {
-    logger.warn('handleVerify: Team, settings, or keyPair not found', {
+    logger.info('handleVerify: Team, settings, or keyPair not found', {
       requestId,
       teamId,
       hasTeam: !!team,
@@ -262,7 +262,7 @@ export const handleVerify = async ({
     });
 
     if (!branchEntity) {
-      logger.warn('handleVerify: Branch not found', {
+      logger.info('handleVerify: Branch not found', {
         requestId,
         teamId,
         licenseId: license?.id,
@@ -289,7 +289,7 @@ export const handleVerify = async ({
     );
 
     if (filteredReleases.length === 0) {
-      logger.warn('handleVerify: No releases found for branch', {
+      logger.info('handleVerify: No releases found for branch', {
         requestId,
         teamId,
         licenseId: license?.id,
@@ -321,7 +321,7 @@ export const handleVerify = async ({
   const latestRelease = filteredReleases.find((r) => r.latest);
 
   if (!license) {
-    logger.warn('handleVerify: License not found', {
+    logger.info('handleVerify: License not found', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -352,7 +352,7 @@ export const handleVerify = async ({
   );
 
   if (blacklistCheck) {
-    logger.warn('handleVerify: Blacklist check failed', {
+    logger.info('handleVerify: Blacklist check failed', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -380,7 +380,7 @@ export const handleVerify = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
-    logger.warn('handleVerify: Customer validation failed', {
+    logger.info('handleVerify: Customer validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -408,7 +408,7 @@ export const handleVerify = async ({
   const noProductMatch = licenseHasProducts && productId && !matchingProduct;
 
   if (strictModeNoProductId || noProductMatch) {
-    logger.warn('handleVerify: Product validation failed', {
+    logger.info('handleVerify: Product validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -436,7 +436,7 @@ export const handleVerify = async ({
   const noVersionMatch = productHasReleases && version && !matchingRelease;
 
   if (strictModeNoVersion || noVersionMatch) {
-    logger.warn('handleVerify: Release/version validation failed', {
+    logger.info('handleVerify: Release/version validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -463,7 +463,7 @@ export const handleVerify = async ({
   commonBase.releaseId = matchingRelease?.id;
 
   if (license.suspended) {
-    logger.warn('handleVerify: License is suspended', {
+    logger.info('handleVerify: License is suspended', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -491,7 +491,7 @@ export const handleVerify = async ({
     );
 
   if (!licenseExpirationCheck.success) {
-    logger.warn('handleVerify: License expired', {
+    logger.info('handleVerify: License expired', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -522,7 +522,7 @@ export const handleVerify = async ({
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
-      logger.warn('handleVerify: IP limit reached', {
+      logger.info('handleVerify: IP limit reached', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -551,7 +551,7 @@ export const handleVerify = async ({
     const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
     if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
-      logger.warn('handleVerify: HWID limit reached', {
+      logger.info('handleVerify: HWID limit reached', {
         requestId,
         teamId,
         licenseId: license.id,

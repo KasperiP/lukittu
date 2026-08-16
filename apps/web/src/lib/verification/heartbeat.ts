@@ -39,7 +39,7 @@ export const handleHeartbeat = async ({
   const handlerStartTime = Date.now();
 
   if (!teamId || !regex.uuidV4.test(teamId)) {
-    logger.warn('handleHeartbeat: Invalid team UUID provided', {
+    logger.info('handleHeartbeat: Invalid team UUID provided', {
       requestId,
       teamId,
     });
@@ -60,7 +60,7 @@ export const handleHeartbeat = async ({
   const validated = await licenseHeartbeatSchema().safeParseAsync(payload);
 
   if (!validated.success) {
-    logger.warn('handleHeartbeat: Schema validation failed', {
+    logger.info('handleHeartbeat: Schema validation failed', {
       requestId,
       teamId,
       error: validated.error.errors[0].message,
@@ -134,7 +134,7 @@ export const handleHeartbeat = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !keyPair) {
-    logger.warn('handleHeartbeat: Team, settings, or keyPair not found', {
+    logger.info('handleHeartbeat: Team, settings, or keyPair not found', {
       requestId,
       teamId,
       hasTeam: !!team,
@@ -262,7 +262,7 @@ export const handleHeartbeat = async ({
     });
 
     if (!branchEntity) {
-      logger.warn('handleHeartbeat: Branch not found', {
+      logger.info('handleHeartbeat: Branch not found', {
         requestId,
         teamId,
         licenseId: license?.id,
@@ -289,7 +289,7 @@ export const handleHeartbeat = async ({
     );
 
     if (filteredReleases.length === 0) {
-      logger.warn('handleHeartbeat: No releases found for branch', {
+      logger.info('handleHeartbeat: No releases found for branch', {
         requestId,
         teamId,
         licenseId: license?.id,
@@ -321,7 +321,7 @@ export const handleHeartbeat = async ({
   const latestRelease = filteredReleases.find((r) => r.latest);
 
   if (!license) {
-    logger.warn('handleHeartbeat: License not found', {
+    logger.info('handleHeartbeat: License not found', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -352,7 +352,7 @@ export const handleHeartbeat = async ({
   );
 
   if (blacklistCheck) {
-    logger.warn('handleHeartbeat: Blacklist check failed', {
+    logger.info('handleHeartbeat: Blacklist check failed', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -380,7 +380,7 @@ export const handleHeartbeat = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
-    logger.warn('handleHeartbeat: Customer validation failed', {
+    logger.info('handleHeartbeat: Customer validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -408,7 +408,7 @@ export const handleHeartbeat = async ({
   const noProductMatch = licenseHasProducts && productId && !matchingProduct;
 
   if (strictModeNoProductId || noProductMatch) {
-    logger.warn('handleHeartbeat: Product validation failed', {
+    logger.info('handleHeartbeat: Product validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -436,7 +436,7 @@ export const handleHeartbeat = async ({
   const noVersionMatch = productHasReleases && version && !matchingRelease;
 
   if (strictModeNoVersion || noVersionMatch) {
-    logger.warn('handleHeartbeat: Release/version validation failed', {
+    logger.info('handleHeartbeat: Release/version validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -463,7 +463,7 @@ export const handleHeartbeat = async ({
   commonBase.releaseId = matchingRelease?.id;
 
   if (license.suspended) {
-    logger.warn('handleHeartbeat: License is suspended', {
+    logger.info('handleHeartbeat: License is suspended', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -491,7 +491,7 @@ export const handleHeartbeat = async ({
     );
 
   if (!licenseExpirationCheck.success) {
-    logger.warn('handleHeartbeat: License expired', {
+    logger.info('handleHeartbeat: License expired', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -522,7 +522,7 @@ export const handleHeartbeat = async ({
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
-      logger.warn('handleHeartbeat: IP limit reached', {
+      logger.info('handleHeartbeat: IP limit reached', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -551,7 +551,7 @@ export const handleHeartbeat = async ({
     const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
     if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
-      logger.warn('handleHeartbeat: HWID limit reached', {
+      logger.info('handleHeartbeat: HWID limit reached', {
         requestId,
         teamId,
         licenseId: license.id,

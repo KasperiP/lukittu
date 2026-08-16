@@ -42,7 +42,7 @@ export const handleClassloader = async ({
   const handlerStartTime = Date.now();
 
   if (!teamId || !regex.uuidV4.test(teamId)) {
-    logger.warn('handleClassloader: Invalid team UUID provided', {
+    logger.info('handleClassloader: Invalid team UUID provided', {
       requestId,
       teamId,
     });
@@ -63,7 +63,7 @@ export const handleClassloader = async ({
   const validated = await downloadReleaseSchema().safeParseAsync(payload);
 
   if (!validated.success) {
-    logger.warn('handleClassloader: Schema validation failed', {
+    logger.info('handleClassloader: Schema validation failed', {
       requestId,
       teamId,
       error: validated.error.errors[0].message,
@@ -178,7 +178,7 @@ export const handleClassloader = async ({
   const keyPair = team?.keyPair;
 
   if (!team || !settings || !limits || !keyPair) {
-    logger.warn(
+    logger.info(
       'handleClassloader: Team, settings, limits, or keyPair not found',
       {
         requestId,
@@ -205,7 +205,7 @@ export const handleClassloader = async ({
   }
 
   if (!limits.allowClassloader) {
-    logger.warn('handleClassloader: Classloader not allowed for team plan', {
+    logger.info('handleClassloader: Classloader not allowed for team plan', {
       requestId,
       teamId,
       allowClassloader: limits.allowClassloader,
@@ -381,7 +381,7 @@ export const handleClassloader = async ({
   };
 
   if (!license) {
-    logger.warn('handleClassloader: License not found', {
+    logger.info('handleClassloader: License not found', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -404,7 +404,7 @@ export const handleClassloader = async ({
   commonBase.licenseKeyLookup = licenseKeyLookup;
 
   if (!matchingProduct) {
-    logger.warn('handleClassloader: Product not found', {
+    logger.info('handleClassloader: Product not found', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -440,7 +440,7 @@ export const handleClassloader = async ({
     });
 
     if (!branchEntity) {
-      logger.warn('handleClassloader: Branch not found', {
+      logger.info('handleClassloader: Branch not found', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -467,7 +467,7 @@ export const handleClassloader = async ({
     );
 
     if (filteredReleases.length === 0) {
-      logger.warn('handleClassloader: No releases found for branch', {
+      logger.info('handleClassloader: No releases found for branch', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -496,7 +496,7 @@ export const handleClassloader = async ({
 
   if (version) {
     if (!versionMatchRelease) {
-      logger.warn('handleClassloader: Specific version not found', {
+      logger.info('handleClassloader: Specific version not found', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -523,7 +523,7 @@ export const handleClassloader = async ({
   const latestRelease = filteredReleases.find((release) => release.latest);
 
   if (!latestRelease && !versionMatchRelease) {
-    logger.warn('handleClassloader: No releases available', {
+    logger.info('handleClassloader: No releases available', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -549,7 +549,7 @@ export const handleClassloader = async ({
   const fileToUse = version ? versionMatchRelease?.file : latestRelease?.file;
 
   if (!fileToUse || !releaseToUse) {
-    logger.warn('handleClassloader: File or release missing', {
+    logger.info('handleClassloader: File or release missing', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -576,7 +576,7 @@ export const handleClassloader = async ({
   commonBase.releaseFileId = fileToUse.id;
 
   if (releaseToUse.status === ReleaseStatus.ARCHIVED) {
-    logger.warn('handleClassloader: Release is archived', {
+    logger.info('handleClassloader: Release is archived', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -599,7 +599,7 @@ export const handleClassloader = async ({
   }
 
   if (releaseToUse.status === ReleaseStatus.DRAFT) {
-    logger.warn('handleClassloader: Release is draft', {
+    logger.info('handleClassloader: Release is draft', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -625,7 +625,7 @@ export const handleClassloader = async ({
     const allowedLicenses = releaseToUse.allowedLicenses.map((al) => al.id);
 
     if (!allowedLicenses.includes(license.id)) {
-      logger.warn('handleClassloader: License not allowed for release', {
+      logger.info('handleClassloader: License not allowed for release', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -657,7 +657,7 @@ export const handleClassloader = async ({
   );
 
   if (blacklistCheck) {
-    logger.warn('handleClassloader: Blacklist check failed', {
+    logger.info('handleClassloader: Blacklist check failed', {
       requestId,
       teamId,
       licenseKey: payload.licenseKey,
@@ -685,7 +685,7 @@ export const handleClassloader = async ({
     licenseHasCustomers && customerId && !matchingCustomer;
 
   if (strictModeNoCustomerId || noCustomerMatch) {
-    logger.warn('handleClassloader: Customer validation failed', {
+    logger.info('handleClassloader: Customer validation failed', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -709,7 +709,7 @@ export const handleClassloader = async ({
   }
 
   if (license.suspended) {
-    logger.warn('handleClassloader: License is suspended', {
+    logger.info('handleClassloader: License is suspended', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -737,7 +737,7 @@ export const handleClassloader = async ({
     );
 
   if (!licenseExpirationCheck.success) {
-    logger.warn('handleClassloader: License expired', {
+    logger.info('handleClassloader: License expired', {
       requestId,
       teamId,
       licenseId: license.id,
@@ -768,7 +768,7 @@ export const handleClassloader = async ({
     const ipLimitReached = existingIps.length >= license.ipLimit;
 
     if (!existingIps.includes(ipAddress) && ipLimitReached) {
-      logger.warn('handleClassloader: IP limit reached', {
+      logger.info('handleClassloader: IP limit reached', {
         requestId,
         teamId,
         licenseId: license.id,
@@ -797,7 +797,7 @@ export const handleClassloader = async ({
     const hwidLimitReached = existingHwids.length >= license.hwidLimit;
 
     if (!existingHwids.includes(hardwareIdentifier) && hwidLimitReached) {
-      logger.warn('handleClassloader: HWID limit reached', {
+      logger.info('handleClassloader: HWID limit reached', {
         requestId,
         teamId,
         licenseId: license.id,
