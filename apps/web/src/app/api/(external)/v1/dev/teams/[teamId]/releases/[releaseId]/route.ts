@@ -137,7 +137,7 @@ export async function PUT(
 
     if (ipAddress) {
       const key = `dev-releases-update:${ipAddress}`;
-      const isLimited = await isRateLimited(key, 5, 300); // 5 requests per 5 minutes
+      const isLimited = await isRateLimited(key, 40, 300); // 40 requests per 5 minutes
 
       if (isLimited) {
         const responseTime = Date.now() - requestTime.getTime();
