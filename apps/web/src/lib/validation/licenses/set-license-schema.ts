@@ -26,8 +26,8 @@ const createBaseLicenseSchema = (t?: I18nTranslator) =>
         .int()
         .nullable(),
       suspended: z.boolean(),
-      productIds: z.array(z.string().uuid()).max(20),
-      customerIds: z.array(z.string().uuid()).max(20),
+      productIds: z.array(z.string().uuid()).max(50),
+      customerIds: z.array(z.string().uuid()).max(50),
       hwidLimit: z
         .number()
         .min(1, {
