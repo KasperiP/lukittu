@@ -153,8 +153,7 @@ export type ICustomersUpdateSuccessResponse = {
 };
 
 export type ICustomersUpdateResponse =
-  | ErrorResponse
-  | ICustomersUpdateSuccessResponse;
+  ErrorResponse | ICustomersUpdateSuccessResponse;
 
 export async function PUT(
   request: NextRequest,
@@ -319,6 +318,15 @@ export async function PUT(
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
+      if (!address) {
+        await prisma.address.deleteMany({ where: { customerId } });
+      }
+      if (!(discordUser && discordId)) {
+        await prisma.customerDiscordAccount.deleteMany({
+          where: { customerId },
+        });
+      }
+
       const updatedCustomer = await prisma.customer.update({
         where: {
           id: customerId,
@@ -344,9 +352,7 @@ export async function PUT(
                   update: address,
                 },
               }
-            : existingCustomer.address
-              ? { delete: true }
-              : undefined,
+            : undefined,
           discordAccount:
             discordUser && discordId
               ? {
@@ -366,11 +372,7 @@ export async function PUT(
                     },
                   },
                 }
-              : existingCustomer.discordAccount
-                ? {
-                    delete: true,
-                  }
-                : undefined,
+              : undefined,
         },
         include: {
           metadata: true,
@@ -428,8 +430,7 @@ type ICustomersDeleteSuccessResponse = {
 };
 
 export type ICustomersDeleteResponse =
-  | ErrorResponse
-  | ICustomersDeleteSuccessResponse;
+  ErrorResponse | ICustomersDeleteSuccessResponse;
 
 export async function DELETE(
   request: NextRequest,
