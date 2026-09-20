@@ -38,6 +38,8 @@ export function DiscordAccountDisplay({
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <Avatar className={avatarSizes[size]}>
+        {/* Stored avatar hashes go stale (404) when the user changes their
+            avatar; load directly from Discord's CDN so the fallback handles it */}
         <AvatarImage
           src={
             getDiscordAvatarUrl(
@@ -45,6 +47,7 @@ export function DiscordAccountDisplay({
               discordAccount.avatar,
             ) ?? undefined
           }
+          unoptimized
         />
         <AvatarFallback className="bg-[#5865F2] text-white">
           <DiscordIcon className={iconSizes[size]} />

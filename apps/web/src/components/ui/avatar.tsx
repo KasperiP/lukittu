@@ -19,13 +19,17 @@ const Avatar = React.forwardRef<
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
 function AvatarImage(
-  props: React.ComponentProps<typeof AvatarPrimitive.Image>,
+  props: React.ComponentProps<typeof AvatarPrimitive.Image> & {
+    // Skip the Next.js image optimizer (e.g. for CDNs that already resize)
+    unoptimized?: boolean;
+  },
 ) {
   const { src, alt, width, height, ...rest } = props;
 
   if (!src) {
     // fallback to the original behavior
-    return <AvatarPrimitive.Image {...props} />;
+    const { unoptimized: _unoptimized, ...primitiveProps } = props;
+    return <AvatarPrimitive.Image {...primitiveProps} />;
   }
 
   const size =
