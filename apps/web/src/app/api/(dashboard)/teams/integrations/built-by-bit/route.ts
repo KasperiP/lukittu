@@ -22,8 +22,7 @@ export interface ITeamsIntegrationsBuiltByBitSetSuccessResponse {
 }
 
 export type ITeamsIntegrationsBuiltByBitSetResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsBuiltByBitSetSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsBuiltByBitSetSuccessResponse;
 
 export async function POST(
   request: NextRequest,
@@ -156,8 +155,7 @@ export interface ITeamsIntegrationsBuiltByBitDeleteSuccessResponse {
 }
 
 export type ITeamsIntegrationsBuiltByBitDeleteResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsBuiltByBitDeleteSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsBuiltByBitDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<ITeamsIntegrationsBuiltByBitDeleteResponse>

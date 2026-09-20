@@ -18,8 +18,7 @@ type IAuthForgotPasswordSuccessResponse = {
 };
 
 export type IAuthForgotPasswordResponse =
-  | ErrorResponse
-  | IAuthForgotPasswordSuccessResponse;
+  ErrorResponse | IAuthForgotPasswordSuccessResponse;
 
 export async function POST(
   request: NextRequest,

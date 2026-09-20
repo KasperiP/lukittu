@@ -27,8 +27,7 @@ export type ISessionsGetCurrentSuccessResponse = {
 };
 
 export type ISessionsGetCurrentResponse =
-  | ISessionsGetCurrentSuccessResponse
-  | ErrorResponse;
+  ISessionsGetCurrentSuccessResponse | ErrorResponse;
 
 export async function GET(): Promise<
   NextResponse<ISessionsGetCurrentResponse>

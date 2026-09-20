@@ -133,8 +133,7 @@ interface IDiscordDisconnectSuccessResponse {
 }
 
 export type IDiscordConnectionResponse =
-  | IDiscordDisconnectSuccessResponse
-  | ErrorResponse;
+  IDiscordDisconnectSuccessResponse | ErrorResponse;
 
 export async function DELETE(): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });

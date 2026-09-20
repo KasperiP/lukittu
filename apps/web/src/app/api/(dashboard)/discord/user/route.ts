@@ -24,8 +24,7 @@ export interface IDiscordUserGetSuccessResponse {
 }
 
 export type IDiscordUserGetResponse =
-  | IDiscordUserGetSuccessResponse
-  | ErrorResponse;
+  IDiscordUserGetSuccessResponse | ErrorResponse;
 
 export async function GET(
   request: NextRequest,

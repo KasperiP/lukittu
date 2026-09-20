@@ -25,8 +25,7 @@ export type IStatisticsRecentActivityGetSuccessResponse = {
 };
 
 export type IStatisticsRecentActivityGetResponse =
-  | ErrorResponse
-  | IStatisticsRecentActivityGetSuccessResponse;
+  ErrorResponse | IStatisticsRecentActivityGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

@@ -65,8 +65,7 @@ export async function POST(request: NextRequest) {
      * @deprecated use hwidLimit. Only for backward compatibility.
      */
     const legacySeats = (rawBody.lukittuData as any).seats as
-      | string
-      | undefined;
+      string | undefined;
 
     const body = {
       ...rawBody,

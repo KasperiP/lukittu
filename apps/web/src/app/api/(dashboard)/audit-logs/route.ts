@@ -31,8 +31,7 @@ export type IAuditLogsGetSuccessResponse = {
 };
 
 export type IAuditLogsGetResponse =
-  | ErrorResponse
-  | IAuditLogsGetSuccessResponse;
+  ErrorResponse | IAuditLogsGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

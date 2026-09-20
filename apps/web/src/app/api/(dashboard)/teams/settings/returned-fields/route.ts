@@ -23,8 +23,7 @@ export type ITeamsSettingsReturnedFieldsEditSuccessResponse = {
 };
 
 export type ITeamsSettingsReturnedFieldsEditResponse =
-  | ErrorResponse
-  | ITeamsSettingsReturnedFieldsEditSuccessResponse;
+  ErrorResponse | ITeamsSettingsReturnedFieldsEditSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

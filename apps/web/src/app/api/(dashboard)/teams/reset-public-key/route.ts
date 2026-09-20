@@ -19,8 +19,7 @@ export type ITeamsResetPublicKeySuccessResponse = {
 };
 
 export type ITeamsResetPublicKeyResponse =
-  | ErrorResponse
-  | ITeamsResetPublicKeySuccessResponse;
+  ErrorResponse | ITeamsResetPublicKeySuccessResponse;
 
 export async function POST() {
   const t = await getTranslations({ locale: await getLanguage() });

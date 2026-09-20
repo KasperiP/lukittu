@@ -24,8 +24,7 @@ export type IWebhookStatsGetSuccessResponse = {
 };
 
 export type IWebhookStatsGetResponse =
-  | IWebhookStatsGetSuccessResponse
-  | ErrorResponse;
+  IWebhookStatsGetSuccessResponse | ErrorResponse;
 
 export async function GET(
   request: NextRequest,

@@ -24,8 +24,7 @@ type ITeamsTransferOwnershipSuccessResponse = {
 };
 
 export type ITeamsTransferOwnershipResponse =
-  | ErrorResponse
-  | ITeamsTransferOwnershipSuccessResponse;
+  ErrorResponse | ITeamsTransferOwnershipSuccessResponse;
 
 export async function POST(
   request: NextRequest,

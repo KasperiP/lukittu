@@ -21,9 +21,7 @@ type IAuthLoginTwoFactorResponse = {
 };
 
 export type IAuthLoginResponse =
-  | ErrorResponse
-  | IAuthLoginSuccessResponse
-  | IAuthLoginTwoFactorResponse;
+  ErrorResponse | IAuthLoginSuccessResponse | IAuthLoginTwoFactorResponse;
 
 export async function POST(
   request: NextRequest,

@@ -26,8 +26,7 @@ type IAuthRegisterSuccessResponse = {
 };
 
 export type IAuthRegisterResponse =
-  | ErrorResponse
-  | IAuthRegisterSuccessResponse;
+  ErrorResponse | IAuthRegisterSuccessResponse;
 
 export async function POST(
   request: NextRequest,

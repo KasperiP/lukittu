@@ -16,8 +16,7 @@ type IAuthResetPasswordSuccessResponse = {
 };
 
 export type IAuthResetPasswordResponse =
-  | ErrorResponse
-  | IAuthResetPasswordSuccessResponse;
+  ErrorResponse | IAuthResetPasswordSuccessResponse;
 
 export async function POST(
   request: NextRequest,

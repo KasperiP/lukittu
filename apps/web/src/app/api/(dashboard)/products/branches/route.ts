@@ -29,8 +29,7 @@ export type IProductsBranchesGetSuccessResponse = {
 };
 
 export type IProductsBranchesGetResponse =
-  | ErrorResponse
-  | IProductsBranchesGetSuccessResponse;
+  ErrorResponse | IProductsBranchesGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,
@@ -185,8 +184,7 @@ type IBranchesCreateSuccessResponse = {
 };
 
 export type IProductsBranchesCreateResponse =
-  | ErrorResponse
-  | IBranchesCreateSuccessResponse;
+  ErrorResponse | IBranchesCreateSuccessResponse;
 
 export async function POST(
   request: NextRequest,

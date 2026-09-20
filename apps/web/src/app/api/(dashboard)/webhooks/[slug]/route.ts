@@ -24,8 +24,7 @@ type IWebhookDeleteSuccessResponse = {
 };
 
 export type IWebhookDeleteResponse =
-  | ErrorResponse
-  | IWebhookDeleteSuccessResponse;
+  ErrorResponse | IWebhookDeleteSuccessResponse;
 
 export async function DELETE(
   _request: NextRequest,
@@ -147,8 +146,7 @@ export type IWebhookUpdateSuccessResponse = {
 };
 
 export type IWebhookUpdateResponse =
-  | ErrorResponse
-  | IWebhookUpdateSuccessResponse;
+  ErrorResponse | IWebhookUpdateSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

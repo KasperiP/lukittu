@@ -24,8 +24,7 @@ type IBlacklistDeleteSuccessResponse = {
 };
 
 export type IBlacklistDeleteResponse =
-  | ErrorResponse
-  | IBlacklistDeleteSuccessResponse;
+  ErrorResponse | IBlacklistDeleteSuccessResponse;
 
 export async function DELETE(
   request: NextRequest,
@@ -147,8 +146,7 @@ export type IBlacklistUpdateSuccessResponse = {
 };
 
 export type IBlacklistUpdateResponse =
-  | ErrorResponse
-  | IBlacklistUpdateSuccessResponse;
+  ErrorResponse | IBlacklistUpdateSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

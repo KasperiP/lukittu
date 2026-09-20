@@ -158,8 +158,7 @@ export async function GET(
 }
 
 export type ILicensesUpdateResponse =
-  | ErrorResponse
-  | ILicensesUpdateSuccessResponse;
+  ErrorResponse | ILicensesUpdateSuccessResponse;
 
 export type ILicensesUpdateSuccessResponse = {
   license: Omit<License, 'licenseKeyLookup'>;
@@ -451,8 +450,7 @@ type ILicensesDeleteSuccessResponse = {
 };
 
 export type ILicensesDeleteResponse =
-  | ErrorResponse
-  | ILicensesDeleteSuccessResponse;
+  ErrorResponse | ILicensesDeleteSuccessResponse;
 
 export async function DELETE(
   request: NextRequest,

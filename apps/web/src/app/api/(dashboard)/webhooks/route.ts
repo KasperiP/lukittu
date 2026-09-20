@@ -164,8 +164,7 @@ type IWebhookCreateSuccessResponse = {
 };
 
 export type IWebhookCreateResponse =
-  | ErrorResponse
-  | IWebhookCreateSuccessResponse;
+  ErrorResponse | IWebhookCreateSuccessResponse;
 
 export async function POST(
   request: NextRequest,

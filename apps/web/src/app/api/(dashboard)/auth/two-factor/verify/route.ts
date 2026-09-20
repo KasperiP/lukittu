@@ -29,8 +29,7 @@ export interface ITwoFactorVerifySuccessResponse {
 }
 
 export type ITwoFactorVerifyResponse =
-  | ErrorResponse
-  | ITwoFactorVerifySuccessResponse;
+  ErrorResponse | ITwoFactorVerifySuccessResponse;
 
 export async function POST(
   request: NextRequest,

@@ -24,8 +24,7 @@ export type ITeamsMembersGetSuccessResponse = {
 };
 
 export type ITeamsMembersGetResponse =
-  | ErrorResponse
-  | ITeamsMembersGetSuccessResponse;
+  ErrorResponse | ITeamsMembersGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

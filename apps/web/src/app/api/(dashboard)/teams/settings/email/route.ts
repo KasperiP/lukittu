@@ -23,8 +23,7 @@ export type ITeamsSettingsEmailEditSuccessResponse = {
 };
 
 export type ITeamsSettingsEmailEditResponse =
-  | ErrorResponse
-  | ITeamsSettingsEmailEditSuccessResponse;
+  ErrorResponse | ITeamsSettingsEmailEditSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

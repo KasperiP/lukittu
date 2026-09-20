@@ -23,8 +23,7 @@ export type ITeamsCreateApiKeySuccessResponse = {
 };
 
 export type ITeamsCreateApiKeyResponse =
-  | ErrorResponse
-  | ITeamsCreateApiKeySuccessResponse;
+  ErrorResponse | ITeamsCreateApiKeySuccessResponse;
 
 export async function POST(request: NextRequest) {
   const t = await getTranslations({ locale: await getLanguage() });

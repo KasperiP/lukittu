@@ -260,8 +260,7 @@ type IProductsCreateSuccessResponse = {
 };
 
 export type IProductsCreateResponse =
-  | ErrorResponse
-  | IProductsCreateSuccessResponse;
+  ErrorResponse | IProductsCreateSuccessResponse;
 
 export async function POST(
   request: NextRequest,

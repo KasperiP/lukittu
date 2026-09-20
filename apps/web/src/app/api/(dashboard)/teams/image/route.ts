@@ -34,8 +34,7 @@ export type ITeamsImageSetSuccessResponse = {
 };
 
 export type ITeamsImageSetResponse =
-  | ITeamsImageSetSuccessResponse
-  | ErrorResponse;
+  ITeamsImageSetSuccessResponse | ErrorResponse;
 
 export async function POST(
   request: NextRequest,

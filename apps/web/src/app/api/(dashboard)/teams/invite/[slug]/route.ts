@@ -20,8 +20,7 @@ type ITeamsAcceptInviteSuccessResponse = {
 };
 
 export type ITeamsAcceptInviteResponse =
-  | ErrorResponse
-  | ITeamsAcceptInviteSuccessResponse;
+  ErrorResponse | ITeamsAcceptInviteSuccessResponse;
 
 export async function POST(
   _: NextRequest,
@@ -174,8 +173,7 @@ export type ITeamsInviteCancelSuccessResponse = {
 };
 
 export type ITeamsInviteCancelResponse =
-  | ErrorResponse
-  | ITeamsInviteCancelSuccessResponse;
+  ErrorResponse | ITeamsInviteCancelSuccessResponse;
 
 export async function DELETE(
   _: NextRequest,

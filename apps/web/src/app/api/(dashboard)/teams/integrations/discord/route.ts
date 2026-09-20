@@ -22,8 +22,7 @@ export interface ITeamsIntegrationsDiscordSetSuccessResponse {
 }
 
 export type ITeamsIntegrationsDiscordSetResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsDiscordSetSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsDiscordSetSuccessResponse;
 
 export async function POST(
   request: NextRequest,
@@ -150,8 +149,7 @@ export interface ITeamsIntegrationsDiscordDeleteSuccessResponse {
 }
 
 export type ITeamsIntegrationsDiscordDeleteResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsDiscordDeleteSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsDiscordDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<ITeamsIntegrationsDiscordDeleteResponse>

@@ -23,8 +23,7 @@ export type ITeamsSettingsCleanupEditSuccessResponse = {
 };
 
 export type ITeamsSettingsCleanupEditResponse =
-  | ErrorResponse
-  | ITeamsSettingsCleanupEditSuccessResponse;
+  ErrorResponse | ITeamsSettingsCleanupEditSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

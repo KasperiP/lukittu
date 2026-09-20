@@ -18,8 +18,7 @@ export interface IDiscordGuildsGetSuccessResponse {
 }
 
 export type IDiscordGuildsGetResponse =
-  | IDiscordGuildsGetSuccessResponse
-  | ErrorResponse;
+  IDiscordGuildsGetSuccessResponse | ErrorResponse;
 
 export async function GET(
   _request: NextRequest,

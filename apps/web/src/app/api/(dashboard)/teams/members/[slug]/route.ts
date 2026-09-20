@@ -19,8 +19,7 @@ export type ITeamsMembersKickSuccessResponse = {
 };
 
 export type ITeamsMembersKickResponse =
-  | ErrorResponse
-  | ITeamsMembersKickSuccessResponse;
+  ErrorResponse | ITeamsMembersKickSuccessResponse;
 
 export async function DELETE(
   _: NextRequest,

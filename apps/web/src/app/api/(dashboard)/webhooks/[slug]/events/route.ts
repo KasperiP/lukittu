@@ -22,8 +22,7 @@ export type IWebhookEventsGetSuccessResponse = {
 };
 
 export type IWebhookEventsGetResponse =
-  | IWebhookEventsGetSuccessResponse
-  | ErrorResponse;
+  IWebhookEventsGetSuccessResponse | ErrorResponse;
 
 export async function GET(
   request: NextRequest,

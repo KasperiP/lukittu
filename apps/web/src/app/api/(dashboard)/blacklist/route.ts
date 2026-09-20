@@ -33,8 +33,7 @@ export type IBlacklistGetSuccessResponse = {
 };
 
 export type IBlacklistGetResponse =
-  | ErrorResponse
-  | IBlacklistGetSuccessResponse;
+  ErrorResponse | IBlacklistGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,
@@ -202,8 +201,7 @@ type IBlacklistCreateSuccessResponse = {
 };
 
 export type IBlacklistCreateResponse =
-  | ErrorResponse
-  | IBlacklistCreateSuccessResponse;
+  ErrorResponse | IBlacklistCreateSuccessResponse;
 
 export async function POST(
   request: NextRequest,

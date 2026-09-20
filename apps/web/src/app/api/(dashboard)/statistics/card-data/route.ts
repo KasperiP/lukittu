@@ -24,8 +24,7 @@ export type IStatisticsCardDataGetSuccessResponse = {
 };
 
 export type IStatisticsCardDataGetResponse =
-  | ErrorResponse
-  | IStatisticsCardDataGetSuccessResponse;
+  ErrorResponse | IStatisticsCardDataGetSuccessResponse;
 
 export async function GET(): Promise<
   NextResponse<IStatisticsCardDataGetResponse>

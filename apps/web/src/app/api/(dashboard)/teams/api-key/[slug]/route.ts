@@ -19,8 +19,7 @@ export type ITeamsDeleteApiKeySuccessResponse = {
 };
 
 export type ITeamsDeleteApiKeyResponse =
-  | ErrorResponse
-  | ITeamsDeleteApiKeySuccessResponse;
+  ErrorResponse | ITeamsDeleteApiKeySuccessResponse;
 
 export async function DELETE(
   request: NextRequest,

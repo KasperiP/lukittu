@@ -152,7 +152,9 @@ export async function getMainClassFromJar(file: File): Promise<string | null> {
 
     const pluginYmlEntry = findZipEntry(buffer, 'plugin.yml');
     if (!pluginYmlEntry) {
-      logger.info('plugin.yml not found in JAR, skipping main class extraction');
+      logger.info(
+        'plugin.yml not found in JAR, skipping main class extraction',
+      );
       return null;
     }
 

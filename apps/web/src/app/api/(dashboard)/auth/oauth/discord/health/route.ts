@@ -13,8 +13,7 @@ export interface IDiscordHealthSuccessResponse {
 }
 
 export type IDiscordHealthResponse =
-  | ErrorResponse
-  | IDiscordHealthSuccessResponse;
+  ErrorResponse | IDiscordHealthSuccessResponse;
 
 export async function GET(): Promise<NextResponse<IDiscordHealthResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });

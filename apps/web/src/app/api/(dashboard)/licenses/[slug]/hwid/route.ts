@@ -22,8 +22,7 @@ export type ILicenseHwidGetSuccessResponse = {
 };
 
 export type ILicenseHwidGetResponse =
-  | ErrorResponse
-  | ILicenseHwidGetSuccessResponse;
+  ErrorResponse | ILicenseHwidGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

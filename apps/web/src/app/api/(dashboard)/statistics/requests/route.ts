@@ -19,8 +19,7 @@ export type IStatisticsRequestsGetSuccessResponse = {
 };
 
 export type IStatisticsRequestsGetResponse =
-  | ErrorResponse
-  | IStatisticsRequestsGetSuccessResponse;
+  ErrorResponse | IStatisticsRequestsGetSuccessResponse;
 
 const allowedTimeRanges = ['1h', '24h', '7d', '30d'] as const;
 const allowedTypes = Object.values(RequestType);
@@ -142,11 +141,7 @@ export async function GET(
   }
 
   let timeRange = searchParams.get('timeRange') as
-    | '1h'
-    | '24h'
-    | '7d'
-    | '30d'
-    | null;
+    '1h' | '24h' | '7d' | '30d' | null;
   if (!timeRange || !allowedTimeRanges.includes(timeRange)) {
     timeRange = '24h';
   }

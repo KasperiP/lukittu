@@ -19,8 +19,7 @@ export type ILicenseIpAddressGetSuccessResponse = {
 };
 
 export type ILicenseIpAddressGetResponse =
-  | ErrorResponse
-  | ILicenseIpAddressGetSuccessResponse;
+  ErrorResponse | ILicenseIpAddressGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

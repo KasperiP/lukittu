@@ -158,8 +158,7 @@ type IProductsDeleteSuccessResponse = {
 };
 
 export type IProductsDeleteResponse =
-  | ErrorResponse
-  | IProductsDeleteSuccessResponse;
+  ErrorResponse | IProductsDeleteSuccessResponse;
 
 export async function DELETE(
   request: NextRequest,
@@ -334,8 +333,7 @@ export type IProductsUpdateSuccessResponse = {
 };
 
 export type IProductsUpdateResponse =
-  | ErrorResponse
-  | IProductsUpdateSuccessResponse;
+  ErrorResponse | IProductsUpdateSuccessResponse;
 
 export async function PUT(
   request: NextRequest,

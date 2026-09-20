@@ -24,8 +24,7 @@ export type IProductsBranchesUpdateSuccessResponse = {
 };
 
 export type IProductsBranchesUpdateResponse =
-  | IProductsBranchesUpdateSuccessResponse
-  | ErrorResponse;
+  IProductsBranchesUpdateSuccessResponse | ErrorResponse;
 
 export async function PUT(
   request: NextRequest,
@@ -202,8 +201,7 @@ export type IProductsBranchesDeleteSuccessResponse = {
 };
 
 export type IProductsBranchesDeleteResponse =
-  | IProductsBranchesDeleteSuccessResponse
-  | ErrorResponse;
+  IProductsBranchesDeleteSuccessResponse | ErrorResponse;
 
 export async function DELETE(
   request: NextRequest,

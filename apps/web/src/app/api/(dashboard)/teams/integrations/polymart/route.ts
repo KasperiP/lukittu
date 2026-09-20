@@ -22,8 +22,7 @@ export interface ITeamsIntegrationsPolymartSetSuccessResponse {
 }
 
 export type ITeamsIntegrationsPolymartSetResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsPolymartSetSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsPolymartSetSuccessResponse;
 
 export async function POST(
   request: NextRequest,
@@ -158,8 +157,7 @@ export interface ITeamsIntegrationsPolymartDeleteSuccessResponse {
 }
 
 export type ITeamsIntegrationsPolymartDeleteResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsPolymartDeleteSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsPolymartDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<ITeamsIntegrationsPolymartDeleteResponse>

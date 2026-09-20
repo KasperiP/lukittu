@@ -22,8 +22,7 @@ export type ITeamsIntegrationsGetSuccessResponse = {
 };
 
 export type ITeamsIntegrationsGetResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsGetSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsGetSuccessResponse;
 
 export async function GET(): Promise<
   NextResponse<ITeamsIntegrationsGetResponse>

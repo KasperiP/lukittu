@@ -49,9 +49,7 @@ export async function POST(request: NextRequest) {
       ? parseInt(searchParams.get('expirationDays') || '0', 10)
       : null;
     const expirationStart = searchParams.get('expirationStart') as
-      | 'CREATION'
-      | 'ACTIVATION'
-      | null;
+      'CREATION' | 'ACTIVATION' | null;
 
     if (!teamId || !regex.uuidV4.test(teamId)) {
       logger.warn('Polymart webhook: Invalid teamId provided', {

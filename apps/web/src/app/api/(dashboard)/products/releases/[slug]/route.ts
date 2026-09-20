@@ -42,8 +42,7 @@ export type IProductsReleasesUpdateSuccessResponse = {
 };
 
 export type IProductsReleasesUpdateResponse =
-  | IProductsReleasesUpdateSuccessResponse
-  | ErrorResponse;
+  IProductsReleasesUpdateSuccessResponse | ErrorResponse;
 
 export async function PUT(
   request: NextRequest,
@@ -497,8 +496,7 @@ export type IProductsReleasesDeleteSuccessResponse = {
 };
 
 export type IProductsReleasesDeleteResponse =
-  | IProductsReleasesDeleteSuccessResponse
-  | ErrorResponse;
+  IProductsReleasesDeleteSuccessResponse | ErrorResponse;
 
 export async function DELETE(
   request: NextRequest,

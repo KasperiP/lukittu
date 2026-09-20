@@ -26,8 +26,7 @@ export interface IRegenerateBackupCodesSuccessResponse {
 }
 
 export type IRegenerateBackupCodesResponse =
-  | ErrorResponse
-  | IRegenerateBackupCodesSuccessResponse;
+  ErrorResponse | IRegenerateBackupCodesSuccessResponse;
 
 export async function POST(
   request: NextRequest,

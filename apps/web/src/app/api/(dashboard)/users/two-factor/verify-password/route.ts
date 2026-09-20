@@ -16,8 +16,7 @@ export interface IVerifyPasswordSuccessResponse {
 }
 
 export type IVerifyPasswordResponse =
-  | ErrorResponse
-  | IVerifyPasswordSuccessResponse;
+  ErrorResponse | IVerifyPasswordSuccessResponse;
 
 export async function POST(
   request: NextRequest,

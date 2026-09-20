@@ -18,8 +18,7 @@ export type IStatisticsMapDataGetSuccessResponse = {
 };
 
 export type IStatisticsMapDataGetResponse =
-  | ErrorResponse
-  | IStatisticsMapDataGetSuccessResponse;
+  ErrorResponse | IStatisticsMapDataGetSuccessResponse;
 
 const allowedTimeRanges = ['1h', '24h', '7d', '30d'] as const;
 

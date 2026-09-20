@@ -11,8 +11,7 @@ type ISessionsSignOutSuccessResponse = {
 };
 
 export type ISessionsSignOutResponse =
-  | ErrorResponse
-  | ISessionsSignOutSuccessResponse;
+  ErrorResponse | ISessionsSignOutSuccessResponse;
 
 export async function DELETE(
   request: NextRequest,

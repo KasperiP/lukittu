@@ -23,8 +23,7 @@ type IProductsReleasesSetLatestSuccessResponse = {
 };
 
 export type IProductsReleasesSetLatestResponse =
-  | ErrorResponse
-  | IProductsReleasesSetLatestSuccessResponse;
+  ErrorResponse | IProductsReleasesSetLatestSuccessResponse;
 
 export async function POST(
   request: NextRequest,

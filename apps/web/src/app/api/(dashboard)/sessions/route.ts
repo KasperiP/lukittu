@@ -95,8 +95,7 @@ type ISessionsSignOutAllSuccessResponse = {
 };
 
 export type ISessionsSignOutAllResponse =
-  | ErrorResponse
-  | ISessionsSignOutAllSuccessResponse;
+  ErrorResponse | ISessionsSignOutAllSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<ISessionsSignOutAllResponse>

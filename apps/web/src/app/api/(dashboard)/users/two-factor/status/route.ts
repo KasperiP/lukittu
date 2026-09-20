@@ -14,8 +14,7 @@ export interface ITwoFactorStatusSuccessResponse {
 }
 
 export type ITwoFactorStatusResponse =
-  | ErrorResponse
-  | ITwoFactorStatusSuccessResponse;
+  ErrorResponse | ITwoFactorStatusSuccessResponse;
 
 export async function GET(): Promise<NextResponse<ITwoFactorStatusResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });

@@ -23,8 +23,7 @@ export type IUsersImageSetSuccessResponse = {
 };
 
 export type IUsersImageSetResponse =
-  | IUsersImageSetSuccessResponse
-  | ErrorResponse;
+  IUsersImageSetSuccessResponse | ErrorResponse;
 
 export async function POST(request: NextRequest) {
   const t = await getTranslations({ locale: await getLanguage() });
@@ -163,8 +162,7 @@ export type IUsersImageDeleteSuccessResponse = {
 };
 
 export type IUsersImageDeleteResponse =
-  | ErrorResponse
-  | IUsersImageDeleteSuccessResponse;
+  ErrorResponse | IUsersImageDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<IUsersImageDeleteResponse>

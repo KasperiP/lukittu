@@ -18,8 +18,7 @@ type IAuthResendVerifyEmailSuccessResponse = {
 };
 
 export type IAuthResendVerifyEmailResponse =
-  | ErrorResponse
-  | IAuthResendVerifyEmailSuccessResponse;
+  ErrorResponse | IAuthResendVerifyEmailSuccessResponse;
 
 export async function POST(
   request: NextRequest,

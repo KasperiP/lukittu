@@ -34,8 +34,7 @@ export type ITeamsEmailImageSetSuccessResponse = {
 };
 
 export type ITeamsEmailImageSetResponse =
-  | ITeamsEmailImageSetSuccessResponse
-  | ErrorResponse;
+  ITeamsEmailImageSetSuccessResponse | ErrorResponse;
 
 export async function POST(
   request: NextRequest,
@@ -242,8 +241,7 @@ export type ITeamsEmailImageDeleteSuccessResponse = {
 };
 
 export type ITeamsEmailImageDeleteResponse =
-  | ITeamsEmailImageDeleteSuccessResponse
-  | ErrorResponse;
+  ITeamsEmailImageDeleteSuccessResponse | ErrorResponse;
 
 export async function DELETE(): Promise<NextResponse> {
   const t = await getTranslations({ locale: await getLanguage() });

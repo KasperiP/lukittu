@@ -432,8 +432,7 @@ export async function GET(
 }
 
 export type ILicensesCreateResponse =
-  | ErrorResponse
-  | ILicensesCreateSuccessResponse;
+  ErrorResponse | ILicensesCreateSuccessResponse;
 
 export type ILicensesCreateSuccessResponse = {
   license: Omit<License, 'licenseKeyLookup'> & {

@@ -47,12 +47,10 @@ export type ICustomersCreateSuccessResponse = {
 };
 
 export type ICustomersCreateResponse =
-  | ErrorResponse
-  | ICustomersCreateSuccessResponse;
+  ErrorResponse | ICustomersCreateSuccessResponse;
 
 export type ICustomersGetResponse =
-  | ErrorResponse
-  | ICustomersGetSuccessResponse;
+  ErrorResponse | ICustomersGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

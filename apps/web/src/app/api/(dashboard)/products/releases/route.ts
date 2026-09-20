@@ -45,8 +45,7 @@ export type IProductsReleasesCreateSuccessResponse = {
 };
 
 export type IProductsReleasesCreateResponse =
-  | IProductsReleasesCreateSuccessResponse
-  | ErrorResponse;
+  IProductsReleasesCreateSuccessResponse | ErrorResponse;
 
 export async function POST(request: NextRequest) {
   const t = await getTranslations({ locale: await getLanguage() });
@@ -488,8 +487,7 @@ export type IProductsReleasesGetSuccessResponse = {
 };
 
 export type IProductsReleasesGetResponse =
-  | ErrorResponse
-  | IProductsReleasesGetSuccessResponse;
+  ErrorResponse | IProductsReleasesGetSuccessResponse;
 
 export async function GET(
   request: NextRequest,

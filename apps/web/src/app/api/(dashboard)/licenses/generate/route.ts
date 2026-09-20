@@ -11,8 +11,7 @@ type ILicensesGenerateSuccessResponse = {
 };
 
 export type ILicensesGenerateResponse =
-  | ErrorResponse
-  | ILicensesGenerateSuccessResponse;
+  ErrorResponse | ILicensesGenerateSuccessResponse;
 
 export async function GET(): Promise<NextResponse<ILicensesGenerateResponse>> {
   const t = await getTranslations({ locale: await getLanguage() });

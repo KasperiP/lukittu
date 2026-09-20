@@ -17,8 +17,7 @@ export type ILicenseEmailDeliverySuccessResponse = {
 };
 
 export type ILicenseEmailDeliveryResponse =
-  | ILicenseEmailDeliverySuccessResponse
-  | ErrorResponse;
+  ILicenseEmailDeliverySuccessResponse | ErrorResponse;
 
 export async function POST(
   request: NextRequest,

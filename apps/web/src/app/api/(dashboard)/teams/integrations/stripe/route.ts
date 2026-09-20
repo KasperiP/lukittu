@@ -23,8 +23,7 @@ export interface ITeamsIntegrationsStripeSetSuccessResponse {
 }
 
 export type ITeamsIntegrationsStripeSetResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsStripeSetSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsStripeSetSuccessResponse;
 
 export async function POST(
   request: NextRequest,
@@ -172,8 +171,7 @@ export interface ITeamsIntegrationsStripeDeleteSuccessResponse {
 }
 
 export type ITeamsIntegrationsStripeDeleteResponse =
-  | ErrorResponse
-  | ITeamsIntegrationsStripeDeleteSuccessResponse;
+  ErrorResponse | ITeamsIntegrationsStripeDeleteSuccessResponse;
 
 export async function DELETE(): Promise<
   NextResponse<ITeamsIntegrationsStripeDeleteResponse>

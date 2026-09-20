@@ -27,8 +27,7 @@ export interface ITwoFactorEnableSuccessResponse {
 }
 
 export type ITwoFactorEnableResponse =
-  | ErrorResponse
-  | ITwoFactorEnableSuccessResponse;
+  ErrorResponse | ITwoFactorEnableSuccessResponse;
 
 export async function POST(
   request: NextRequest,

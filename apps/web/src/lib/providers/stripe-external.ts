@@ -844,14 +844,11 @@ export const handleCheckoutSessionCompleted = async (
      */
     const legacySeats = product.metadata.seats as string | undefined;
     const hwidLimit = (product.metadata.hwid_limit || legacySeats) as
-      | string
-      | undefined;
+      string | undefined;
     const expirationDays = product.metadata.expiration_days as
-      | string
-      | undefined;
+      string | undefined;
     const expirationStart = product.metadata.expiration_start as
-      | string
-      | undefined;
+      string | undefined;
 
     // Parse and validate product IDs
     const lukittuProductIds = parseProductIds(productIdString);

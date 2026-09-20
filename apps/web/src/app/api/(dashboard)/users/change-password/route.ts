@@ -21,8 +21,7 @@ export interface IUsersChangePasswordSuccessResponse {
 }
 
 export type IUsersChangePasswordResponse =
-  | ErrorResponse
-  | IUsersChangePasswordSuccessResponse;
+  ErrorResponse | IUsersChangePasswordSuccessResponse;
 
 export async function POST(
   request: NextRequest,

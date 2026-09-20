@@ -33,8 +33,7 @@ export type IStatisticsRecentAuditLogsSuccessResponse = {
 };
 
 export type IStatisticsRecentAuditLogsResponse =
-  | ErrorResponse
-  | IStatisticsRecentAuditLogsSuccessResponse;
+  ErrorResponse | IStatisticsRecentAuditLogsSuccessResponse;
 
 export async function GET(
   request: NextRequest,

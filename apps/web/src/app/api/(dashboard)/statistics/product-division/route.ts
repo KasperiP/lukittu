@@ -18,8 +18,7 @@ export type IStatisticsProductDivisionGetSuccessResponse = {
 };
 
 export type IStatisticsProductDivisionGetResponse =
-  | ErrorResponse
-  | IStatisticsProductDivisionGetSuccessResponse;
+  ErrorResponse | IStatisticsProductDivisionGetSuccessResponse;
 
 export async function GET(): Promise<
   NextResponse<IStatisticsProductDivisionGetResponse>
