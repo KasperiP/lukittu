@@ -2,10 +2,6 @@ import crypto from 'crypto';
 import {
   AuditLogSource,
   Prisma,
-  Team,
-  User,
-  Webhook,
-  WebhookEvent,
   WebhookEventStatus,
   WebhookEventType,
 } from '../../prisma/generated/client';
@@ -16,6 +12,9 @@ import {
   isDiscordWebhook,
   PayloadType,
 } from './discord-webhooks';
+
+// IN_PROGRESS events older than this are considered abandoned (request timeout is 5s)
+const STALE_IN_PROGRESS_MS = 5 * 60 * 1000;
 
 interface CreateWebhookEventParams {
   eventType: WebhookEventType;
@@ -146,282 +145,280 @@ export async function attemptWebhookDelivery(webhookEventIds: string[]) {
 }
 
 /**
+ * Atomically claims a webhook event for delivery. Returns null if the event
+ * doesn't exist or is already claimed by another worker.
+ */
+async function claimWebhookEvent(webhookEventId: string) {
+  // updateMany compiles to a single UPDATE ... WHERE statement, so concurrent
+  // workers are serialized by the row lock and only one of them matches
+  const { count } = await prisma.webhookEvent.updateMany({
+    where: {
+      id: webhookEventId,
+      OR: [
+        {
+          status: {
+            in: [
+              WebhookEventStatus.PENDING,
+              WebhookEventStatus.RETRY_SCHEDULED,
+            ],
+          },
+        },
+        {
+          // Reclaim events abandoned mid-delivery (e.g. process crash)
+          status: WebhookEventStatus.IN_PROGRESS,
+          lastAttemptAt: {
+            lt: new Date(Date.now() - STALE_IN_PROGRESS_MS),
+          },
+        },
+      ],
+    },
+    data: {
+      status: WebhookEventStatus.IN_PROGRESS,
+      attempts: {
+        increment: 1,
+      },
+      lastAttemptAt: new Date(),
+    },
+  });
+
+  if (count === 0) return null;
+
+  return prisma.webhookEvent.findUnique({
+    where: { id: webhookEventId },
+    include: {
+      webhook: {
+        include: {
+          team: true,
+        },
+      },
+      user: true,
+    },
+  });
+}
+
+/**
  * Sends a webhook event to its destination
  */
 async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
   logger.info('Sending webhook event', { webhookEventId });
 
-  return await prisma.$transaction(
-    async (prisma) => {
-      // Lock the webhook event row to prevent concurrent processing
-      const lockResult = await prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "WebhookEvent" WHERE id = ${webhookEventId} FOR UPDATE
-      `;
+  const webhookEvent = await claimWebhookEvent(webhookEventId);
 
-      if (lockResult.length === 0) {
-        logger.info('Webhook event not found for locking', { webhookEventId });
-        return false;
+  if (!webhookEvent) {
+    logger.info('Webhook event not found or already being processed', {
+      webhookEventId,
+    });
+    return false;
+  }
+
+  const team = webhookEvent.webhook.team;
+  const user = webhookEvent.user;
+
+  logger.info('Processing webhook event', {
+    webhookEventId,
+    webhookId: webhookEvent.webhookId,
+    eventType: webhookEvent.eventType,
+    attempt: webhookEvent.attempts,
+    url: webhookEvent.webhook.url,
+  });
+
+  // Validate webhook URL before attempting to send
+  let url: URL;
+  const isProd = process.env.NODE_ENV === 'production';
+  try {
+    url = new URL(webhookEvent.webhook.url);
+
+    if (isProd) {
+      if (url.protocol !== 'https:') {
+        throw new Error('Only HTTPS URLs are allowed in production');
       }
-
-      let webhookEvent: WebhookEvent & {
-        webhook: Webhook & {
-          team: Team;
-        };
-        user: User | null;
-      };
-      try {
-        webhookEvent = await prisma.webhookEvent.update({
-          where: {
-            id: webhookEventId,
-            status: {
-              in: [
-                WebhookEventStatus.PENDING,
-                WebhookEventStatus.RETRY_SCHEDULED,
-              ],
-            },
-          },
-          data: {
-            status: WebhookEventStatus.IN_PROGRESS,
-            attempts: {
-              increment: 1,
-            },
-            lastAttemptAt: new Date(),
-          },
-          include: {
-            webhook: {
-              include: {
-                team: true,
-              },
-            },
-            user: true,
-          },
-        });
-      } catch (error) {
-        if (
-          error instanceof Prisma.PrismaClientKnownRequestError &&
-          error.code === 'P2025'
-        ) {
-          logger.info('Webhook event not found or already being processed', {
-            webhookEventId,
-          });
-          return false;
-        }
-        // Re-throw other errors
-        throw error;
+    } else {
+      // In development, allow HTTP but warn
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        throw new Error(`Unsupported URL protocol: ${url.protocol}`);
       }
+    }
+  } catch (error) {
+    logger.error('Invalid webhook URL', {
+      webhookEventId,
+      url: webhookEvent.webhook.url,
+      error: error instanceof Error ? error.message : String(error),
+    });
 
-      const team = webhookEvent.webhook.team;
-      const user = webhookEvent.user;
+    await markWebhookAsFailed(webhookEvent.id, 'Invalid webhook URL');
+    return false;
+  }
 
-      logger.info('Processing webhook event', {
-        webhookEventId,
-        webhookId: webhookEvent.webhookId,
+  let delivered: { responseCode: number; responseText: string } | null = null;
+
+  try {
+    // Determine if this is a Discord webhook and format payload accordingly
+    const isDiscord = isDiscordWebhook(webhookEvent.webhook.url);
+    let requestBody: string;
+
+    if (isDiscord) {
+      const discordPayload = formatDiscordPayload({
         eventType: webhookEvent.eventType,
-        attempt: webhookEvent.attempts,
-        url: webhookEvent.webhook.url,
+        payload: webhookEvent.payload as unknown as PayloadType,
+        team,
+        source: webhookEvent.source,
+        user,
       });
+      requestBody = JSON.stringify(discordPayload);
+      logger.info('Using Discord webhook format', { webhookEventId });
+    } else {
+      requestBody = JSON.stringify(webhookEvent.payload);
+    }
 
-      // Validate webhook URL before attempting to send
-      let url: URL;
-      const isProd = process.env.NODE_ENV === 'production';
+    // Calculate signature for webhook verification (except for Discord)
+    const timestamp = Date.now();
+    const signature = !isDiscord
+      ? generateSignature(
+          webhookEvent.webhook.secret,
+          timestamp.toString(),
+          requestBody,
+        )
+      : 'discord-webhook-no-signature'; // Discord doesn't need our signature
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    logger.info('Sending webhook request', {
+      webhookEventId,
+      url: webhookEvent.webhook.url,
+      eventType: webhookEvent.eventType,
+      isDiscordFormat: isDiscord,
+    });
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Lukittu-Webhook/1.0',
+    };
+
+    // Only add signature headers for non-Discord webhooks
+    if (!isDiscord) {
+      headers['X-Lukittu-Signature'] = signature;
+      headers['X-Lukittu-Timestamp'] = timestamp.toString();
+      headers['X-Lukittu-Event'] = webhookEvent.eventType;
+    }
+
+    const response = await fetch(webhookEvent.webhook.url, {
+      method: 'POST',
+      headers,
+      body: requestBody,
+      signal: controller.signal,
+    }).finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    // Mark as delivered if successful
+    if (response.ok) {
+      let responseText: string;
       try {
-        url = new URL(webhookEvent.webhook.url);
-
-        if (isProd) {
-          if (url.protocol !== 'https:') {
-            throw new Error('Only HTTPS URLs are allowed in production');
-          }
-        } else {
-          // In development, allow HTTP but warn
-          if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-            throw new Error(`Unsupported URL protocol: ${url.protocol}`);
-          }
-        }
+        responseText = await response.text();
       } catch (error) {
-        logger.error('Invalid webhook URL', {
+        logger.error('Failed to read response body', {
           webhookEventId,
-          url: webhookEvent.webhook.url,
           error: error instanceof Error ? error.message : String(error),
         });
-
-        await markWebhookAsFailed(
-          prisma,
-          webhookEvent.id,
-          'Invalid webhook URL',
-        );
-        return false;
+        responseText = '(Failed to read response body)';
       }
 
+      logger.info('Webhook delivered successfully', {
+        webhookEventId,
+        statusCode: response.status,
+        webhookId: webhookEvent.webhookId,
+        eventType: webhookEvent.eventType,
+      });
+
+      delivered = { responseCode: response.status, responseText };
+    } else {
+      // Handle non-2xx response
+      let responseText: string;
       try {
-        // Determine if this is a Discord webhook and format payload accordingly
-        const isDiscord = isDiscordWebhook(webhookEvent.webhook.url);
-        let requestBody: string;
-
-        if (isDiscord) {
-          const discordPayload = formatDiscordPayload({
-            eventType: webhookEvent.eventType,
-            payload: webhookEvent.payload as unknown as PayloadType,
-            team,
-            source: webhookEvent.source,
-            user,
-          });
-          requestBody = JSON.stringify(discordPayload);
-          logger.info('Using Discord webhook format', { webhookEventId });
-        } else {
-          requestBody = JSON.stringify(webhookEvent.payload);
-        }
-
-        // Calculate signature for webhook verification (except for Discord)
-        const timestamp = Date.now();
-        const signature = !isDiscord
-          ? generateSignature(
-              webhookEvent.webhook.secret,
-              timestamp.toString(),
-              requestBody,
-            )
-          : 'discord-webhook-no-signature'; // Discord doesn't need our signature
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-
-        logger.info('Sending webhook request', {
-          webhookEventId,
-          url: webhookEvent.webhook.url,
-          eventType: webhookEvent.eventType,
-          isDiscordFormat: isDiscord,
-        });
-
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Lukittu-Webhook/1.0',
-        };
-
-        // Only add signature headers for non-Discord webhooks
-        if (!isDiscord) {
-          headers['X-Lukittu-Signature'] = signature;
-          headers['X-Lukittu-Timestamp'] = timestamp.toString();
-          headers['X-Lukittu-Event'] = webhookEvent.eventType;
-        }
-
-        const response = await fetch(webhookEvent.webhook.url, {
-          method: 'POST',
-          headers,
-          body: requestBody,
-          signal: controller.signal,
-        }).finally(() => {
-          clearTimeout(timeoutId);
-        });
-
-        // Mark as delivered if successful
-        if (response.ok) {
-          let responseText: string;
-          try {
-            responseText = await response.text();
-          } catch (error) {
-            logger.error('Failed to read response body', {
-              webhookEventId,
-              error: error instanceof Error ? error.message : String(error),
-            });
-            responseText = '(Failed to read response body)';
-          }
-
-          logger.info('Webhook delivered successfully', {
-            webhookEventId,
-            statusCode: response.status,
-            webhookId: webhookEvent.webhookId,
-            eventType: webhookEvent.eventType,
-          });
-
-          await prisma.webhookEvent.update({
-            where: {
-              id: webhookEvent.id,
-            },
-            data: {
-              status: WebhookEventStatus.DELIVERED,
-              responseCode: response.status,
-              responseBody: responseText.substring(0, 1000), // Limit response size
-              completedAt: new Date(),
-              errorMessage: null,
-              nextRetryAt: null,
-            },
-          });
-
-          return true;
-        } else {
-          // Handle non-2xx response
-          let responseText: string;
-          try {
-            responseText = await response.text();
-          } catch (error) {
-            logger.error('Failed to read error response body', {
-              webhookEventId,
-              error: error instanceof Error ? error.message : String(error),
-            });
-            responseText = '(Failed to read error response)';
-          }
-
-          throw new Error(
-            `Webhook responded with status code: ${response.status}, body: ${responseText.substring(0, 200)}`,
-          );
-        }
+        responseText = await response.text();
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-
-        logger.info('Webhook delivery failed', {
+        logger.error('Failed to read error response body', {
           webhookEventId,
-          webhookId: webhookEvent.webhookId,
-          attempt: webhookEvent.attempts,
-          error: errorMessage,
-          stack: error instanceof Error ? error.stack : undefined,
+          error: error instanceof Error ? error.message : String(error),
         });
-
-        // Calculate next retry time using exponential backoff
-        const maxRetries = 5;
-
-        if (webhookEvent.attempts >= maxRetries) {
-          logger.error('Webhook max retries reached, marking as failed', {
-            webhookEventId,
-            webhookId: webhookEvent.webhookId,
-            attempts: webhookEvent.attempts,
-            maxRetries,
-          });
-
-          await markWebhookAsFailed(prisma, webhookEvent.id, errorMessage);
-          return false;
-        }
-
-        const retryDelay = calculateRetryDelay(webhookEvent.attempts);
-        const nextRetryAt = new Date(Date.now() + retryDelay * 1000);
-
-        logger.info('Scheduling webhook retry', {
-          webhookEventId,
-          webhookId: webhookEvent.webhookId,
-          attempt: webhookEvent.attempts,
-          nextRetryAt: nextRetryAt.toISOString(),
-          retryDelaySeconds: retryDelay,
-        });
-
-        await prisma.webhookEvent.update({
-          where: {
-            id: webhookEvent.id,
-          },
-          data: {
-            status: WebhookEventStatus.RETRY_SCHEDULED,
-            errorMessage: errorMessage.substring(0, 255),
-            nextRetryAt,
-          },
-        });
-
-        return false;
+        responseText = '(Failed to read error response)';
       }
+
+      throw new Error(
+        `Webhook responded with status code: ${response.status}, body: ${responseText.substring(0, 200)}`,
+      );
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    logger.info('Webhook delivery failed', {
+      webhookEventId,
+      webhookId: webhookEvent.webhookId,
+      attempt: webhookEvent.attempts,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    // Calculate next retry time using exponential backoff
+    const maxRetries = 5;
+
+    if (webhookEvent.attempts >= maxRetries) {
+      logger.error('Webhook max retries reached, marking as failed', {
+        webhookEventId,
+        webhookId: webhookEvent.webhookId,
+        attempts: webhookEvent.attempts,
+        maxRetries,
+      });
+
+      await markWebhookAsFailed(webhookEvent.id, errorMessage);
+      return false;
+    }
+
+    const retryDelay = calculateRetryDelay(webhookEvent.attempts);
+    const nextRetryAt = new Date(Date.now() + retryDelay * 1000);
+
+    logger.info('Scheduling webhook retry', {
+      webhookEventId,
+      webhookId: webhookEvent.webhookId,
+      attempt: webhookEvent.attempts,
+      nextRetryAt: nextRetryAt.toISOString(),
+      retryDelaySeconds: retryDelay,
+    });
+
+    await prisma.webhookEvent.updateMany({
+      where: {
+        id: webhookEvent.id,
+        status: WebhookEventStatus.IN_PROGRESS,
+      },
+      data: {
+        status: WebhookEventStatus.RETRY_SCHEDULED,
+        errorMessage: errorMessage.substring(0, 255),
+        nextRetryAt,
+      },
+    });
+
+    return false;
+  }
+
+  // Recorded outside the try/catch above so a database error here can never
+  // be mistaken for a delivery failure and trigger a duplicate send
+  await prisma.webhookEvent.updateMany({
+    where: {
+      id: webhookEvent.id,
+      status: WebhookEventStatus.IN_PROGRESS,
     },
-    {
-      maxWait: 15000,
-      timeout: 30000,
-      isolationLevel: 'Serializable',
+    data: {
+      status: WebhookEventStatus.DELIVERED,
+      responseCode: delivered.responseCode,
+      responseBody: delivered.responseText.substring(0, 1000), // Limit response size
+      completedAt: new Date(),
+      errorMessage: null,
+      nextRetryAt: null,
     },
-  );
+  });
+
+  return true;
 }
 
 /**
@@ -429,13 +426,12 @@ async function sendWebhookEvent(webhookEventId: string): Promise<boolean> {
  * Only deactivates the webhook if it has multiple consecutive failed events
  */
 async function markWebhookAsFailed(
-  tx: Prisma.TransactionClient,
   webhookEventId: string,
   errorMessage: string,
 ): Promise<void> {
   let webhookId: string;
   try {
-    const webhookEvent = await tx.webhookEvent.update({
+    const webhookEvent = await prisma.webhookEvent.update({
       where: { id: webhookEventId },
       data: {
         status: WebhookEventStatus.FAILED,
@@ -460,7 +456,7 @@ async function markWebhookAsFailed(
   }
 
   // Count recent failures for this webhook (last 48 hours)
-  const recentFailureCount = await tx.webhookEvent.count({
+  const recentFailureCount = await prisma.webhookEvent.count({
     where: {
       webhookId: webhookId,
       status: WebhookEventStatus.FAILED,
@@ -471,7 +467,7 @@ async function markWebhookAsFailed(
   });
 
   // Check if there's been any successful delivery in the last 48 hours
-  const recentSuccessCount = await tx.webhookEvent.count({
+  const recentSuccessCount = await prisma.webhookEvent.count({
     where: {
       webhookId: webhookId,
       status: WebhookEventStatus.DELIVERED,
@@ -490,7 +486,7 @@ async function markWebhookAsFailed(
       failureThreshold,
     });
 
-    await tx.webhook.update({
+    await prisma.webhook.update({
       where: { id: webhookId },
       data: { active: false },
     });
@@ -529,6 +525,13 @@ export async function processWebhookRetries(): Promise<number> {
               attempts: 0,
               createdAt: {
                 lte: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+              },
+            },
+            {
+              // Include IN_PROGRESS events abandoned mid-delivery (e.g. process crash)
+              status: WebhookEventStatus.IN_PROGRESS,
+              lastAttemptAt: {
+                lt: new Date(Date.now() - STALE_IN_PROGRESS_MS),
               },
             },
           ],
