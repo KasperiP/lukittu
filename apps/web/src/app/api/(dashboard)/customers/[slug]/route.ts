@@ -214,10 +214,6 @@ export async function PUT(
                 where: {
                   id: customerId,
                 },
-                include: {
-                  address: true,
-                  discordAccount: true,
-                },
               },
             },
           },
@@ -253,8 +249,6 @@ export async function PUT(
         { status: HttpStatus.NOT_FOUND },
       );
     }
-
-    const existingCustomer = team.customers[0];
 
     let discordUser: DiscordUser | null = null;
     if (discordId) {

@@ -532,10 +532,6 @@ export async function PUT(
         id: customerId,
         teamId,
       },
-      include: {
-        address: true,
-        discordAccount: true,
-      },
     });
 
     if (!existingCustomer) {
