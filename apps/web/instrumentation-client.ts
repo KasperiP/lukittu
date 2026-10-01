@@ -3,6 +3,10 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from '@sentry/nextjs';
+import {
+  isThirdPartyScriptError,
+  THIRD_PARTY_SCRIPT_URL_PATTERNS,
+} from './src/lib/utils/sentry-helpers';
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 
@@ -36,4 +40,13 @@ Sentry.init({
   enabled: process.env.NODE_ENV !== 'development',
 
   enableLogs: true,
+
+  // Ignore errors originating from browser extensions / injected scripts
+  // (e.g. app:///executors/*.js), which are outside of our control.
+  denyUrls: THIRD_PARTY_SCRIPT_URL_PATTERNS,
+
+  beforeSend(event) {
+    if (isThirdPartyScriptError(event)) return null;
+    return event;
+  },
 });
