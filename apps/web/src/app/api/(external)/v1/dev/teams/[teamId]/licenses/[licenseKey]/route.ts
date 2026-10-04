@@ -10,6 +10,7 @@ import {
   AuditLogTargetType,
   createWebhookEvents,
   deleteLicensePayload,
+  detachRequestLogs,
   generateHMAC,
   logger,
   prisma,
@@ -408,6 +409,8 @@ export async function DELETE(
         },
       );
     }
+
+    await detachRequestLogs('licenseId', [license.id]);
 
     let webhookEventIds: string[] = [];
 

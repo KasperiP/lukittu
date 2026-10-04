@@ -21,6 +21,7 @@ import {
   AuditLogSource,
   AuditLogTargetType,
   createWebhookEvents,
+  detachRequestLogs,
   generateMD5Hash,
   logger,
   prisma,
@@ -456,6 +457,17 @@ export async function PUT(
     }
 
     // Handle existing file deletion
+    if (file || !keepExistingFile) {
+      const replacedReleaseFile = await prisma.releaseFile.findUnique({
+        where: { releaseId, release: { teamId: team.id } },
+        select: { id: true },
+      });
+
+      if (replacedReleaseFile) {
+        await detachRequestLogs('releaseFileId', [replacedReleaseFile.id]);
+      }
+    }
+
     await prisma.$transaction(
       async (prisma) => {
         const existingReleaseFile = await prisma.releaseFile.findUnique({

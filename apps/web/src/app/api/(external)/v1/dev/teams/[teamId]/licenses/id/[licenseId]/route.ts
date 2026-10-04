@@ -16,6 +16,7 @@ import {
   createWebhookEvents,
   decryptString,
   deleteLicensePayload,
+  detachRequestLogs,
   encryptString,
   generateHMAC,
   LicenseExpirationStart,
@@ -845,6 +846,8 @@ export async function DELETE(
         },
       );
     }
+
+    await detachRequestLogs('licenseId', [license.id]);
 
     let webhookEventIds: string[] = [];
 

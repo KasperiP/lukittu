@@ -19,6 +19,7 @@ import {
   Customer,
   CustomerDiscordAccount,
   deleteCustomerPayload,
+  detachRequestLogs,
   logger,
   Metadata,
   prisma,
@@ -510,6 +511,8 @@ export async function DELETE(
     }
 
     const customerToDelete = team.customers[0];
+
+    await detachRequestLogs('customerId', [customerToDelete.id]);
 
     let webhookEventIds: string[] = [];
 

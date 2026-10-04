@@ -26,6 +26,7 @@ import {
   AuditLogTargetType,
   createWebhookEvents,
   deleteReleasePayload,
+  detachRequestLogs,
   generateMD5Hash,
   logger,
   prisma,
@@ -294,6 +295,17 @@ export async function PUT(
           },
           { status: HttpStatus.BAD_REQUEST },
         );
+      }
+    }
+
+    if (file || !keepExistingFile) {
+      const replacedReleaseFile = await prisma.releaseFile.findUnique({
+        where: { releaseId, release: { teamId: team.id } },
+        select: { id: true },
+      });
+
+      if (replacedReleaseFile) {
+        await detachRequestLogs('releaseFileId', [replacedReleaseFile.id]);
       }
     }
 
@@ -584,6 +596,11 @@ export async function DELETE(
     }
 
     const release = team.releases[0];
+
+    await detachRequestLogs('releaseId', [release.id]);
+    if (release.file) {
+      await detachRequestLogs('releaseFileId', [release.file.id]);
+    }
 
     let webhookEventIds: string[] = [];
 

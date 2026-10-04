@@ -17,6 +17,7 @@ import {
   Customer,
   decryptString,
   deleteLicensePayload,
+  detachRequestLogs,
   encryptString,
   generateHMAC,
   License,
@@ -535,6 +536,8 @@ export async function DELETE(
         { status: HttpStatus.NOT_FOUND },
       );
     }
+
+    await detachRequestLogs('licenseId', [license.id]);
 
     let webhookEventIds: string[] = [];
 

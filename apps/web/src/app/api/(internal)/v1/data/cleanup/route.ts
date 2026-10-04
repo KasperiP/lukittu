@@ -1,5 +1,5 @@
 import { HttpStatus } from '@/types/http-status';
-import { logger, prisma } from '@lukittu/shared';
+import { detachRequestLogs, logger, prisma } from '@lukittu/shared';
 import crypto from 'crypto';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -115,21 +115,67 @@ export async function POST() {
       };
 
       try {
+        let danglingCustomerCutoffDate: Date | null = null;
+        let expiredLicenseCutoffDate: Date | null = null;
+
+        if (danglingCustomerCleanupDays && danglingCustomerCleanupDays > 0) {
+          danglingCustomerCutoffDate = new Date();
+          danglingCustomerCutoffDate.setDate(
+            danglingCustomerCutoffDate.getDate() - danglingCustomerCleanupDays,
+          );
+
+          // Detach request logs outside the transaction; the customer delete
+          // would otherwise rewrite all of them and exceed the timeout.
+          const danglingCustomers = await prisma.customer.findMany({
+            where: {
+              teamId,
+              updatedAt: {
+                lt: danglingCustomerCutoffDate,
+              },
+              licenses: {
+                none: {},
+              },
+            },
+            select: { id: true },
+          });
+
+          await detachRequestLogs(
+            'customerId',
+            danglingCustomers.map((customer) => customer.id),
+          );
+        }
+
+        if (expiredLicenseCleanupDays && expiredLicenseCleanupDays > 0) {
+          expiredLicenseCutoffDate = new Date();
+          expiredLicenseCutoffDate.setDate(
+            expiredLicenseCutoffDate.getDate() - expiredLicenseCleanupDays,
+          );
+
+          // Detach request logs outside the transaction; the license delete
+          // would otherwise rewrite all of them and exceed the timeout.
+          const expiredLicenses = await prisma.license.findMany({
+            where: {
+              teamId,
+              expirationDate: {
+                lt: expiredLicenseCutoffDate,
+              },
+            },
+            select: { id: true },
+          });
+
+          await detachRequestLogs(
+            'licenseId',
+            expiredLicenses.map((license) => license.id),
+          );
+        }
+
         await prisma.$transaction(
           async (tx) => {
-            if (
-              danglingCustomerCleanupDays &&
-              danglingCustomerCleanupDays > 0
-            ) {
-              const cutoffDate = new Date();
-              cutoffDate.setDate(
-                cutoffDate.getDate() - danglingCustomerCleanupDays,
-              );
-
+            if (danglingCustomerCutoffDate) {
               logger.info('Cleaning up dangling customers', {
                 cleanupId,
                 teamId,
-                cutoffDate: cutoffDate.toISOString(),
+                cutoffDate: danglingCustomerCutoffDate.toISOString(),
                 danglingCustomerCleanupDays,
               });
 
@@ -137,7 +183,7 @@ export async function POST() {
                 where: {
                   teamId,
                   updatedAt: {
-                    lt: cutoffDate,
+                    lt: danglingCustomerCutoffDate,
                   },
                   licenses: {
                     none: {},
@@ -153,16 +199,11 @@ export async function POST() {
               });
             }
 
-            if (expiredLicenseCleanupDays && expiredLicenseCleanupDays > 0) {
-              const cutoffDate = new Date();
-              cutoffDate.setDate(
-                cutoffDate.getDate() - expiredLicenseCleanupDays,
-              );
-
+            if (expiredLicenseCutoffDate) {
               logger.info('Cleaning up expired licenses', {
                 cleanupId,
                 teamId,
-                cutoffDate: cutoffDate.toISOString(),
+                cutoffDate: expiredLicenseCutoffDate.toISOString(),
                 expiredLicenseCleanupDays,
               });
 
@@ -170,7 +211,7 @@ export async function POST() {
                 where: {
                   teamId,
                   expirationDate: {
-                    lt: cutoffDate,
+                    lt: expiredLicenseCutoffDate,
                   },
                 },
               });

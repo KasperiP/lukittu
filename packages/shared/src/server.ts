@@ -7,6 +7,7 @@ export * from './logging/logger';
 export * from './prisma/prisma';
 export * from './pubsub';
 export * from './redis/redis';
+export * from './request-logs/detach-request-logs';
 export * from './security/crypto';
 export * from './security/totp';
 export * from './webhooks/discord-webhooks';

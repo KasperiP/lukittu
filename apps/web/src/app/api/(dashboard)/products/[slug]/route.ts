@@ -19,6 +19,7 @@ import {
   AuditLogTargetType,
   createWebhookEvents,
   deleteProductPayload,
+  detachRequestLogs,
   logger,
   Metadata,
   prisma,
@@ -246,6 +247,17 @@ export async function DELETE(
       );
     }
 
+    const fileIds = product.releases
+      .map((release) => release.file?.id)
+      .filter(Boolean) as string[];
+
+    await detachRequestLogs('productId', [product.id]);
+    await detachRequestLogs(
+      'releaseId',
+      product.releases.map((release) => release.id),
+    );
+    await detachRequestLogs('releaseFileId', fileIds);
+
     let webhookEventIds: string[] = [];
 
     const response = await prisma.$transaction(async (prisma) => {
@@ -255,10 +267,6 @@ export async function DELETE(
           teamId: selectedTeam,
         },
       });
-
-      const fileIds = product.releases
-        .map((release) => release.file?.id)
-        .filter(Boolean) as string[];
 
       logger.info(
         `Product ${product.id} deleted, deleting ${fileIds.length} files`,

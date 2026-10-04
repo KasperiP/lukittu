@@ -16,6 +16,7 @@ import {
   createCustomerPayload,
   createWebhookEvents,
   deleteCustomerPayload,
+  detachRequestLogs,
   logger,
   prisma,
   regex,
@@ -894,6 +895,8 @@ export async function DELETE(
         },
       );
     }
+
+    await detachRequestLogs('customerId', [customer.id]);
 
     let webhookEventIds: string[] = [];
 

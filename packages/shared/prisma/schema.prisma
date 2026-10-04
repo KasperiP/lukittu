@@ -534,6 +534,11 @@ model Metadata {
     blacklist   Blacklist? @relation(fields: [blacklistId], references: [id], onDelete: Cascade)
 
     @@index([teamId])
+    @@index([customerId])
+    @@index([licenseId])
+    @@index([productId])
+    @@index([releaseId])
+    @@index([blacklistId])
 }
 
 model License {
