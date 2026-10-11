@@ -468,29 +468,23 @@ export async function PUT(
       }
     }
 
-    await prisma.$transaction(
-      async (prisma) => {
-        const existingReleaseFile = await prisma.releaseFile.findUnique({
-          where: { releaseId, release: { teamId: team.id } },
-        });
+    const existingReleaseFile = await prisma.releaseFile.findUnique({
+      where: { releaseId, release: { teamId: team.id } },
+    });
 
-        const newFileUploaded = file && existingReleaseFile;
-        const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
-        if (newFileUploaded || fileDeleted) {
-          await deleteFileFromPrivateS3(
-            process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
-            existingReleaseFile.key,
-          );
+    const newFileUploaded = file && existingReleaseFile;
+    const fileDeleted = !file && existingReleaseFile && !keepExistingFile;
+    if (newFileUploaded || fileDeleted) {
+      await prisma.releaseFile.delete({
+        where: { releaseId },
+      });
 
-          await prisma.releaseFile.delete({
-            where: { releaseId },
-          });
-        }
-      },
-      {
-        timeout: 20000,
-      },
-    );
+      // Deleted before the new upload since it may reuse the same key.
+      await deleteFileFromPrivateS3(
+        process.env.PRIVATE_OBJECT_STORAGE_BUCKET_NAME!,
+        existingReleaseFile.key,
+      );
+    }
 
     // File processing
     let fileKey: string | null = null;
