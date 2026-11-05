@@ -35,6 +35,7 @@ export const verifyApiAuthorization = async (
         apiKeys: {
           where: {
             key: hashedProvidedKey,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
           omit: {
             key: false,
