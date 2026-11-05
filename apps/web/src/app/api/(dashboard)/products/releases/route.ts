@@ -246,6 +246,7 @@ export async function POST(request: NextRequest) {
           id: {
             in: licenseIds,
           },
+          teamId: team.id,
         },
       });
 
@@ -596,7 +597,11 @@ export async function GET(
           include: {
             product: true,
             file: true,
-            allowedLicenses: true,
+            allowedLicenses: {
+              where: {
+                teamId: selectedTeam,
+              },
+            },
             metadata: true,
             branch: true,
           },

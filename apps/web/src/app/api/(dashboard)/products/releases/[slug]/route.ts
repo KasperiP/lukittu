@@ -276,6 +276,7 @@ export async function PUT(
           id: {
             in: licenseIds,
           },
+          teamId: team.id,
         },
       });
 

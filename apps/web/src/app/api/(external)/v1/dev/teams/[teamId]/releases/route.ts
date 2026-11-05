@@ -877,7 +877,11 @@ export async function GET(
         include: {
           product: true,
           file: true,
-          allowedLicenses: true,
+          allowedLicenses: {
+            where: {
+              teamId: team.id,
+            },
+          },
           metadata: true,
           branch: true,
         },
