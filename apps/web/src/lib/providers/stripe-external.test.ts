@@ -763,11 +763,47 @@ describe('Stripe Integration', () => {
       expect(result).toBeDefined();
       expect(result).toEqual(updatedLicense);
       expect(prismaMock.license.update).toHaveBeenCalledWith({
-        where: { id: '123e4567-e89b-12d3-a456-426614174000' },
+        where: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          teamId: mockTeam.id,
+        },
         data: {
           expirationDate: expect.any(Date),
         },
       });
+    });
+
+    test('does not renew a license that belongs to another team', async () => {
+      const invoice = {
+        ...mockInvoice,
+        billing_reason: 'subscription_cycle' as Stripe.Invoice.BillingReason,
+      };
+
+      (mockStripe.subscriptions.retrieve as jest.Mock).mockResolvedValue({
+        ...mockSubscription,
+        metadata: {
+          lukittu_license_id: '123e4567-e89b-12d3-a456-426614174000',
+        },
+        current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
+      });
+
+      prismaMock.license.findUnique.mockResolvedValue(null);
+
+      const result = await handleInvoicePaid(
+        'test-request-id',
+        invoice,
+        mockTeam,
+        mockStripe,
+      );
+
+      expect(result).toBeUndefined();
+      expect(prismaMock.license.findUnique).toHaveBeenCalledWith({
+        where: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          teamId: mockTeam.id,
+        },
+      });
+      expect(prismaMock.license.update).not.toHaveBeenCalled();
     });
 
     test('skips if no billing reason', async () => {
@@ -1077,11 +1113,39 @@ describe('Stripe Integration', () => {
       );
 
       expect(prismaMock.license.update).toHaveBeenCalledWith({
-        where: { id: '123e4567-e89b-12d3-a456-426614174000' },
+        where: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          teamId: mockTeam.id,
+        },
         data: {
           expirationDate: expect.any(Date),
         },
       });
+    });
+
+    test('does not expire a license that belongs to another team', async () => {
+      const subscription = {
+        ...mockSubscription,
+        metadata: {
+          lukittu_license_id: '123e4567-e89b-12d3-a456-426614174000',
+        },
+      };
+
+      prismaMock.license.findUnique.mockResolvedValue(null);
+
+      await handleSubscriptionDeleted(
+        'test-request-id',
+        subscription,
+        mockTeam,
+      );
+
+      expect(prismaMock.license.findUnique).toHaveBeenCalledWith({
+        where: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          teamId: mockTeam.id,
+        },
+      });
+      expect(prismaMock.license.update).not.toHaveBeenCalled();
     });
 
     test('skips if no license ID in metadata', async () => {

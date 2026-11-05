@@ -554,7 +554,7 @@ export const handleInvoicePaid = async (
       }
 
       const license = await prisma.license.findUnique({
-        where: { id: lukittuLicenseId },
+        where: { id: lukittuLicenseId, teamId: team.id },
       });
 
       if (!license) {
@@ -571,7 +571,7 @@ export const handleInvoicePaid = async (
       }
 
       const updatedLicense = await prisma.license.update({
-        where: { id: lukittuLicenseId },
+        where: { id: lukittuLicenseId, teamId: team.id },
         data: {
           expirationDate: new Date(subscription.current_period_end * 1000),
         },
@@ -656,6 +656,7 @@ export const handleSubscriptionDeleted = async (
     const license = await prisma.license.findUnique({
       where: {
         id: licenseId,
+        teamId: team.id,
       },
     });
 
@@ -675,6 +676,7 @@ export const handleSubscriptionDeleted = async (
     const updatedLicense = await prisma.license.update({
       where: {
         id: licenseId,
+        teamId: team.id,
       },
       data: {
         expirationDate: new Date(),
